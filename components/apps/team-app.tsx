@@ -1,145 +1,155 @@
 "use client"
 
-import { Github, Linkedin, Mail, Server } from "lucide-react"
+import { useState, useEffect } from "react"
+import { motion } from "framer-motion"
+import { Github, Linkedin, Mail, Server, Users, Loader2 } from "lucide-react"
+import { api } from "@/lib/api-client"
 
-// Pre-generated deterministic instance IDs to avoid SSR hydration mismatch
-// (Math.random() in render causes server/client HTML mismatch)
-const instanceIds = [
-  "0f3a8b2c",
-  "1e7d4f9a",
-  "2c6b1e8d",
-  "3a9f5c0b",
-  "4b2e7d1f",
-  "5d0c8a3e",
-]
+interface TeamMember {
+  id: string
+  name: string
+  role: string
+  skills: string[]
+  bio?: string
+  email?: string
+  linkedin?: string
+  github?: string
+  photoUrl?: string
+  status: "running" | "stopped"
+  order: number
+}
 
-const teamMembers = [
-  {
-    name: "Alex Chen",
-    role: "President",
-    skills: ["AWS Solutions Architect", "Cloud Security"],
-    avatar: "AC",
-    status: "running",
-  },
-  {
-    name: "Sarah Johnson",
-    role: "Vice President",
-    skills: ["DevOps", "Kubernetes"],
-    avatar: "SJ",
-    status: "running",
-  },
-  {
-    name: "Mike Williams",
-    role: "Technical Lead",
-    skills: ["Serverless", "Lambda"],
-    avatar: "MW",
-    status: "running",
-  },
-  {
-    name: "Emily Davis",
-    role: "Events Coordinator",
-    skills: ["Project Management", "Marketing"],
-    avatar: "ED",
-    status: "running",
-  },
-  {
-    name: "James Wilson",
-    role: "Workshop Lead",
-    skills: ["EC2", "S3", "RDS"],
-    avatar: "JW",
-    status: "stopped",
-  },
-  {
-    name: "Lisa Thompson",
-    role: "Content Creator",
-    skills: ["Technical Writing", "Design"],
-    avatar: "LT",
-    status: "running",
-  },
-]
+const container = { hidden: {}, show: { transition: { staggerChildren: 0.07 } } }
+const item = { hidden: { opacity: 0, y: 18 }, show: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 260, damping: 22 } } }
+
+function initials(name: string) {
+  return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
+}
 
 export function TeamApp() {
+  const [members, setMembers] = useState<TeamMember[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    api.team.list()
+      .then(({ members: m }) => {
+        const sorted = (m as TeamMember[]).sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+        setMembers(sorted)
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
+  const running = members.filter((m) => m.status === "running").length
+
+  if (loading) return (
+    <div className="flex h-60 items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin" style={{ color: "#6B4FE8" }} />
+    </div>
+  )
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="rounded-xl border border-border bg-card p-4">
+    <motion.div className="space-y-5" variants={container} initial="hidden" animate="show">
+      <motion.div variants={item} className="neu-raised rounded-2xl p-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-semibold text-foreground">Cloud Instances</h2>
-            <p className="text-sm text-muted-foreground">Our team members powering the cloud</p>
+            <h2 className="text-lg font-bold" style={{ color: "#1E1060" }}>Cloud Instances</h2>
+            <p className="text-sm" style={{ color: "#7B6FC0" }}>Our team members powering the cloud</p>
           </div>
-          <div className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-1.5 text-sm">
+          <div className="neu-inset-sm flex items-center gap-2 rounded-xl px-3 py-1.5 text-sm">
             <span className="h-2 w-2 rounded-full bg-green-500" />
-            <span className="text-muted-foreground">{teamMembers.filter(m => m.status === "running").length} Running</span>
+            <span style={{ color: "#7B6FC0" }}>{running} Running</span>
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      {/* Team Grid */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {teamMembers.map((member, index) => (
-          <div
-            key={member.name}
-            className="group rounded-xl border border-border bg-card p-4 transition-all hover:border-primary/40 hover:shadow-lg hover:shadow-primary/10"
-          >
-            {/* Instance Header */}
-            <div className="mb-3 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-secondary text-lg font-bold text-white shadow-md shadow-primary/30">
-                  {member.avatar}
+      {members.length === 0 ? (
+        <motion.div variants={item} className="neu-raised-sm rounded-2xl p-12 text-center">
+          <Users className="mx-auto mb-3 h-12 w-12 opacity-30" style={{ color: "#6B4FE8" }} />
+          <p className="font-medium" style={{ color: "#7B6FC0" }}>No team members yet</p>
+          <p className="text-sm mt-1" style={{ color: "#9B8FC8" }}>Add team members via the Admin panel.</p>
+        </motion.div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {members.map((member, index) => (
+            <motion.div
+              key={member.id}
+              variants={item}
+              className="neu-raised-sm rounded-2xl p-5"
+              whileHover={{ y: -5, boxShadow: "8px 8px 22px #C2BAF0, -8px -8px 22px #FFFFFF" }}
+              transition={{ type: "spring" as const, stiffness: 300 }}
+            >
+              <div className="mb-3 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {member.photoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={member.photoUrl} alt={member.name}
+                      className="h-12 w-12 rounded-2xl object-cover"
+                      style={{ boxShadow: "4px 4px 12px rgba(107,79,232,0.30)" }} />
+                  ) : (
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl text-lg font-bold text-white"
+                      style={{ background: "linear-gradient(135deg,#6B4FE8,#B8A4FF)", boxShadow: "4px 4px 12px rgba(107,79,232,0.30)" }}>
+                      {initials(member.name)}
+                    </div>
+                  )}
+                  <div>
+                    <h3 className="font-semibold text-sm" style={{ color: "#1E1060" }}>{member.name}</h3>
+                    <p className="text-xs font-medium" style={{ color: "#6B4FE8" }}>{member.role}</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold text-foreground">{member.name}</h3>
-                  <p className="text-sm text-primary">{member.role}</p>
+                <div className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium"
+                  style={{
+                    background: member.status === "running" ? "rgba(80,200,138,0.12)" : "rgba(255,153,0,0.12)",
+                    color: member.status === "running" ? "#3AAA72" : "#E88800",
+                  }}>
+                  <span className="h-1.5 w-1.5 rounded-full"
+                    style={{ background: member.status === "running" ? "#50C88A" : "#FF9900" }} />
+                  {member.status}
                 </div>
               </div>
-              <div className={`flex items-center gap-1.5 rounded-full px-2 py-1 text-xs ${
-                member.status === "running"
-                  ? "bg-green-500/10 text-green-600"
-                  : "bg-yellow-500/10 text-yellow-600"
-              }`}>
-                <span className={`h-1.5 w-1.5 rounded-full ${
-                  member.status === "running" ? "bg-green-500 animate-pulse" : "bg-yellow-500"
-                }`} />
-                {member.status}
+
+              <div className="neu-inset-sm mb-3 flex items-center gap-2 rounded-xl px-3 py-1.5">
+                <Server className="h-3.5 w-3.5" style={{ color: "#9B8FC8" }} />
+                <code className="text-xs" style={{ color: "#9B8FC8" }}>i-{member.id.slice(0, 8)}</code>
               </div>
-            </div>
 
-            {/* Instance ID — deterministic, no Math.random() in render */}
-            <div className="mb-3 flex items-center gap-2 rounded-lg bg-muted/30 px-3 py-1.5">
-              <Server className="h-3.5 w-3.5 text-muted-foreground" />
-              <code className="text-xs text-muted-foreground">
-                i-{instanceIds[index]}
-              </code>
-            </div>
+              {member.skills?.length > 0 && (
+                <div className="mb-3 flex flex-wrap gap-1.5">
+                  {member.skills.map((skill) => (
+                    <span key={skill} className="neu-tag rounded-lg px-2 py-0.5 text-xs font-medium" style={{ color: "#6B4FE8" }}>
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              )}
 
-            {/* Skills */}
-            <div className="mb-3 flex flex-wrap gap-1.5">
-              {member.skills.map((skill) => (
-                <span
-                  key={skill}
-                  className="rounded-md bg-primary/10 px-2 py-0.5 text-xs text-primary font-medium"
-                >
-                  {skill}
-                </span>
-              ))}
-            </div>
-
-            {/* Actions */}
-            <div className="flex gap-2 border-t border-border pt-3">
-              <button className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted/50 text-muted-foreground transition-all hover:bg-primary/10 hover:text-primary">
-                <Github className="h-4 w-4" />
-              </button>
-              <button className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted/50 text-muted-foreground transition-all hover:bg-primary/10 hover:text-primary">
-                <Linkedin className="h-4 w-4" />
-              </button>
-              <button className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted/50 text-muted-foreground transition-all hover:bg-primary/10 hover:text-primary">
-                <Mail className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
+              <div className="flex gap-2 border-t pt-3" style={{ borderColor: "#D0C8F0" }}>
+                {member.github && (
+                  <motion.a href={member.github} target="_blank" rel="noopener noreferrer"
+                    className="neu-btn flex h-8 w-8 items-center justify-center rounded-xl"
+                    whileHover={{ scale: 1.12, y: -2 }} whileTap={{ scale: 0.92 }}>
+                    <Github className="h-4 w-4" style={{ color: "#7B6FC0" }} />
+                  </motion.a>
+                )}
+                {member.linkedin && (
+                  <motion.a href={member.linkedin} target="_blank" rel="noopener noreferrer"
+                    className="neu-btn flex h-8 w-8 items-center justify-center rounded-xl"
+                    whileHover={{ scale: 1.12, y: -2 }} whileTap={{ scale: 0.92 }}>
+                    <Linkedin className="h-4 w-4" style={{ color: "#7B6FC0" }} />
+                  </motion.a>
+                )}
+                {member.email && (
+                  <motion.a href={`mailto:${member.email}`}
+                    className="neu-btn flex h-8 w-8 items-center justify-center rounded-xl"
+                    whileHover={{ scale: 1.12, y: -2 }} whileTap={{ scale: 0.92 }}>
+                    <Mail className="h-4 w-4" style={{ color: "#7B6FC0" }} />
+                  </motion.a>
+                )}
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      )}
+    </motion.div>
   )
 }

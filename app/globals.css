@@ -4,96 +4,55 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* === AWS Cloud Club NMIET — Indigo/Violet Brand Palette === */
-  --background: oklch(0.97 0.01 270);
-  --foreground: oklch(0.18 0.04 275);
-  --card: oklch(0.99 0.005 270);
-  --card-foreground: oklch(0.18 0.04 275);
-  --popover: oklch(0.99 0.005 270);
-  --popover-foreground: oklch(0.18 0.04 275);
+  /* === AWS Cloud Club NMIET — Neumorphic Palette === */
+  /* Primary derived from logo background #6B4FE8 */
 
-  /* Primary: deep indigo-violet matching logo #5B4FE8 */
-  --primary: oklch(0.58 0.24 275);
-  --primary-foreground: oklch(0.99 0 0);
+  --neu-base: #EAE6FF;
+  --neu-dark: #C2BAF0;
+  --neu-light: #FFFFFF;
 
-  /* Secondary: bright violet-pink accent */
-  --secondary: oklch(0.65 0.20 310);
-  --secondary-foreground: oklch(0.99 0 0);
+  --background: #EAE6FF;
+  --foreground: #1E1060;
+  --card: #EAE6FF;
+  --card-foreground: #1E1060;
+  --popover: #EAE6FF;
+  --popover-foreground: #1E1060;
 
-  --muted: oklch(0.94 0.02 275);
-  --muted-foreground: oklch(0.52 0.04 275);
-  --accent: oklch(0.70 0.18 290);
-  --accent-foreground: oklch(0.99 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.88 0.03 275);
-  --input: oklch(0.92 0.02 275);
-  --ring: oklch(0.58 0.24 275);
+  /* Logo purple */
+  --primary: #6B4FE8;
+  --primary-foreground: #FFFFFF;
 
-  /* Charts */
-  --chart-1: oklch(0.58 0.24 275);
-  --chart-2: oklch(0.65 0.20 310);
-  --chart-3: oklch(0.60 0.18 240);
-  --chart-4: oklch(0.68 0.15 200);
-  --chart-5: oklch(0.72 0.14 230);
+  /* Logo lavender accent (#B8A4FF) */
+  --secondary: #B8A4FF;
+  --secondary-foreground: #1E1060;
 
-  --radius: 0.75rem;
+  --muted: #D8D2F8;
+  --muted-foreground: #7B6FC0;
+  --accent: #8B6FFF;
+  --accent-foreground: #FFFFFF;
+  --destructive: #E85555;
+  --destructive-foreground: #FFFFFF;
+  --border: #D0C8F0;
+  --input: #E2DEFF;
+  --ring: #6B4FE8;
 
-  /* Sidebar */
-  --sidebar: oklch(0.98 0.005 270);
-  --sidebar-foreground: oklch(0.18 0.04 275);
-  --sidebar-primary: oklch(0.58 0.24 275);
-  --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.65 0.20 310);
-  --sidebar-accent-foreground: oklch(0.99 0 0);
-  --sidebar-border: oklch(0.88 0.03 275);
-  --sidebar-ring: oklch(0.58 0.24 275);
+  /* Chart colors */
+  --chart-1: #6B4FE8;
+  --chart-2: #B8A4FF;
+  --chart-3: #5BA8D8;
+  --chart-4: #FF9900;
+  --chart-5: #50C88A;
 
-  /* Brand-specific custom tokens */
-  --brand-indigo: #5B4FE8;
-  --brand-violet: #7C6FFF;
-  --brand-purple-bg: #1a1040;
-  --glass-bg: oklch(0.98 0.005 270 / 0.72);
-  --glass-border: oklch(1 0 0 / 0.35);
-}
+  --radius: 1rem;
 
-.dark {
-  --background: oklch(0.13 0.03 275);
-  --foreground: oklch(0.95 0.01 270);
-  --card: oklch(0.17 0.03 275);
-  --card-foreground: oklch(0.95 0.01 270);
-  --popover: oklch(0.17 0.03 275);
-  --popover-foreground: oklch(0.95 0.01 270);
-
-  --primary: oklch(0.68 0.24 275);
-  --primary-foreground: oklch(0.10 0.03 275);
-  --secondary: oklch(0.60 0.20 310);
-  --secondary-foreground: oklch(0.95 0 0);
-
-  --muted: oklch(0.23 0.03 275);
-  --muted-foreground: oklch(0.62 0.04 270);
-  --accent: oklch(0.65 0.18 290);
-  --accent-foreground: oklch(0.95 0 0);
-  --destructive: oklch(0.5 0.2 25);
-  --destructive-foreground: oklch(0.95 0 0);
-  --border: oklch(0.28 0.04 275);
-  --input: oklch(0.23 0.03 275);
-  --ring: oklch(0.68 0.24 275);
-
-  --chart-1: oklch(0.68 0.24 275);
-  --chart-2: oklch(0.60 0.20 310);
-  --chart-3: oklch(0.62 0.18 240);
-  --chart-4: oklch(0.68 0.15 200);
-  --chart-5: oklch(0.72 0.14 230);
-
-  --sidebar: oklch(0.17 0.03 275);
-  --sidebar-foreground: oklch(0.95 0.01 270);
-  --sidebar-primary: oklch(0.68 0.24 275);
-  --sidebar-primary-foreground: oklch(0.10 0.03 275);
-  --sidebar-accent: oklch(0.60 0.20 310);
-  --sidebar-accent-foreground: oklch(0.95 0 0);
-  --sidebar-border: oklch(0.28 0.04 275);
-  --sidebar-ring: oklch(0.68 0.24 275);
+  --sidebar: #EAE6FF;
+  --sidebar-foreground: #1E1060;
+  --sidebar-primary: #6B4FE8;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #B8A4FF;
+  --sidebar-accent-foreground: #1E1060;
+  --sidebar-border: #D0C8F0;
+  --sidebar-ring: #6B4FE8;
 }
 
 @theme inline {
@@ -146,110 +105,263 @@
   }
 }
 
-/* ===== Glassmorphism Utilities ===== */
-.glass {
-  background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.40);
-}
+/* ============================================================
+   NEUMORPHISM SYSTEM
+   Base: #EAE6FF  |  Shadow dark: #C2BAF0  |  Shadow light: #FFFFFF
+   ============================================================ */
 
-.glass-dark {
-  background: rgba(20, 15, 50, 0.75);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-}
-
-/* ===== Shadows ===== */
-.window-shadow {
+/* --- Surfaces --- */
+.neu-raised {
+  background: #EAE6FF;
   box-shadow:
-    0 25px 60px -12px rgba(91, 79, 232, 0.18),
-    0 12px 24px -8px rgba(0, 0, 0, 0.10),
+    8px 8px 20px #C2BAF0,
+    -8px -8px 20px #FFFFFF;
+  border-radius: 1.25rem;
+}
+
+.neu-raised-sm {
+  background: #EAE6FF;
+  box-shadow:
+    4px 4px 10px #C2BAF0,
+    -4px -4px 10px #FFFFFF;
+  border-radius: 0.875rem;
+}
+
+.neu-raised-lg {
+  background: #EAE6FF;
+  box-shadow:
+    12px 12px 28px #C2BAF0,
+    -10px -10px 22px #FFFFFF;
+  border-radius: 1.5rem;
+}
+
+/* --- Inset / sunken --- */
+.neu-inset {
+  background: #EAE6FF;
+  box-shadow:
+    inset 4px 4px 10px #C2BAF0,
+    inset -4px -4px 10px #FFFFFF;
+  border-radius: 0.875rem;
+}
+
+.neu-inset-sm {
+  background: #EAE6FF;
+  box-shadow:
+    inset 2px 2px 6px #C2BAF0,
+    inset -2px -2px 6px #FFFFFF;
+  border-radius: 0.625rem;
+}
+
+/* --- Window --- */
+.neu-window {
+  background: #EAE6FF;
+  box-shadow:
+    14px 14px 35px #C2BAF0,
+    -10px -10px 25px #FFFFFF,
     0 0 0 1px rgba(255, 255, 255, 0.55) inset;
+  border-radius: 1.5rem;
+  overflow: hidden;
 }
 
-.taskbar-shadow {
+.neu-window-active {
+  background: #EAE6FF;
   box-shadow:
-    0 -4px 24px rgba(91, 79, 232, 0.10),
-    0 0 0 1px rgba(255, 255, 255, 0.50) inset;
+    18px 18px 45px #B8AEE8,
+    -12px -12px 30px #FFFFFF,
+    0 0 0 1.5px rgba(107, 79, 232, 0.18) inset;
+  border-radius: 1.5rem;
+  overflow: hidden;
 }
 
-/* ===== Icon hover ===== */
-.icon-hover {
-  transition: all 0.18s ease;
-}
-.icon-hover:hover {
-  transform: scale(1.08);
-}
-.icon-hover:active {
-  transform: scale(0.93);
+/* --- Taskbar --- */
+.neu-taskbar {
+  background: #EAE6FF;
+  box-shadow:
+    0 -6px 20px #C2BAF0,
+    0 -1px 0 rgba(255, 255, 255, 0.9) inset;
 }
 
-/* ===== Keyframes ===== */
-@keyframes boot-pulse {
-  0%, 100% { opacity: 0.45; }
-  50% { opacity: 1; }
+/* --- Panel / start menu --- */
+.neu-panel {
+  background: #EAE6FF;
+  box-shadow:
+    16px 16px 40px #C2BAF0,
+    -10px -10px 30px #FFFFFF,
+    0 0 0 1px rgba(255, 255, 255, 0.55) inset;
+  border-radius: 1.5rem;
 }
 
-@keyframes boot-progress {
-  0% { width: 0%; }
-  100% { width: 100%; }
+/* --- Buttons --- */
+.neu-btn {
+  background: #EAE6FF;
+  box-shadow:
+    5px 5px 12px #C2BAF0,
+    -5px -5px 12px #FFFFFF;
+  transition: box-shadow 0.15s ease, transform 0.12s ease;
+  cursor: pointer;
+  border: none;
+  border-radius: 0.875rem;
+  color: #1E1060;
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-12px); }
+.neu-btn:hover {
+  box-shadow:
+    7px 7px 18px #C2BAF0,
+    -7px -7px 18px #FFFFFF;
 }
 
-@keyframes glow {
-  0%, 100% { box-shadow: 0 0 22px rgba(91, 79, 232, 0.35); }
-  50% { box-shadow: 0 0 50px rgba(91, 79, 232, 0.70), 0 0 80px rgba(124, 111, 255, 0.30); }
+.neu-btn:active {
+  box-shadow:
+    inset 3px 3px 8px #C2BAF0,
+    inset -3px -3px 8px #FFFFFF;
+  transform: scale(0.97);
 }
 
-@keyframes sparkle {
-  0%, 100% { opacity: 0; transform: scale(0) rotate(0deg); }
-  50% { opacity: 1; transform: scale(1) rotate(180deg); }
+/* Primary (logo purple gradient) */
+.neu-btn-primary {
+  background: linear-gradient(135deg, #6B4FE8, #8B6FFF);
+  box-shadow:
+    5px 5px 15px rgba(107, 79, 232, 0.45),
+    -3px -3px 10px rgba(255, 255, 255, 0.65);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 0.875rem;
+  transition: all 0.15s ease;
+  cursor: pointer;
 }
 
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to { opacity: 1; transform: translateY(0); }
+.neu-btn-primary:hover {
+  box-shadow:
+    7px 7px 20px rgba(107, 79, 232, 0.55),
+    -3px -3px 12px rgba(255, 255, 255, 0.70);
+  transform: translateY(-1px);
 }
 
-/* ===== Animation Classes ===== */
-.animate-boot-pulse {
-  animation: boot-pulse 1.5s ease-in-out infinite;
-}
-.animate-boot-progress {
-  animation: boot-progress 2.5s ease-out forwards;
-}
-.animate-float {
-  animation: float 3s ease-in-out infinite;
-}
-.animate-glow {
-  animation: glow 2.5s ease-in-out infinite;
-}
-.animate-sparkle {
-  animation: sparkle 2s ease-in-out infinite;
-}
-.animate-fade-in-up {
-  animation: fadeInUp 0.4s ease-out forwards;
+.neu-btn-primary:active {
+  box-shadow:
+    inset 3px 3px 8px rgba(50, 20, 150, 0.3),
+    inset -2px -2px 6px rgba(180, 160, 255, 0.3);
+  transform: translateY(0);
 }
 
-/* ===== Custom Scrollbar ===== */
+/* --- Input fields --- */
+.neu-input {
+  background: #EAE6FF;
+  box-shadow:
+    inset 3px 3px 8px #C2BAF0,
+    inset -3px -3px 8px #FFFFFF;
+  border: none;
+  outline: none;
+  color: #1E1060;
+  transition: box-shadow 0.2s ease;
+  border-radius: 0.75rem;
+}
+
+.neu-input::placeholder {
+  color: #9B8FC8;
+}
+
+.neu-input:focus {
+  box-shadow:
+    inset 4px 4px 10px #C2BAF0,
+    inset -4px -4px 10px #FFFFFF,
+    0 0 0 2px rgba(107, 79, 232, 0.25);
+}
+
+/* --- Icon containers --- */
+.neu-icon {
+  background: #EAE6FF;
+  box-shadow:
+    5px 5px 14px #C2BAF0,
+    -5px -5px 14px #FFFFFF;
+  border-radius: 1.25rem;
+  transition: box-shadow 0.2s ease;
+}
+
+.neu-icon:hover {
+  box-shadow:
+    7px 7px 18px #C2BAF0,
+    -7px -7px 18px #FFFFFF;
+}
+
+/* --- Tags / Badges --- */
+.neu-tag {
+  background: #EAE6FF;
+  box-shadow:
+    2px 2px 5px #C2BAF0,
+    -2px -2px 5px #FFFFFF;
+  border-radius: 0.5rem;
+}
+
+/* --- Card within app content --- */
+.neu-card {
+  background: #EAE6FF;
+  box-shadow:
+    6px 6px 16px #C2BAF0,
+    -6px -6px 16px #FFFFFF;
+  border-radius: 1.25rem;
+}
+
+/* ============================================================
+   SCROLLBAR
+   ============================================================ */
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(91, 79, 232, 0.05);
+  background: #EAE6FF;
+  box-shadow: inset 1px 1px 4px #C2BAF0;
   border-radius: 4px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(91, 79, 232, 0.20);
+  background: rgba(107, 79, 232, 0.25);
   border-radius: 4px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(91, 79, 232, 0.38);
+  background: rgba(107, 79, 232, 0.45);
 }
+
+/* ============================================================
+   KEYFRAMES & ANIMATIONS
+   ============================================================ */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-12px); }
+}
+
+@keyframes boot-pulse {
+  0%, 100% { opacity: 0.45; }
+  50%       { opacity: 1; }
+}
+
+@keyframes sparkle {
+  0%, 100% { opacity: 0; transform: scale(0) rotate(0deg); }
+  50%       { opacity: 1; transform: scale(1) rotate(180deg); }
+}
+
+@keyframes glow-purple {
+  0%, 100% { box-shadow: 0 0 22px rgba(107, 79, 232, 0.4); }
+  50%       { box-shadow: 0 0 55px rgba(107, 79, 232, 0.75), 0 0 90px rgba(139, 111, 255, 0.35); }
+}
+
+@keyframes pulse-ring {
+  0%   { transform: scale(0.9); opacity: 0.8; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+.animate-float       { animation: float 4s ease-in-out infinite; }
+.animate-boot-pulse  { animation: boot-pulse 1.5s ease-in-out infinite; }
+.animate-sparkle     { animation: sparkle 2s ease-in-out infinite; }
+.animate-glow-purple { animation: glow-purple 2.5s ease-in-out infinite; }
+.animate-pulse-ring  { animation: pulse-ring 1.8s ease-out infinite; }
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Icon hover (taskbar) */
+.icon-hover { transition: all 0.18s ease; }
+.icon-hover:hover  { transform: scale(1.08); }
+.icon-hover:active { transform: scale(0.93); }

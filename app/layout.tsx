@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import { AmplifyProvider } from '@/lib/amplify-provider'
 import './globals.css'
 
 const geistSans = Geist({
@@ -43,7 +44,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`} suppressHydrationWarning>
-        {children}
+        <AmplifyProvider>
+          {children}
+        </AmplifyProvider>
         <Analytics />
       </body>
     </html>

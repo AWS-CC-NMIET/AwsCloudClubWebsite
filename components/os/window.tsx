@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect, useCallback, type ReactNode } from "react"
+import { motion } from "framer-motion"
 import { X, Minus, Maximize2, Minimize2 } from "lucide-react"
 
 interface WindowProps {
@@ -29,7 +30,7 @@ export function Window({
   isMinimized,
   isMaximized,
   initialPosition = { x: 100, y: 50 },
-  initialSize = { width: 800, height: 600 },
+  initialSize = { width: 840, height: 620 },
   onClose,
   onMinimize,
   onMaximize,
@@ -40,21 +41,13 @@ export function Window({
   const [position, setPosition] = useState(initialPosition)
   const [size, setSize] = useState(initialSize)
   const [isClosing, setIsClosing] = useState(false)
-  const [isOpening, setIsOpening] = useState(true)
 
-  // Use refs for drag state to avoid stale closures in event handlers
-  const isDraggingRef = useRef(false)
-  const isResizingRef = useRef(false)
-  const dragOffsetRef = useRef({ x: 0, y: 0 })
-  const positionRef = useRef(initialPosition)
-  const sizeRef = useRef(initialSize)
+  const isDraggingRef   = useRef(false)
+  const isResizingRef   = useRef(false)
+  const dragOffsetRef   = useRef({ x: 0, y: 0 })
+  const positionRef     = useRef(initialPosition)
+  const sizeRef         = useRef(initialSize)
 
-  useEffect(() => {
-    const timer = setTimeout(() => setIsOpening(false), 300)
-    return () => clearTimeout(timer)
-  }, [])
-
-  // Keep refs in sync with state
   useEffect(() => { positionRef.current = position }, [position])
   useEffect(() => { sizeRef.current = size }, [size])
 
@@ -66,9 +59,10 @@ export function Window({
       })
     }
     if (isResizingRef.current && !isMaximized) {
-      const newWidth = Math.max(400, e.clientX - positionRef.current.x)
-      const newHeight = Math.max(300, e.clientY - positionRef.current.y - 56)
-      setSize({ width: newWidth, height: newHeight })
+      setSize({
+        width:  Math.max(400, e.clientX - positionRef.current.x),
+        height: Math.max(300, e.clientY - positionRef.current.y - 56),
+      })
     }
   }, [isMaximized])
 
@@ -90,92 +84,115 @@ export function Window({
     if ((e.target as HTMLElement).closest(".window-controls")) return
     onFocus()
     isDraggingRef.current = true
-    dragOffsetRef.current = {
-      x: e.clientX - positionRef.current.x,
-      y: e.clientY - positionRef.current.y,
-    }
+    dragOffsetRef.current = { x: e.clientX - positionRef.current.x, y: e.clientY - positionRef.current.y }
   }
 
   const handleClose = () => {
     setIsClosing(true)
-    setTimeout(onClose, 200)
+    setTimeout(onClose, 220)
   }
 
   if (isMinimized) return null
 
   return (
-    <div
+    <motion.div
       ref={windowRef}
-      className={`window-shadow glass absolute overflow-hidden rounded-xl transition-all duration-200 ${
-        isOpening ? "scale-95 opacity-0" : "scale-100 opacity-100"
-      } ${isClosing ? "scale-95 opacity-0" : ""} ${
-        isActive ? "ring-2 ring-primary/40" : "ring-1 ring-white/20"
-      }`}
+      className={`absolute overflow-hidden ${isActive ? "neu-window-active" : "neu-window"}`}
       style={{
-        left: isMaximized ? 0 : position.x,
-        top: isMaximized ? 0 : position.y,
-        width: isMaximized ? "100%" : size.width,
+        left:   isMaximized ? 0 : position.x,
+        top:    isMaximized ? 0 : position.y,
+        width:  isMaximized ? "100%" : size.width,
         height: isMaximized ? "calc(100vh - 56px)" : size.height,
         zIndex,
+        borderRadius: isMaximized ? "0" : "1.5rem",
       }}
+      initial={{ scale: 0.90, opacity: 0, y: 24 }}
+      animate={isClosing
+        ? { scale: 0.88, opacity: 0, y: 16 }
+        : { scale: 1,    opacity: 1, y: 0  }
+      }
+      transition={isClosing
+        ? { duration: 0.20, ease: "easeIn" }
+        : { type: "spring" as const, stiffness: 300, damping: 26 }
+      }
       onClick={onFocus}
+      layout={false}
     >
       {/* Title Bar */}
       <div
-        className={`flex h-10 cursor-move items-center justify-between px-3 select-none ${
-          isActive
-            ? "bg-gradient-to-r from-primary/15 via-primary/8 to-secondary/10"
-            : "bg-muted/40"
-        }`}
+        className="flex h-11 cursor-move items-center justify-between px-4 select-none"
+        style={{
+          background: isActive
+            ? "linear-gradient(135deg, rgba(107,79,232,0.10) 0%, rgba(184,164,255,0.07) 100%)"
+            : "rgba(234,230,255,0.60)",
+          borderBottom: "1px solid rgba(194,186,240,0.50)",
+        }}
         onMouseDown={handleTitleBarMouseDown}
         onDoubleClick={onMaximize}
       >
-        <div className="flex items-center gap-2">
-          <span className="text-primary">{icon}</span>
-          <span className="text-sm font-medium text-foreground">{title}</span>
+        {/* Icon + Title */}
+        <div className="flex items-center gap-2.5">
+          <span style={{ color: "#6B4FE8" }}>{icon}</span>
+          <span className="text-sm font-semibold" style={{ color: "#1E1060" }}>{title}</span>
         </div>
 
-        {/* macOS-style traffic light controls */}
-        <div className="window-controls flex items-center gap-1.5">
-          <button
+        {/* macOS-style traffic lights */}
+        <div className="window-controls flex items-center gap-2">
+          {/* Minimize — yellow */}
+          <motion.button
             onClick={onMinimize}
-            className="group flex h-3.5 w-3.5 items-center justify-center rounded-full bg-yellow-400 transition-all hover:bg-yellow-500"
+            className="group flex h-3.5 w-3.5 items-center justify-center rounded-full"
+            style={{ background: "#FBBF24" }}
+            whileHover={{ scale: 1.2 }}
+            whileTap={{ scale: 0.9 }}
             title="Minimize"
           >
             <Minus className="h-2 w-2 text-yellow-900 opacity-0 group-hover:opacity-100" />
-          </button>
-          <button
+          </motion.button>
+
+          {/* Maximize — green */}
+          <motion.button
             onClick={onMaximize}
-            className="group flex h-3.5 w-3.5 items-center justify-center rounded-full bg-green-400 transition-all hover:bg-green-500"
+            className="group flex h-3.5 w-3.5 items-center justify-center rounded-full"
+            style={{ background: "#34D399" }}
+            whileHover={{ scale: 1.2 }}
+            whileTap={{ scale: 0.9 }}
             title={isMaximized ? "Restore" : "Maximize"}
           >
-            {isMaximized ? (
-              <Minimize2 className="h-2 w-2 text-green-900 opacity-0 group-hover:opacity-100" />
-            ) : (
-              <Maximize2 className="h-2 w-2 text-green-900 opacity-0 group-hover:opacity-100" />
-            )}
-          </button>
-          <button
+            {isMaximized
+              ? <Minimize2 className="h-2 w-2 text-green-900 opacity-0 group-hover:opacity-100" />
+              : <Maximize2 className="h-2 w-2 text-green-900 opacity-0 group-hover:opacity-100" />
+            }
+          </motion.button>
+
+          {/* Close — red */}
+          <motion.button
             onClick={handleClose}
-            className="group flex h-3.5 w-3.5 items-center justify-center rounded-full bg-red-400 transition-all hover:bg-red-500"
+            className="group flex h-3.5 w-3.5 items-center justify-center rounded-full"
+            style={{ background: "#F87171" }}
+            whileHover={{ scale: 1.2 }}
+            whileTap={{ scale: 0.9 }}
             title="Close"
           >
             <X className="h-2 w-2 text-red-900 opacity-0 group-hover:opacity-100" />
-          </button>
+          </motion.button>
         </div>
       </div>
 
       {/* Content */}
-      <div className="custom-scrollbar h-[calc(100%-2.5rem)] overflow-auto bg-background/80 p-4">
+      <div
+        className="custom-scrollbar h-[calc(100%-2.75rem)] overflow-auto p-5"
+        style={{ background: "#EAE6FF" }}
+      >
         {children}
       </div>
 
-      {/* Resize Handle */}
+      {/* Resize handle */}
       {!isMaximized && (
         <div
-          className="absolute bottom-0 right-0 h-4 w-4 cursor-se-resize opacity-40 hover:opacity-100"
+          className="absolute bottom-0 right-0 h-5 w-5 cursor-se-resize"
           style={{
-            background: "linear-gradient(135deg, transparent 50%, rgba(91,79,232,0.4) 50%)",
+            background: "linear-gradient(135deg, transparent 50%, rgba(107,79,232,0.30) 50%)",
           }}
           onMouseDown={(e) => {
             e.stopPropagation()
@@ -184,6 +201,6 @@ export function Window({
           }}
         />
       )}
-    </div>
+    </motion.div>
   )
 }

@@ -1,25 +1,18 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { 
-  Cloud, 
-  Bell, 
-  Wifi, 
-  Volume2, 
-  Battery, 
-  Search,
-  Home,
-  Users,
-  Calendar,
-  FolderOpen,
-  BookOpen,
-  Share2,
-  Mail,
-  Trophy,
-  Terminal
+import { motion, AnimatePresence } from "framer-motion"
+import Image from "next/image"
+import {
+  Bell, Wifi, Volume2, Battery, Search,
+  Home, Cloud, Users, Calendar, FolderOpen,
+  BookOpen, Share2, Mail, Trophy, Terminal, UserCircle, ShieldCheck
 } from "lucide-react"
 
-type AppId = "home" | "about" | "team" | "events" | "projects" | "resources" | "social" | "contact" | "achievements" | "terminal"
+type AppId =
+  | "home" | "about" | "team" | "events" | "projects"
+  | "resources" | "social" | "contact" | "achievements" | "terminal"
+  | "profile" | "admin"
 
 interface TaskbarProps {
   openApps: AppId[]
@@ -29,23 +22,22 @@ interface TaskbarProps {
 }
 
 const taskbarApps: { id: AppId; icon: React.ReactNode; label: string }[] = [
-  { id: "home", icon: <Home className="h-5 w-5" />, label: "Home" },
-  { id: "about", icon: <Cloud className="h-5 w-5" />, label: "About" },
-  { id: "team", icon: <Users className="h-5 w-5" />, label: "Team" },
-  { id: "events", icon: <Calendar className="h-5 w-5" />, label: "Events" },
-  { id: "projects", icon: <FolderOpen className="h-5 w-5" />, label: "Projects" },
-  { id: "resources", icon: <BookOpen className="h-5 w-5" />, label: "Resources" },
-  { id: "social", icon: <Share2 className="h-5 w-5" />, label: "Social" },
-  { id: "contact", icon: <Mail className="h-5 w-5" />, label: "Contact" },
-  { id: "achievements", icon: <Trophy className="h-5 w-5" />, label: "Achievements" },
-  { id: "terminal", icon: <Terminal className="h-5 w-5" />, label: "Terminal" },
+  { id: "home",         icon: <Home className="h-5 w-5" />,       label: "Home" },
+  { id: "about",        icon: <Cloud className="h-5 w-5" />,      label: "About" },
+  { id: "team",         icon: <Users className="h-5 w-5" />,      label: "Team" },
+  { id: "events",       icon: <Calendar className="h-5 w-5" />,   label: "Events" },
+  { id: "projects",     icon: <FolderOpen className="h-5 w-5" />, label: "Projects" },
+  { id: "resources",    icon: <BookOpen className="h-5 w-5" />,   label: "Resources" },
+  { id: "social",       icon: <Share2 className="h-5 w-5" />,     label: "Social" },
+  { id: "contact",      icon: <Mail className="h-5 w-5" />,       label: "Contact" },
+  { id: "achievements", icon: <Trophy className="h-5 w-5" />,     label: "Achievements" },
+  { id: "terminal",     icon: <Terminal className="h-5 w-5" />,   label: "Terminal" },
 ]
 
 export function Taskbar({ openApps, activeApp, onAppClick, onStartClick }: TaskbarProps) {
   const [time, setTime] = useState<Date | null>(null)
   const [showNotifications, setShowNotifications] = useState(false)
 
-  // Only set time on client to avoid hydration mismatch
   useEffect(() => {
     setTime(new Date())
     const timer = setInterval(() => setTime(new Date()), 1000)
@@ -53,111 +45,162 @@ export function Taskbar({ openApps, activeApp, onAppClick, onStartClick }: Taskb
   }, [])
 
   return (
-    <div className="taskbar-shadow glass fixed bottom-0 left-0 right-0 z-40 flex h-14 items-center justify-between px-2">
-      {/* Start Button — indigo gradient */}
-      <button
+    <div
+      className="neu-taskbar fixed bottom-0 left-0 right-0 z-40 flex h-14 items-center justify-between px-2"
+    >
+      {/* Start Button */}
+      <motion.button
         onClick={onStartClick}
-        className="icon-hover flex h-10 items-center gap-2 rounded-lg px-4 text-white font-semibold transition-all hover:shadow-lg hover:shadow-primary/30"
-        style={{ background: "linear-gradient(135deg, #5B4FE8, #7C6FFF)" }}
+        className="flex h-10 items-center gap-2 rounded-xl px-3 font-semibold text-white"
+        style={{
+          background: "linear-gradient(135deg, #6B4FE8, #8B6FFF)",
+          boxShadow: "4px 4px 12px rgba(107,79,232,0.40), -3px -3px 8px rgba(255,255,255,0.60)",
+        }}
+        whileHover={{ y: -2, boxShadow: "6px 6px 16px rgba(107,79,232,0.50), -3px -3px 10px rgba(255,255,255,0.70)" }}
+        whileTap={{ scale: 0.94 }}
       >
-        <Cloud className="h-5 w-5" />
-        <span className="hidden sm:inline">Start</span>
-      </button>
+        <Image
+          src="/logo-icon.png"
+          alt="Start"
+          width={22}
+          height={22}
+          className="object-contain"
+        />
+        <span className="hidden text-sm sm:inline">Start</span>
+      </motion.button>
 
       {/* Search Bar */}
-      <div className="mx-2 hidden items-center gap-2 rounded-lg bg-background/50 px-3 py-2 md:flex border border-border/50">
-        <Search className="h-4 w-4 text-muted-foreground" />
+      <div
+        className="neu-inset mx-2 hidden items-center gap-2 rounded-xl px-3 py-2 md:flex"
+        style={{ minWidth: "160px" }}
+      >
+        <Search className="h-4 w-4 flex-shrink-0" style={{ color: "#9B8FC8" }} />
         <input
           type="text"
           placeholder="Search apps..."
-          className="w-32 bg-transparent text-sm outline-none placeholder:text-muted-foreground lg:w-48"
+          className="w-32 bg-transparent text-sm outline-none lg:w-44"
+          style={{ color: "#1E1060" }}
         />
       </div>
 
       {/* Open Apps */}
-      <div className="flex flex-1 items-center justify-center gap-1 overflow-x-auto px-2">
+      <div className="flex flex-1 items-center justify-center gap-0.5 overflow-x-auto px-2">
         {taskbarApps.map((app) => {
-          const isOpen = openApps.includes(app.id)
+          const isOpen   = openApps.includes(app.id)
           const isActive = activeApp === app.id
 
           return (
-            <button
+            <motion.button
               key={app.id}
               onClick={() => onAppClick(app.id)}
-              className={`icon-hover relative flex h-10 min-w-10 items-center justify-center rounded-lg px-3 transition-all ${
-                isActive
-                  ? "text-primary"
+              className="relative flex h-10 min-w-10 items-center justify-center rounded-xl px-3 transition-colors"
+              style={{
+                background: isActive
+                  ? "rgba(107,79,232,0.12)"
                   : isOpen
-                  ? "bg-background/50 text-foreground hover:bg-background/70"
-                  : "text-muted-foreground hover:bg-background/30 hover:text-foreground"
-              }`}
-              style={isActive ? { background: "rgba(91,79,232,0.12)" } : {}}
+                  ? "rgba(194,186,240,0.25)"
+                  : "transparent",
+                color: isActive ? "#6B4FE8" : isOpen ? "#3D2A90" : "#9B8FC8",
+                boxShadow: isActive
+                  ? "inset 3px 3px 8px #C2BAF0, inset -3px -3px 8px #FFFFFF"
+                  : isOpen
+                  ? "3px 3px 8px #C2BAF0, -3px -3px 8px #FFFFFF"
+                  : "none",
+              }}
+              whileHover={{ y: -2, scale: 1.05 }}
+              whileTap={{ scale: 0.93 }}
               title={app.label}
             >
               {app.icon}
-              <span className="ml-2 hidden text-sm lg:inline">{app.label}</span>
-              {/* Active/open indicator dot */}
+
+              {/* Active indicator dot */}
               {isOpen && (
-                <div
-                  className={`absolute bottom-1 left-1/2 -translate-x-1/2 rounded-full transition-all ${
-                    isActive ? "h-1 w-5" : "h-0.5 w-2.5"
-                  }`}
-                  style={{
-                    background: isActive ? "#5B4FE8" : "rgba(91,79,232,0.4)",
-                    boxShadow: isActive ? "0 0 6px rgba(91,79,232,0.7)" : "none",
-                  }}
+                <motion.div
+                  className="absolute bottom-1.5 left-1/2 -translate-x-1/2 rounded-full"
+                  style={{ background: isActive ? "#6B4FE8" : "#B8A4FF" }}
+                  animate={{ width: isActive ? 20 : 6, height: 3 }}
+                  transition={{ type: "spring" as const, stiffness: 400, damping: 28 }}
                 />
               )}
-            </button>
+            </motion.button>
           )
         })}
       </div>
 
       {/* System Tray */}
       <div className="flex items-center gap-1">
-        {/* Notifications */}
-        <button
-          onClick={() => setShowNotifications(!showNotifications)}
-          className="icon-hover relative flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground hover:bg-background/30 hover:text-foreground"
+        {/* Notification bell */}
+        <motion.button
+          onClick={() => setShowNotifications((v) => !v)}
+          className="relative flex h-10 w-10 items-center justify-center rounded-xl"
+          style={{ color: "#7B6FC0" }}
+          whileHover={{ scale: 1.1, y: -1 }}
+          whileTap={{ scale: 0.93 }}
         >
           <Bell className="h-4 w-4" />
-          <span className="absolute right-2 top-2 h-2 w-2 rounded-full animate-pulse" style={{ background: "#5B4FE8" }} />
-        </button>
+          <motion.span
+            className="absolute right-2 top-2 h-2 w-2 rounded-full"
+            style={{ background: "#6B4FE8" }}
+            animate={{ scale: [1, 1.3, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          />
+        </motion.button>
 
-        {/* System Icons */}
-        <div className="hidden items-center gap-2 rounded-lg bg-background/30 px-3 py-2 sm:flex">
-          <Wifi className="h-4 w-4 text-muted-foreground" />
-          <Volume2 className="h-4 w-4 text-muted-foreground" />
-          <Battery className="h-4 w-4 text-muted-foreground" />
+        {/* System icons */}
+        <div
+          className="hidden items-center gap-2 rounded-xl px-3 py-2 sm:flex neu-inset-sm"
+        >
+          <Wifi    className="h-4 w-4" style={{ color: "#9B8FC8" }} />
+          <Volume2 className="h-4 w-4" style={{ color: "#9B8FC8" }} />
+          <Battery className="h-4 w-4" style={{ color: "#9B8FC8" }} />
         </div>
 
         {/* Time & Date */}
-        <div className="flex flex-col items-end rounded-lg px-3 py-1 text-right hover:bg-background/30">
-          <span className="text-sm font-medium text-foreground">
+        <motion.div
+          className="flex flex-col items-end rounded-xl px-3 py-1.5 cursor-default"
+          whileHover={{ scale: 1.03 }}
+        >
+          <span className="text-sm font-semibold tabular-nums" style={{ color: "#1E1060" }}>
             {time ? time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "--:--"}
           </span>
-          <span className="text-xs text-muted-foreground">
+          <span className="text-[11px]" style={{ color: "#7B6FC0" }}>
             {time ? time.toLocaleDateString([], { month: "short", day: "numeric" }) : "---"}
           </span>
-        </div>
+        </motion.div>
       </div>
 
-      {/* Notification Panel */}
-      {showNotifications && (
-        <div className="window-shadow glass absolute bottom-16 right-4 w-80 rounded-xl p-4">
-          <h3 className="mb-3 font-semibold text-foreground">Notifications</h3>
-          <div className="space-y-2">
-            <div className="rounded-lg bg-primary/5 border border-primary/10 p-3">
-              <p className="text-sm font-medium text-foreground">Welcome to AWS Cloud Club NMIET!</p>
-              <p className="text-xs text-muted-foreground">Explore our cloud-powered workspace</p>
+      {/* Notification panel */}
+      <AnimatePresence>
+        {showNotifications && (
+          <motion.div
+            className="neu-panel absolute bottom-16 right-4 w-80 rounded-2xl p-4"
+            initial={{ opacity: 0, y: 12, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 8, scale: 0.96 }}
+            transition={{ type: "spring" as const, stiffness: 300, damping: 25 }}
+          >
+            <h3 className="mb-3 font-semibold" style={{ color: "#1E1060" }}>Notifications</h3>
+            <div className="space-y-2">
+              <div className="neu-inset-sm rounded-xl p-3">
+                <p className="text-sm font-medium" style={{ color: "#1E1060" }}>
+                  Welcome to AWS Cloud Club NMIET!
+                </p>
+                <p className="text-xs mt-0.5" style={{ color: "#7B6FC0" }}>
+                  Explore our cloud-powered workspace
+                </p>
+              </div>
+              <div className="neu-inset-sm rounded-xl p-3">
+                <p className="text-sm font-medium" style={{ color: "#1E1060" }}>
+                  Upcoming: Cloud Workshop
+                </p>
+                <p className="text-xs mt-0.5" style={{ color: "#7B6FC0" }}>
+                  Check out our Events section
+                </p>
+              </div>
             </div>
-            <div className="rounded-lg bg-background/50 p-3">
-              <p className="text-sm font-medium text-foreground">Upcoming: Cloud Workshop</p>
-              <p className="text-xs text-muted-foreground">Check out our events section</p>
-            </div>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
