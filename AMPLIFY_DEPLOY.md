@@ -136,9 +136,9 @@ On the **"Configure build settings"** page, scroll down to **"Environment variab
 
 | Variable | Value |
 |---|---|
-| `AWS_ACCESS_KEY_ID` | Your IAM access key |
-| `AWS_SECRET_ACCESS_KEY` | Your IAM secret key |
-| `AWS_REGION` | `ap-south-1` |
+| `APP_ACCESS_KEY_ID` | Your IAM access key |
+| `APP_SECRET_ACCESS_KEY` | Your IAM secret key |
+| `APP_REGION` | `ap-south-1` |
 
 ### App Config
 

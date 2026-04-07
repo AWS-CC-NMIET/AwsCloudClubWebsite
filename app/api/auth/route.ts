@@ -16,7 +16,7 @@ import { createHmac } from "crypto"
 
 const CLIENT_ID     = process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID!
 const CLIENT_SECRET = process.env.COGNITO_CLIENT_SECRET!
-const REGION        = process.env.AWS_REGION || "ap-south-1"
+const REGION        = process.env.APP_REGION || "ap-south-1"
 
 const cognito = new CognitoIdentityProviderClient({ region: REGION })
 

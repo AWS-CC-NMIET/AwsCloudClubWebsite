@@ -15,10 +15,10 @@ import { v4 as uuidv4 } from "uuid"
 
 // ── Client Setup ─────────────────────────────────────────────
 const client = new DynamoDBClient({
-  region: process.env.AWS_REGION || "ap-south-1",
+  region: process.env.APP_REGION || "ap-south-1",
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+    accessKeyId: process.env.APP_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.APP_SECRET_ACCESS_KEY!,
   },
 })
 
