@@ -1,6 +1,6 @@
 // app/api/auth/route.ts
-// Server-side Cognito auth proxy — browser calls these routes instead of Cognito directly.
-// Uses an app client WITHOUT a client secret (recommended for public web clients).
+// Server-side Cognito auth — computes SECRET_HASH so the client secret never
+// leaves the server. The browser calls these routes instead of Cognito directly.
 
 import { NextRequest, NextResponse } from "next/server"
 import {
@@ -12,11 +12,19 @@ import {
   ForgotPasswordCommand,
   ConfirmForgotPasswordCommand,
 } from "@aws-sdk/client-cognito-identity-provider"
+import { createHmac } from "crypto"
 
-const CLIENT_ID = process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID!
-const REGION    = process.env.APP_REGION || "ap-south-1"
+const CLIENT_ID     = process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID!
+const CLIENT_SECRET = process.env.COGNITO_CLIENT_SECRET!
+const REGION        = process.env.APP_REGION || "ap-south-1"
 
 const cognito = new CognitoIdentityProviderClient({ region: REGION })
+
+function secretHash(username: string) {
+  return createHmac("sha256", CLIENT_SECRET)
+    .update(username + CLIENT_ID)
+    .digest("base64")
+}
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
@@ -32,6 +40,7 @@ export async function POST(req: NextRequest) {
         AuthParameters: {
           USERNAME: username,
           PASSWORD: password,
+          SECRET_HASH: secretHash(username),
         },
       }))
       return NextResponse.json({
@@ -46,9 +55,10 @@ export async function POST(req: NextRequest) {
     if (action === "signup") {
       const { username, password, name } = body
       await cognito.send(new SignUpCommand({
-        ClientId: CLIENT_ID,
-        Username: username,
-        Password: password,
+        ClientId:   CLIENT_ID,
+        SecretHash: secretHash(username),
+        Username:   username,
+        Password:   password,
         UserAttributes: [
           { Name: "email", Value: username },
           { Name: "name",  Value: name },
@@ -62,6 +72,7 @@ export async function POST(req: NextRequest) {
       const { username, code } = body
       await cognito.send(new ConfirmSignUpCommand({
         ClientId:         CLIENT_ID,
+        SecretHash:       secretHash(username),
         Username:         username,
         ConfirmationCode: code,
       }))
@@ -72,8 +83,9 @@ export async function POST(req: NextRequest) {
     if (action === "resend") {
       const { username } = body
       await cognito.send(new ResendConfirmationCodeCommand({
-        ClientId: CLIENT_ID,
-        Username: username,
+        ClientId:   CLIENT_ID,
+        SecretHash: secretHash(username),
+        Username:   username,
       }))
       return NextResponse.json({ success: true })
     }
@@ -82,8 +94,9 @@ export async function POST(req: NextRequest) {
     if (action === "forgot-password") {
       const { username } = body
       await cognito.send(new ForgotPasswordCommand({
-        ClientId: CLIENT_ID,
-        Username: username,
+        ClientId:   CLIENT_ID,
+        SecretHash: secretHash(username),
+        Username:   username,
       }))
       return NextResponse.json({ success: true })
     }
@@ -93,6 +106,7 @@ export async function POST(req: NextRequest) {
       const { username, code, newPassword } = body
       await cognito.send(new ConfirmForgotPasswordCommand({
         ClientId:         CLIENT_ID,
+        SecretHash:       secretHash(username),
         Username:         username,
         ConfirmationCode: code,
         Password:         newPassword,
@@ -102,12 +116,13 @@ export async function POST(req: NextRequest) {
 
     // ── Refresh Token ────────────────────────────────────────
     if (action === "refresh") {
-      const { refreshToken } = body
+      const { refreshToken, username } = body
       const res = await cognito.send(new InitiateAuthCommand({
         AuthFlow: "REFRESH_TOKEN_AUTH",
         ClientId: CLIENT_ID,
         AuthParameters: {
           REFRESH_TOKEN: refreshToken,
+          SECRET_HASH:   secretHash(username),
         },
       }))
       return NextResponse.json({
