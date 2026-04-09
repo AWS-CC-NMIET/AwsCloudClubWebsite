@@ -1,0 +1,27 @@
+{
+  "name": "AWS Cloud Club NMIET",
+  "short_name": "CloudOS",
+  "description": "Official AWS Cloud Club NMIET — Cloud OS. Empowering the next generation of cloud innovators.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#2A1580",
+  "theme_color": "#6B4FE8",
+  "categories": ["education", "technology"],
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "screenshots": [],
+  "prefer_related_applications": false
+}

@@ -142,10 +142,10 @@ function SplashBg() {
   )
 }
 
-// No outer card — credentials blend directly into bg
+// Outer wrapper for form pages — scrollable on small screens
 function GlassCard({ children }: { children: React.ReactNode }) {
   return (
-    <div className="px-2 py-6">
+    <div className="px-4 py-6 sm:px-6">
       {children}
     </div>
   )
@@ -196,7 +196,7 @@ function UInput({ label, type = "text", value, onChange, placeholder, autoFocus 
           onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
           style={{
             background: "transparent", border: "none", outline: "none",
-            color: "white", fontSize: "0.95rem", fontWeight: 600, width: "100%",
+            color: "white", fontSize: "16px" /* prevent iOS zoom */, fontWeight: 600, width: "100%",
           }}
           className="placeholder:text-white/25 font-semibold"
         />
@@ -341,7 +341,7 @@ export function LoginScreen({ onLogin }: { onLogin: () => void }) {
 
         {/* ══ LOCK SCREEN — boot screen aesthetic with login choices ══ */}
         {phase === "lock" && (
-          <motion.div key="lock" className="absolute inset-0 flex flex-col items-center justify-center z-10 gap-8"
+          <motion.div key="lock" className="absolute inset-0 flex flex-col items-center justify-center z-10 gap-6 sm:gap-8 px-4"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }}
             exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }}>
 
@@ -400,9 +400,9 @@ export function LoginScreen({ onLogin }: { onLogin: () => void }) {
 
         {/* ══ SIGN IN ══ */}
         {phase === "signin" && (
-          <motion.div key="signin" className="absolute inset-0 flex items-center justify-center z-10"
+          <motion.div key="signin" className="absolute inset-0 flex items-center justify-center z-10 overflow-y-auto py-4"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <motion.div style={{ width: 360 }}
+            <motion.div className="w-full max-w-sm px-4 sm:px-0"
               initial={{ y: 24, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.08, type: "spring", stiffness: 260, damping: 26 }}>
               <GlassCard>
@@ -447,9 +447,9 @@ export function LoginScreen({ onLogin }: { onLogin: () => void }) {
 
         {/* ══ OTHER FORMS ══ */}
         {(phase === "register" || phase === "verify" || phase === "forgot" || phase === "reset") && (
-          <motion.div key="form" className="absolute inset-0 flex items-center justify-center z-10 px-4"
+          <motion.div key="form" className="absolute inset-0 flex items-center justify-center z-10 overflow-y-auto py-4 px-4"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <motion.div style={{ width: 360 }}
+            <motion.div className="w-full max-w-sm"
               initial={{ y: 24, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
               transition={{ type: "spring", stiffness: 260, damping: 26, delay: 0.05 }}>
               <GlassCard>

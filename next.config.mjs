@@ -3,12 +3,71 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+
+  // ── Image optimization ──────────────────────────────────────────────────────
+  // Re-enabled: Next.js auto-converts PNG → WebP/AVIF, serves correct sizes.
+  // logo-full.png (2MB) → ~150KB WebP automatically.
   images: {
-    unoptimized: true,
+    formats: ['image/avif', 'image/webp'],
+    minimumCacheTTL: 86400, // 24 hours
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**.amazonaws.com',
+      },
+    ],
   },
+
+  // ── Security headers ────────────────────────────────────────────────────────
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          // Clickjacking protection
+          { key: 'X-Frame-Options', value: 'DENY' },
+          // MIME sniffing protection
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          // Referrer policy
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          // Permissions policy
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=(self), interest-cohort=()',
+          },
+          // Content Security Policy
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              "font-src 'self' https://fonts.gstatic.com",
+              "img-src 'self' data: blob: https://*.amazonaws.com https://api.meetup.com",
+              "connect-src 'self' https://*.amazonaws.com https://api.meetup.com https://cognito-idp.*.amazonaws.com https://va.vercel-scripts.com",
+              "frame-ancestors 'none'",
+              "base-uri 'self'",
+              "form-action 'self'",
+            ].join('; '),
+          },
+          // HSTS (enable once HTTPS confirmed on production)
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=63072000; includeSubDomains; preload',
+          },
+        ],
+      },
+      // Cache static Next.js chunks aggressively
+      {
+        source: '/_next/static/(.*)',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
+    ]
+  },
+
   // Bake server-side env vars into the Lambda bundle at build time.
-  // Amplify injects these during the build phase but NOT into the SSR Lambda runtime,
-  // so we pull them from the build environment here.
   env: {
     COGNITO_CLIENT_SECRET:            process.env.COGNITO_CLIENT_SECRET,
     APP_ACCESS_KEY_ID:                process.env.APP_ACCESS_KEY_ID,

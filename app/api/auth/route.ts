@@ -13,6 +13,7 @@ import {
   ConfirmForgotPasswordCommand,
 } from "@aws-sdk/client-cognito-identity-provider"
 import { createHmac } from "crypto"
+import { rateLimit, getRequestKey, rateLimitResponse } from "@/lib/rate-limit"
 
 const CLIENT_ID     = process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID!
 const CLIENT_SECRET = process.env.COGNITO_CLIENT_SECRET!
@@ -27,6 +28,10 @@ function secretHash(username: string) {
 }
 
 export async function POST(req: NextRequest) {
+  // ── Rate limiting (10 req/min for auth actions) ──────────────────────────
+  const rl = rateLimit(getRequestKey(req, "auth"), { limit: 10, windowMs: 60_000 })
+  if (!rl.success) return rateLimitResponse(rl.resetAt)
+
   const body = await req.json()
   const { action } = body as { action: string; [k: string]: string }
 
