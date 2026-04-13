@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
-import { Analytics } from '@vercel/analytics/next'
 import { AmplifyProvider } from '@/lib/amplify-provider'
 import { NotificationsProvider } from '@/lib/notifications-context'
 import { PWAInstallPrompt } from '@/components/pwa-install-prompt'
@@ -85,7 +84,6 @@ export default function RootLayout({
             <PWAInstallPrompt />
           </NotificationsProvider>
         </AmplifyProvider>
-        <Analytics />
       </body>
     </html>
   )

@@ -40,11 +40,11 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: blob: https://*.amazonaws.com https://api.meetup.com",
-              "connect-src 'self' https://*.amazonaws.com https://api.meetup.com https://cognito-idp.*.amazonaws.com https://va.vercel-scripts.com",
+              "connect-src 'self' https://*.amazonaws.com https://api.meetup.com https://cognito-idp.*.amazonaws.com https://nominatim.openstreetmap.org https://api.open-meteo.com",
               "frame-ancestors 'none'",
               "base-uri 'self'",
               "form-action 'self'",

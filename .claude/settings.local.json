@@ -2,7 +2,11 @@
   "permissions": {
     "allow": [
       "Bash(npx tsc:*)",
-      "Bash(xargs sed:*)"
+      "Bash(xargs sed:*)",
+      "Bash(curl -s -X POST https://api.meetup.com/gql -H 'Content-Type: application/json' -d '{\"query\":\"{ groupByUrlname\\(urlname: \\\\\"aws-cloud-club-at-nutan-maharashtra-inst-of-eng-tech\\\\\"\\) { name membersCount upcomingEvents\\(input: {first: 5}\\) { edges { node { id title dateTime description eventUrl going } } } } }\"}')",
+      "Bash(curl -s \"https://api.meetup.com/aws-cloud-club-at-nutan-maharashtra-inst-of-eng-tech/events?status=upcoming&page=5\" -H \"Accept: application/json\")",
+      "Bash(curl -s \"https://api.meetup.com/aws-cloud-club-at-nutan-maharashtra-inst-of-eng-tech\" -H \"Accept: application/json\")",
+      "Bash(curl -s -X POST https://www.meetup.com/gql2 -H 'Content-Type: application/json' -d '{\"query\":\"{ groupByUrlname\\(urlname: \\\\\"aws-cloud-club-at-nutan-maharashtra-inst-of-eng-tech\\\\\"\\) { events\\(input: {first: 10}\\) { edges { node { id title dateTime shortDescription eventUrl going status venue { name address city } } } } } }\"}')"
     ]
   }
 }
