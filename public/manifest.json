@@ -1,7 +1,7 @@
 {
-  "name": "AWS Cloud Club NMIET",
+  "name": "AWS Student Builder Group NMIET",
   "short_name": "CloudOS",
-  "description": "Official AWS Cloud Club NMIET — Cloud OS. Empowering the next generation of cloud innovators.",
+  "description": "Official AWS Student Builder Group NMIET — Cloud OS. Empowering the next generation of cloud innovators.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

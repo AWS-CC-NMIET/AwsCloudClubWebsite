@@ -30,13 +30,13 @@ export function TerminalApp() {
   const commandRegistry = useMemo<Record<string, string>>(() => ({
   help: `Available commands:
   help          - Show this help message
-  about         - About AWS Cloud Club NMIET
+  about         - About AWS Student Builder Group NMIET
   mission       - Our mission & vision
-  join          - How to join the club
+  join          - How to join the group
   events        - Our events & activities
   team          - Core team structure
   skills        - Technologies we work with
-  achievements  - Club highlights & wins
+  achievements  - Group highlights & wins
   contact       - Get in touch with us
   aws           - Random AWS fun fact
   whoami        - Who are you?
@@ -46,16 +46,16 @@ export function TerminalApp() {
 
   about: `
 ╔══════════════════════════════════════════════╗
-║    AWS Cloud Club at NMIET  v1.0             ║
+║    AWS Student Builder Group at NMIET v1.0   ║
 ║    Nutan Maharashtra Inst. of Eng. & Tech    ║
 ╠══════════════════════════════════════════════╣
 ║  Teaching students AWS Cloud use cases:      ║
 ║  security, AI, business analytics &          ║
-║  business transformation.                   ║
+║  business transformation.                    ║
 ║                                              ║
 ║  📍 Talegaon Dabhade, Pune, Maharashtra      ║
 ║  📅 Founded: February 16, 2026               ║
-║  👥 ${m} Members   🌐 1 of 616 AWS Clubs     ║
+║  👥 ${m} Members   🌐 Student Builder Groups ║
 ╚══════════════════════════════════════════════╝`,
 
   mission: `
@@ -75,7 +75,7 @@ export function TerminalApp() {
    • Give back — share knowledge freely`,
 
   join: `
-🚀 Join AWS Cloud Club NMIET!
+🚀 Join AWS Student Builder Group NMIET!
 
 Steps to become a member:
   1. Visit our Meetup page and RSVP to events
@@ -93,7 +93,7 @@ Type 'events' to see upcoming activities!`,
 📅 Events:
 
   ┌─────────────────────────────────────────────┐
-  │ 🚀 AWS Cloud Club Introductory Event        │
+  │ 🚀 AWS Student Builder Group Intro Event    │
   │    📅 April 8, 2026  10:00 AM – 12:00 PM   │
   │    📍 In-person at NMIET, Pune              │
   │    👥 236 RSVPs  (Open to all!)             │
@@ -105,7 +105,7 @@ More events coming! Check the Events app or
 visit meetup.com/aws-cloud-club-at-nutan-… to RSVP.`,
 
   team: `
-👥 Core Team — AWS Cloud Club NMIET:
+👥 Core Team — AWS Student Builder Group NMIET:
 
   Neha Sharma     [Captain / Organizer]  🟢 Running
   ──────────────────────────────────────────────────
@@ -129,18 +129,18 @@ visit meetup.com/aws-cloud-club-at-nutan-… to RSVP.`,
   API Gateway, Cognito, CloudFront, SES, IAM`,
 
   achievements: `
-🏆 Club Highlights:
+🏆 Group Highlights:
 
-  ★ Official AWS Cloud Club Chapter (est. Feb 2026)
+  ★ Official AWS Student Builder Group (est. Feb 2026)
   ★ ${m} Members on Meetup & Growing Fast
   ★ 236+ RSVPs for Our Very First Event
-  ★ 1 of 616 AWS Cloud Clubs Worldwide
+  ★ Part of AWS Student Builder Groups Global Network
   ★ Open Community — Anyone Can Join!
 
-Type 'about' for more club info.`,
+Type 'about' for more info.`,
 
   contact: `
-📬 Contact AWS Cloud Club NMIET:
+📬 Contact AWS Student Builder Group NMIET:
 
   📧 Email   : awscloudclub.nmiet@gmail.com
   🌐 Meetup  : meetup.com/aws-cloud-club-at-nutan-…
@@ -149,11 +149,11 @@ Type 'about' for more club info.`,
   Or use the Contact app on the desktop
   to send us a message directly!`,
 
-  whoami: "guest@aws-cloud-club-nmiet:~$",
+  whoami: "guest@aws-sbg-nmiet:~$",
   }), [m])
 
   const [lines, setLines] = useState<TerminalLine[]>([
-    { type: "output", content: "AWS Cloud Club NMIET — Terminal v1.0" },
+    { type: "output", content: "AWS Student Builder Group NMIET — Terminal v1.0" },
     { type: "output", content: "Nutan Maharashtra Institute of Engineering & Technology" },
     { type: "output", content: '─────────────────────────────────────────────────────' },
     { type: "output", content: 'Type "help" for available commands.\n' },
@@ -224,7 +224,7 @@ Type 'about' for more club info.`,
       {/* Terminal Header */}
       <div className="flex items-center gap-2 border-b border-purple-900/50 px-4 py-2">
         <div className="h-2 w-2 rounded-full bg-[#7C6FFF]/60" />
-        <span className="text-xs text-purple-300/60">aws-cloud-club-nmiet — bash</span>
+        <span className="text-xs text-purple-300/60">aws-sbg-nmiet — bash</span>
       </div>
 
       {/* Terminal Content */}

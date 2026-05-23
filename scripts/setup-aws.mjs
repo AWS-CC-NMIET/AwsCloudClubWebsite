@@ -98,7 +98,7 @@ const siteConfig = [
   { id: "cfg-7", key: "contactEmail",value: "awscloudclub.nmiet@gmail.com", type: "contact", updatedAt: now },
   { id: "cfg-8", key: "location",    value: "NMIET Campus, Talegaon Dabhade, Pune, Maharashtra 410507", type: "contact", updatedAt: now },
   { id: "cfg-9", key: "phone",       value: "Update this in admin panel", type: "contact", updatedAt: now },
-  { id: "cfg-10", key: "clubHours",  value: JSON.stringify([{day:"Mon – Fri",time:"10:00 AM – 6:00 PM"},{day:"Saturday",time:"12:00 PM – 4:00 PM"},{day:"Sunday",time:"Closed"}]), type: "json", updatedAt: now },
+  { id: "cfg-10", key: "officeHours",  value: JSON.stringify([{day:"Mon – Fri",time:"10:00 AM – 6:00 PM"},{day:"Saturday",time:"12:00 PM – 4:00 PM"},{day:"Sunday",time:"Closed"}]), type: "json", updatedAt: now },
 ]
 
 const certifications = [
@@ -116,7 +116,7 @@ const certifications = [
 
 // ── Main ──────────────────────────────────────────────────────
 async function main() {
-  console.log("\n🚀 AWS Cloud Club NMIET — DynamoDB Setup Script")
+  console.log("\n🚀 AWS Student Builder Group NMIET — DynamoDB Setup Script")
   console.log("━".repeat(50))
   console.log(`\nRegion: ${process.env.AWS_REGION || "ap-south-1"}`)
   console.log("")

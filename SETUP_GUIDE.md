@@ -1,4 +1,4 @@
-# 🚀 AWS Cloud Club NMIET — Complete Setup Guide
+# 🚀 AWS Student Builder Group NMIET — Complete Setup Guide
 
 > **Follow this guide from top to bottom.** Every step is required before the website works in production.  
 > Estimated time: **45–60 minutes** (mostly waiting for AWS resources to provision)
@@ -246,7 +246,7 @@ node scripts/setup-aws.mjs
 You should see output like:
 
 ```
-🚀 AWS Cloud Club NMIET — DynamoDB Setup Script
+🚀 AWS Student Builder Group NMIET — DynamoDB Setup Script
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Region: ap-south-1
@@ -274,7 +274,7 @@ Region: ap-south-1
 |---|---|
 | `acc-nmiet-events` | Events (past + upcoming) |
 | `acc-nmiet-team` | Team member profiles |
-| `acc-nmiet-projects` | Club projects showcase |
+| `acc-nmiet-projects` | Group projects showcase |
 | `acc-nmiet-achievements` | Awards and milestones |
 | `acc-nmiet-resources` | Learning materials |
 | `acc-nmiet-social-links` | Social media links |
@@ -349,7 +349,7 @@ Open the **Admin Panel** (🛡️ icon in Start Menu) and fill in your real data
 
 #### 4. Projects
 - Go to **Projects** tab → Click **Add New**
-- Add club projects with: Title, Description, Tech Stack, GitHub URL, Screenshot
+- Add group projects with: Title, Description, Tech Stack, GitHub URL, Screenshot
 
 #### 5. Achievements
 - Go to **Achievements** tab → Click **Add New**
@@ -539,11 +539,11 @@ Browser (Next.js)
 
 ## 📞 Support
 
-- **Club Email:** awscloudclub.nmiet@gmail.com
+- **Group Email:** awscloudclub.nmiet@gmail.com
 - **GitHub Repo:** AWS-CC-NMIET/AwsCloudClubWebsite
 - **AWS Documentation:** [docs.aws.amazon.com](https://docs.aws.amazon.com)
 
 ---
 
 *This guide was last updated: April 2026*  
-*Built with ❤️ for AWS Cloud Club NMIET*
+*Built with ❤️ for AWS Student Builder Group NMIET*

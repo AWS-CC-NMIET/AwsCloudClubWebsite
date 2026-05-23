@@ -97,7 +97,7 @@ export function AchievementsApp() {
           style={{ background: "linear-gradient(135deg,#6B4FE8,#B8A4FF)", boxShadow: "5px 5px 16px rgba(107,79,232,0.35)" }}>
           <Trophy className="h-8 w-8" />
         </div>
-        <h3 className="mb-1 text-lg font-bold" style={{ color: "#1E1060" }}>AWS Cloud Club Excellence</h3>
+        <h3 className="mb-1 text-lg font-bold" style={{ color: "#1E1060" }}>AWS Student Builder Group Excellence</h3>
         <p className="text-sm" style={{ color: "#7B6FC0" }}>
           Committed to innovation, learning, and building the future of cloud computing.
         </p>

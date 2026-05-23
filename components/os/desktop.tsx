@@ -103,7 +103,11 @@ function getInitialPosition(id: AppId) {
   const offsets: Partial<Record<AppId, { x: number; y: number }>> = {
     home: { x: 80, y: 40 }, about: { x: 100, y: 50 }, team: { x: 120, y: 60 },
   }
-  return offsets[id] ?? { x: 80 + Math.random() * 60, y: 40 + Math.random() * 40 }
+  if (offsets[id]) return offsets[id]
+  
+  // Deterministic fallback based on id string length/hash to avoid Math.random hydration mismatch
+  const hash = id.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0)
+  return { x: 80 + (hash % 6) * 15, y: 40 + (hash % 4) * 15 }
 }
 
 // ── Desktop component ─────────────────────────────────────────────────────────
@@ -116,11 +120,10 @@ export function Desktop({ onLogout }: { onLogout: () => void }) {
   const [showMobileMenu, setShowMobileMenu] = useState(false)
   const [isAdmin, setIsAdmin]             = useState(false)
 
-  // Sync mobile detection — no hydration flash
-  const [isMobileDesktop, setIsMobileDesktop] = useState(() =>
-    typeof window !== "undefined" ? window.innerWidth < 768 : false
-  )
+  // Sync mobile detection — no hydration flash (initialized to false to match SSR, updated on mount)
+  const [isMobileDesktop, setIsMobileDesktop] = useState(false)
   useEffect(() => {
+    setIsMobileDesktop(window.innerWidth < 768)
     const check = () => setIsMobileDesktop(window.innerWidth < 768)
     window.addEventListener("resize", check)
     return () => window.removeEventListener("resize", check)
@@ -194,9 +197,7 @@ export function Desktop({ onLogout }: { onLogout: () => void }) {
     <div
       className="relative h-screen w-screen overflow-hidden"
       style={{
-        background: isMobileDesktop
-          ? "linear-gradient(160deg, #2A1580 0%, #4B2FA8 50%, #6B4FE8 100%)"
-          : "linear-gradient(145deg, #EDE8FF 0%, #E8E3FF 30%, #EAE6FF 60%, #E5E0FF 100%)"
+        backgroundColor: "#0a0a0f"
       }}
     >
       {/* ── Desktop wallpaper (sm+ only) ── */}
@@ -217,9 +218,9 @@ export function Desktop({ onLogout }: { onLogout: () => void }) {
         </div>
       )}
 
-      {/* ── Right sidebar widgets (desktop lg+) ── */}
+      {/* ── Right sidebar widgets (desktop md+) ── */}
       {!introIsMaximized && (
-        <div className="absolute right-4 top-4 hidden w-64 lg:flex flex-col gap-3 z-10">
+        <div className="absolute right-4 top-4 hidden w-64 md:flex flex-col gap-3 z-10">
           <WeatherWidget />
           <CalendarWidget />
         </div>
@@ -276,15 +277,9 @@ export function Desktop({ onLogout }: { onLogout: () => void }) {
               isMaximized={win.isMaximized}
               initialPosition={getInitialPosition(win.id)}
               initialSize={
-                typeof window !== "undefined"
-                  ? win.id === "terminal"
-                    ? { width: Math.min(640, window.innerWidth - 16), height: Math.min(440, window.innerHeight - 100) }
-                    : win.id === "profile"
-                    ? { width: Math.min(520, window.innerWidth - 16), height: Math.min(640, window.innerHeight - 100) }
-                    : { width: Math.min(840, window.innerWidth - 16), height: Math.min(620, window.innerHeight - 100) }
-                  : win.id === "terminal" ? { width: 640, height: 440 }
-                  : win.id === "profile"  ? { width: 520, height: 640 }
-                  :                         { width: 840, height: 620 }
+                win.id === "terminal" ? { width: 640, height: 440 }
+                : win.id === "profile"  ? { width: 520, height: 640 }
+                :                         { width: 840, height: 620 }
               }
               onClose={() => closeApp(win.id)}
               onMinimize={() => minimizeApp(win.id)}

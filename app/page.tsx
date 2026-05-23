@@ -30,11 +30,11 @@ export default function CloudOS() {
   }, [])
 
   if (stage === "checking") {
-    return <main className="h-screen w-screen" style={{ background: "#EAE6FF" }} />
+    return <main className="h-screen w-screen" style={{ background: "#a4a4b6ff" }} />
   }
 
   return (
-    <main className="h-screen w-screen overflow-hidden" style={{ background: "#EAE6FF" }}>
+    <main className="h-screen w-screen overflow-hidden" style={{ background: "#0a0a0f" }}>
       <AnimatePresence mode="wait">
         {stage === "boot" && (
           <motion.div

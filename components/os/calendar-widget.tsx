@@ -21,7 +21,8 @@ export function CalendarWidget() {
   while (cells.length % 7 !== 0) cells.push(null)
 
   return (
-    <motion.div className="rounded-2xl overflow-hidden neu-raised"
+    <motion.div className="rounded-2xl overflow-hidden"
+      style={{ background: "#D4CEFF", boxShadow: "0 6px 20px rgba(0, 0, 0, 0.15)" }}
       initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.65, type: "spring", stiffness: 260 }}>
       <div className="px-4 py-3"

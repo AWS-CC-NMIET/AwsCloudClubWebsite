@@ -5,12 +5,12 @@ import { motion } from "framer-motion"
 
 const AWS_QUOTES = [
   { text: "The cloud is not a place, it's a way of doing IT.", author: "— AWS" },
-  { text: "Build the future, one microservice at a time.", author: "— Cloud Club NMIET" },
+  { text: "Build the future, one microservice at a time.", author: "— Student Builder Group NMIET" },
   { text: "Failures are the stepping stone to a resilient architecture.", author: "— AWS Well-Architected" },
   { text: "Scale infinitely. Pay only for what you use.", author: "— AWS Philosophy" },
   { text: "From idea to cloud in minutes, not months.", author: "— Cloud Native" },
   { text: "Security is not a feature, it's a foundation.", author: "— AWS Security Pillar" },
-  { text: "Every great cloud journey starts with a single EC2 instance.", author: "— Cloud Club NMIET" },
+  { text: "Every great cloud journey starts with a single EC2 instance.", author: "— Student Builder Group NMIET" },
   { text: "Think big, start small, scale fast.", author: "— Amazon Leadership Principle" },
   { text: "DevOps is not a tool, it's a culture of collaboration.", author: "— AWS DevOps" },
   { text: "The best architecture is the one that evolves with your needs.", author: "— AWS Well-Architected" },

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import Image from "next/image"
 import { Server, Database, Shield, Zap } from "lucide-react"
+import { InteractiveCanvas } from "./interactive-canvas"
 
 const bootMessages = [
   "Initializing Cloud Environment...",
@@ -12,27 +13,7 @@ const bootMessages = [
   "Mounting Virtual Instances...",
   "Starting Security Protocols...",
   "Preparing Desktop Environment...",
-  "Welcome to AWS Cloud Club NMIET",
-]
-
-const particles = [
-  { width: 80,  height: 80,  left: "8%",  top: "15%", duration: "4s",   delay: "0s" },
-  { width: 120, height: 120, left: "78%", top: "8%",  duration: "5s",   delay: "0.5s" },
-  { width: 60,  height: 60,  left: "45%", top: "85%", duration: "3.5s", delay: "1s" },
-  { width: 100, height: 100, left: "20%", top: "70%", duration: "6s",   delay: "0.3s" },
-  { width: 70,  height: 70,  left: "88%", top: "55%", duration: "4.5s", delay: "1.2s" },
-  { width: 90,  height: 90,  left: "60%", top: "30%", duration: "5.5s", delay: "0.8s" },
-  { width: 50,  height: 50,  left: "35%", top: "20%", duration: "3s",   delay: "1.5s" },
-  { width: 110, height: 110, left: "5%",  top: "40%", duration: "4.2s", delay: "0.2s" },
-]
-
-const sparkles = [
-  { top: "12%", left: "18%", delay: "0s",   size: 16 },
-  { top: "22%", left: "72%", delay: "0.6s", size: 12 },
-  { top: "68%", left: "85%", delay: "1.2s", size: 18 },
-  { top: "78%", left: "10%", delay: "0.9s", size: 14 },
-  { top: "45%", left: "92%", delay: "0.3s", size: 10 },
-  { top: "32%", left: "5%",  delay: "1.5s", size: 12 },
+  "Welcome to AWS Student Builder Group NMIET",
 ]
 
 const orbitIcons = [
@@ -67,55 +48,43 @@ export function BootScreen({ onComplete }: { onComplete: () => void }) {
   return (
     <div
       className="fixed inset-0 z-50 flex flex-col items-center justify-center"
-      style={{ background: "linear-gradient(135deg, #2A1580 0%, #4B2FA8 40%, #6B4FE8 100%)" }}
+      style={{ backgroundColor: "#0a0a0f" }}
     >
-      {/* Floating cloud particles */}
-      <div className="absolute inset-0 overflow-hidden">
-        {particles.map((p, i) => (
-          <div
-            key={i}
-            className="absolute rounded-full"
-            style={{
-              width: p.width,
-              height: p.height,
-              left: p.left,
-              top: p.top,
-              background: "radial-gradient(circle, rgba(155,143,255,0.18) 0%, transparent 70%)",
-              animation: `float ${p.duration} ease-in-out infinite`,
-              animationDelay: p.delay,
-            }}
-          />
-        ))}
-      </div>
-
-      {/* Sparkle stars */}
-      {sparkles.map((s, i) => (
-        <div
-          key={i}
-          className="absolute pointer-events-none animate-sparkle"
-          style={{ top: s.top, left: s.left, animationDelay: s.delay }}
-        >
-          <svg width={s.size} height={s.size} viewBox="0 0 24 24" fill="none">
-            <path
-              d="M12 2L13.5 9.5L21 11L13.5 12.5L12 20L10.5 12.5L3 11L10.5 9.5L12 2Z"
-              fill="rgba(255,255,255,0.55)"
-            />
-          </svg>
-        </div>
-      ))}
+      {/* Interactive animated canvas background */}
+      <InteractiveCanvas theme="dark" />
 
       {/* Main content */}
       <div className="relative z-10 flex flex-col items-center">
         {/* Logo with orbiting icons */}
         <motion.div
           className="relative mb-10"
-          initial={{ scale: 0.7, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.7, ease: [0.34, 1.56, 0.64, 1] }}
+          initial={{ scale: 0.7, opacity: 0, y: 0, rotate: 0 }}
+          animate={{
+            scale: 1,
+            opacity: 1,
+            y: [-6, 6],
+            rotate: [-3, 3]
+          }}
+          transition={{
+            scale: { duration: 0.7, ease: [0.34, 1.56, 0.64, 1] },
+            opacity: { duration: 0.7 },
+            y: {
+              duration: 6,
+              repeat: Infinity,
+              repeatType: "reverse",
+              ease: "easeInOut"
+            },
+            rotate: {
+              duration: 8,
+              repeat: Infinity,
+              repeatType: "reverse",
+              ease: "easeInOut"
+            }
+          }}
         >
           {/* Glow ring */}
           <div
-            className="absolute inset-0 rounded-3xl animate-glow-purple"
+            className="absolute inset-0 rounded-3xl animate-glow-neon-purple"
             style={{ margin: "-8px" }}
           />
           {/* Logo */}
@@ -125,10 +94,11 @@ export function BootScreen({ onComplete }: { onComplete: () => void }) {
           >
             <Image
               src="/logo-full.png"
-              alt="AWS Cloud Club NMIET"
+              alt="AWS Student Builder Group NMIET"
               width={96}
               height={96}
-              className="rounded-2xl object-cover"
+              className="object-contain"
+              unoptimized
             />
           </div>
 
@@ -162,7 +132,7 @@ export function BootScreen({ onComplete }: { onComplete: () => void }) {
           transition={{ delay: 0.3, duration: 0.6 }}
         >
           <h1 className="text-4xl font-bold tracking-tight text-white mb-1">
-            AWS Cloud Club
+            AWS Student Builder Group
           </h1>
           <p className="text-lg font-semibold" style={{ color: "#C4B5FD" }}>
             NMIET Chapter
@@ -210,7 +180,7 @@ export function BootScreen({ onComplete }: { onComplete: () => void }) {
       {/* Bottom branding */}
       <div className="absolute bottom-8 text-center">
         <p className="text-xs" style={{ color: "rgba(255,255,255,0.22)" }}>
-          Powered by AWS Cloud Innovation · NMIET
+          Powered by AWS Student Builder Group · NMIET
         </p>
       </div>
 

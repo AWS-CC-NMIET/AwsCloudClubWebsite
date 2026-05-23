@@ -4,7 +4,7 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* === AWS Cloud Club NMIET — Neumorphic Palette === */
+  /* === AWS Student Builder Group NMIET — Neumorphic Palette === */
   /* Primary derived from logo background #6B4FE8 */
 
   --neu-base: #D4CEFF;
@@ -100,18 +100,24 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
-    @apply bg-background text-foreground;
+    background-color: #0a0a0f;
+    @apply text-foreground;
   }
 }
 
 /* Hide scrollbars globally for overflow containers */
 .hide-scrollbar {
-  scrollbar-width: none;        /* Firefox */
-  -ms-overflow-style: none;     /* IE/Edge */
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE/Edge */
 }
+
 .hide-scrollbar::-webkit-scrollbar {
-  display: none;                /* Chrome/Safari */
+  display: none;
+  /* Chrome/Safari */
 }
 
 /* ============================================================
@@ -165,9 +171,8 @@
 .neu-window {
   background: #EAE6FF;
   box-shadow:
-    14px 14px 35px #C2BAF0,
-    -10px -10px 25px #FFFFFF,
-    0 0 0 1px rgba(255, 255, 255, 0.55) inset;
+    0 12px 36px rgba(107, 79, 232, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.45) inset;
   border-radius: 1.5rem;
   overflow: hidden;
 }
@@ -175,28 +180,27 @@
 .neu-window-active {
   background: #EAE6FF;
   box-shadow:
-    18px 18px 45px #B8AEE8,
-    -12px -12px 30px #FFFFFF,
-    0 0 0 1.5px rgba(107, 79, 232, 0.18) inset;
+    0 16px 48px rgba(107, 79, 232, 0.35),
+    0 0 0 1.5px rgba(107, 79, 232, 0.3) inset;
   border-radius: 1.5rem;
   overflow: hidden;
 }
 
 /* --- Taskbar --- */
 .neu-taskbar {
-  background: #EAE6FF;
+  background: rgba(234, 230, 255, 0.85);
+  backdrop-filter: blur(12px);
   box-shadow:
-    0 -6px 20px #C2BAF0,
-    0 -1px 0 rgba(255, 255, 255, 0.9) inset;
+    0 -4px 20px rgba(107, 79, 232, 0.15),
+    0 1px 0 rgba(255, 255, 255, 0.4) inset;
 }
 
 /* --- Panel / start menu --- */
 .neu-panel {
   background: #EAE6FF;
   box-shadow:
-    16px 16px 40px #C2BAF0,
-    -10px -10px 30px #FFFFFF,
-    0 0 0 1px rgba(255, 255, 255, 0.55) inset;
+    0 12px 36px rgba(107, 79, 232, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.45) inset;
   border-radius: 1.5rem;
 }
 
@@ -204,8 +208,8 @@
 .neu-btn {
   background: #EAE6FF;
   box-shadow:
-    5px 5px 12px #C2BAF0,
-    -5px -5px 12px #FFFFFF;
+    3px 3px 8px rgba(107, 79, 232, 0.12),
+    -3px -3px 8px rgba(255, 255, 255, 0.6);
   transition: box-shadow 0.15s ease, transform 0.12s ease;
   cursor: pointer;
   border: none;
@@ -215,8 +219,8 @@
 
 .neu-btn:hover {
   box-shadow:
-    7px 7px 18px #C2BAF0,
-    -7px -7px 18px #FFFFFF;
+    4px 4px 12px rgba(107, 79, 232, 0.18),
+    -4px -4px 12px rgba(255, 255, 255, 0.8);
 }
 
 .neu-btn:active {
@@ -318,15 +322,18 @@
   width: 6px;
   height: 6px;
 }
+
 .custom-scrollbar::-webkit-scrollbar-track {
   background: #EAE6FF;
   box-shadow: inset 1px 1px 4px #C2BAF0;
   border-radius: 4px;
 }
+
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background: rgba(107, 79, 232, 0.25);
   border-radius: 4px;
 }
+
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(107, 79, 232, 0.45);
 }
@@ -335,42 +342,123 @@
    KEYFRAMES & ANIMATIONS
    ============================================================ */
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50%       { transform: translateY(-12px); }
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-12px);
+  }
 }
 
 @keyframes boot-pulse {
-  0%, 100% { opacity: 0.45; }
-  50%       { opacity: 1; }
+
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+
+  50% {
+    opacity: 1;
+  }
 }
 
 @keyframes sparkle {
-  0%, 100% { opacity: 0; transform: scale(0) rotate(0deg); }
-  50%       { opacity: 1; transform: scale(1) rotate(180deg); }
+
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0) rotate(0deg);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1) rotate(180deg);
+  }
 }
 
 @keyframes glow-purple {
-  0%, 100% { box-shadow: 0 0 22px rgba(107, 79, 232, 0.4); }
-  50%       { box-shadow: 0 0 55px rgba(107, 79, 232, 0.75), 0 0 90px rgba(139, 111, 255, 0.35); }
+
+  0%,
+  100% {
+    box-shadow: 0 0 22px rgba(107, 79, 232, 0.4);
+  }
+
+  50% {
+    box-shadow: 0 0 55px rgba(107, 79, 232, 0.75), 0 0 90px rgba(139, 111, 255, 0.35);
+  }
 }
 
 @keyframes pulse-ring {
-  0%   { transform: scale(0.9); opacity: 0.8; }
-  100% { transform: scale(1.6); opacity: 0; }
+  0% {
+    transform: scale(0.9);
+    opacity: 0.8;
+  }
+
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
 }
 
-.animate-float       { animation: float 4s ease-in-out infinite; }
-.animate-boot-pulse  { animation: boot-pulse 1.5s ease-in-out infinite; }
-.animate-sparkle     { animation: sparkle 2s ease-in-out infinite; }
-.animate-glow-purple { animation: glow-purple 2.5s ease-in-out infinite; }
-.animate-pulse-ring  { animation: pulse-ring 1.8s ease-out infinite; }
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.animate-boot-pulse {
+  animation: boot-pulse 1.5s ease-in-out infinite;
+}
+
+.animate-sparkle {
+  animation: sparkle 2s ease-in-out infinite;
+}
+
+.animate-glow-purple {
+  animation: glow-purple 2.5s ease-in-out infinite;
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 1.8s ease-out infinite;
+}
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Icon hover (taskbar) */
-.icon-hover { transition: all 0.18s ease; }
-.icon-hover:hover  { transform: scale(1.08); }
-.icon-hover:active { transform: scale(0.93); }
+.icon-hover {
+  transition: all 0.18s ease;
+}
+
+.icon-hover:hover {
+  transform: scale(1.08);
+}
+
+.icon-hover:active {
+  transform: scale(0.93);
+}
+
+/* Antigravity Neon Purple Glow Animation */
+@keyframes glow-neon-purple {
+
+  0%,
+  100% {
+    filter: drop-shadow(0 0 15px rgba(107, 79, 232, 0.45)) drop-shadow(0 0 30px rgba(107, 79, 232, 0.2));
+  }
+
+  50% {
+    filter: drop-shadow(0 0 30px rgba(139, 111, 255, 0.85)) drop-shadow(0 0 50px rgba(107, 79, 232, 0.5)) drop-shadow(0 0 80px rgba(107, 79, 232, 0.2));
+  }
+}
+
+.animate-glow-neon-purple {
+  animation: glow-neon-purple 3s ease-in-out infinite;
+}

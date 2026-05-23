@@ -8,11 +8,11 @@ import { ImageIcon, X, ChevronLeft, ChevronRight, Calendar, Camera } from "lucid
 const galleryAlbums = [
   {
     id: "launch",
-    title: "Club Launch Event",
+    title: "Group Launch Event",
     date: "February 2026",
     cover: "/logo-full.png",
     photos: [
-      { id: "1", src: "/logo-full.png", caption: "Club Launch — Welcome Session" },
+      { id: "1", src: "/logo-full.png", caption: "Group Launch — Welcome Session" },
       { id: "2", src: "/logo-full.png", caption: "Inaugural Address" },
       { id: "3", src: "/logo-full.png", caption: "Q&A With Cloud Experts" },
     ],

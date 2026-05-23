@@ -145,7 +145,7 @@ export function ContactApp() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ type: "spring" as const, stiffness: 260, delay: 0.2 }}
           >
-            <h2 className="mb-4 text-lg font-bold" style={{ color: "#1E1060" }}>Club Hours</h2>
+            <h2 className="mb-4 text-lg font-bold" style={{ color: "#1E1060" }}>Office Hours</h2>
             <div className="space-y-2">
               {[
                 { day: "Mon – Fri",  time: "10:00 AM – 6:00 PM" },

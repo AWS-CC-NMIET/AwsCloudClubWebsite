@@ -17,7 +17,7 @@ export function AboutApp() {
         <div className="flex flex-wrap gap-6 items-start">
           <div className="flex-1 min-w-0">
             <h2 className="text-lg font-bold mb-1" style={{ color: "#1E1060" }}>
-              AWS Cloud Club at NMIET
+              AWS Student Builder Group at NMIET
             </h2>
             <p className="text-sm leading-relaxed" style={{ color: "#7B6FC0" }}>
               We teach students about the AWS Cloud and its various use cases — including security,
@@ -32,7 +32,7 @@ export function AboutApp() {
             </div>
             <div className="neu-inset-sm flex items-center gap-2 rounded-xl px-3 py-2">
               <Globe className="h-4 w-4 flex-shrink-0" style={{ color: "#FF9900" }} />
-              <span className="text-xs font-medium" style={{ color: "#1E1060" }}>616 AWS Clubs globally</span>
+              <span className="text-xs font-medium" style={{ color: "#1E1060" }}>AWS Student Builder Groups globally</span>
             </div>
           </div>
         </div>
@@ -99,7 +99,7 @@ export function AboutApp() {
         {[
           { value: "Innovation", desc: "Pushing boundaries with creative cloud solutions on real AWS infrastructure", color: "#6B4FE8" },
           { value: "Community",  desc: `Open to all — ${memberCount ?? 299} members and growing across Pune, Maharashtra`, color: "#50C88A" },
-          { value: "Excellence", desc: "Official AWS Cloud Club chapter, held to AWS global standards",             color: "#FF9900" },
+          { value: "Excellence", desc: "Official AWS Student Builder Group, held to AWS global standards",             color: "#FF9900" },
         ].map((v) => (
           <motion.div
             key={v.value}
