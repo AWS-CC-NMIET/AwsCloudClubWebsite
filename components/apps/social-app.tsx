@@ -48,71 +48,81 @@ export function SocialApp() {
 
   useEffect(() => {
     api.social.list()
-      .then(({ links: l }) => setLinks(l as SocialLink[]))
+      .then(({ links: l }) => {
+        // Map/override dynamically fetched links to correct YouTube and Discord links
+        const updatedLinks = (l as SocialLink[]).map(link => {
+          const platform = link.platform.toLowerCase()
+          const name = link.name.toLowerCase()
+          if (platform === "youtube" || name === "youtube") {
+            return { ...link, url: "https://www.youtube.com/@AWSStudentBuildersGroupNMIET" }
+          }
+          if (platform === "discord" || name === "discord") {
+            return { ...link, url: "https://discord.gg/BydTcjm8g" }
+          }
+          return link
+        })
+        setLinks(updatedLinks)
+      })
       .catch(() => setError(true))
       .finally(() => setLoading(false))
   }, [])
 
   if (loading) return (
     <div className="flex h-60 items-center justify-center">
-      <Loader2 className="h-8 w-8 animate-spin" style={{ color: "#6B4FE8" }} />
+      <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
     </div>
   )
 
   if (error) return (
     <div className="flex h-60 flex-col items-center justify-center gap-3">
-      <Share2 className="h-10 w-10 opacity-20" style={{ color: "#6B4FE8" }} />
-      <p className="text-sm" style={{ color: "#9B8FC8" }}>Could not load social links. Please try again later.</p>
+      <Share2 className="h-10 w-10 opacity-20 text-indigo-600" />
+      <p className="text-sm text-indigo-950/60">Could not load social links. Please try again later.</p>
     </div>
   )
 
   return (
-    <motion.div className="space-y-5" variants={container} initial="hidden" animate="show">
+    <motion.div className="space-y-5 p-1" variants={container} initial="hidden" animate="show">
       <motion.div variants={item} className="text-center">
-        <h2 className="text-xl font-bold" style={{ color: "#1E1060" }}>Connect With Us</h2>
-        <p className="text-sm mt-1" style={{ color: "#7B6FC0" }}>Follow us on social media for the latest updates</p>
+        <h2 className="text-xl font-bold text-indigo-950">Connect With Us</h2>
+        <p className="text-xs md:text-sm mt-1 text-indigo-950/65">Follow us on social media for the latest updates</p>
       </motion.div>
 
-      {/* ── Always-visible Meetup card (primary community hub) ── */}
+      {/* ── Meetup card redesigned to Finder-style glass layout ── */}
       <motion.a
         variants={item}
         href={MEETUP_URL}
         target="_blank"
         rel="noopener noreferrer"
-        className="block rounded-2xl p-5"
-        style={{
-          background: "linear-gradient(135deg, #E83030 0%, #FF5555 100%)",
-          boxShadow: "6px 6px 18px rgba(232,48,48,0.32)",
-        }}
-        whileHover={{ y: -4, boxShadow: "8px 8px 24px rgba(232,48,48,0.42)" }}
+        className="block rounded-xl border border-white/40 bg-white/35 backdrop-blur-sm p-5 shadow-xs transition-all hover:bg-white/45"
+        whileHover={{ y: -3 }}
         whileTap={{ scale: 0.98 }}
         transition={{ type: "spring" as const, stiffness: 300 }}
       >
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl" style={{ background: "rgba(255,255,255,0.20)" }}>
-              <MeetupIcon className="h-8 w-8 text-white" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-red-500/10 text-red-500">
+              <MeetupIcon className="h-7 w-7" />
             </div>
             <div>
-              <h3 className="font-bold text-white text-base">Meetup Community</h3>
-              <p className="text-sm" style={{ color: "rgba(255,255,255,0.80)" }}>
+              <h3 className="font-bold text-indigo-950 text-base">Meetup Community</h3>
+              <p className="text-xs text-indigo-950/70">
                 {memberCount !== null ? `${memberCount} members` : "Loading…"} · Official group
               </p>
             </div>
           </div>
-          <div className="flex flex-col items-end gap-1">
-            <span className="text-xs font-semibold px-2.5 py-1 rounded-full" style={{ background: "rgba(255,255,255,0.20)", color: "white" }}>
+          <div>
+            <span className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-red-500 hover:bg-red-600 text-white shadow-2xs transition-colors">
               Join Free →
             </span>
           </div>
         </div>
-        <p className="mt-3 text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.85)" }}>
+        <p className="mt-3 text-xs md:text-sm leading-relaxed text-indigo-950/75">
           RSVP to events, get notified about workshops, and connect with {memberCount ?? 299}+ cloud enthusiasts
           at NMIET. Our primary community hub.
         </p>
       </motion.a>
 
-      {/* ── DB-fetched additional social links ── */}
+      {/* ── DB-fetched additional social links redesigned ── */}
       {links.length > 0 && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {links.map((s) => {
@@ -120,22 +130,22 @@ export function SocialApp() {
             return (
               <motion.a key={s.id} href={s.url} target="_blank" rel="noopener noreferrer"
                 variants={item}
-                className="neu-raised-sm group block rounded-2xl p-5"
-                whileHover={{ y: -5, boxShadow: "8px 8px 22px rgba(107,79,232,0.26), -6px -6px 16px rgba(255,255,255,0.72)" }}
+                className="group block rounded-xl border border-white/30 bg-white/20 p-5 transition-all hover:bg-white/30 shadow-2xs"
+                whileHover={{ y: -3 }}
                 transition={{ type: "spring" as const, stiffness: 300 }}>
                 <div className="mb-3 flex items-center gap-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl text-white"
-                    style={{ background: s.color, boxShadow: `4px 4px 14px ${s.color}50` }}>
-                    <Icon className="h-6 w-6" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl text-white shadow-2xs"
+                    style={{ background: s.color }}>
+                    <Icon className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-sm" style={{ color: "#1E1060" }}>{s.name}</h3>
+                    <h3 className="font-bold text-sm text-indigo-950">{s.name}</h3>
                     {s.followers && (
-                      <p className="text-xs" style={{ color: "#7B6FC0" }}>{s.followers} followers</p>
+                      <p className="text-xs text-indigo-950/60">{s.followers} followers</p>
                     )}
                   </div>
                 </div>
-                <span className="text-xs font-semibold" style={{ color: "#6B4FE8" }}>Follow →</span>
+                <span className="text-xs font-semibold text-indigo-900/80 hover:text-indigo-950 transition-colors">Follow →</span>
               </motion.a>
             )
           })}
@@ -143,28 +153,26 @@ export function SocialApp() {
       )}
 
       {links.length === 0 && (
-        <motion.div variants={item} className="neu-raised-sm rounded-2xl p-6 text-center">
-          <Share2 className="mx-auto mb-2 h-8 w-8 opacity-25" style={{ color: "#6B4FE8" }} />
-          <p className="text-sm" style={{ color: "#9B8FC8" }}>More social links coming soon — add via Admin panel.</p>
+        <motion.div variants={item} className="rounded-xl border border-white/30 bg-white/20 p-6 text-center shadow-2xs">
+          <Share2 className="mx-auto mb-2 h-8 w-8 opacity-25 text-indigo-950" />
+          <p className="text-sm text-indigo-950/60">More social links coming soon — add via Admin panel.</p>
         </motion.div>
       )}
 
       {/* Email CTA */}
       <motion.div variants={item}
-        className="rounded-2xl p-6 text-center"
-        style={{ background: "linear-gradient(135deg, rgba(107,79,232,0.08), rgba(184,164,255,0.06))", border: "1px solid rgba(107,79,232,0.22)" }}>
-        <h3 className="mb-1 text-lg font-bold" style={{ color: "#1E1060" }}>Drop Us an Email</h3>
-        <p className="mb-3 text-sm" style={{ color: "#7B6FC0" }}>
+        className="rounded-xl p-6 text-center border border-white/40 bg-white/35 backdrop-blur-sm shadow-xs">
+        <h3 className="mb-1 text-base font-bold text-indigo-950">Drop Us an Email</h3>
+        <p className="mb-3 text-xs md:text-sm text-indigo-950/70">
           Have questions or want to collaborate? Reach out directly.
         </p>
         <motion.a
-          href="mailto:awscloudclub.nmiet@gmail.com"
-          className="inline-flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-bold text-white"
-          style={{ background: "linear-gradient(135deg,#6B4FE8,#8B6FFF)", boxShadow: "4px 4px 14px rgba(107,79,232,0.30)" }}
+          href="mailto:aws.studentbuildersgroup.nmiet@gmail.com"
+          className="inline-flex items-center gap-2 rounded-lg px-6 py-2.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-750 transition-colors shadow-2xs"
           whileHover={{ y: -2 }}
           whileTap={{ scale: 0.97 }}
         >
-          awscloudclub.nmiet@gmail.com
+          aws.studentbuildersgroup.nmiet@gmail.com
         </motion.a>
       </motion.div>
     </motion.div>

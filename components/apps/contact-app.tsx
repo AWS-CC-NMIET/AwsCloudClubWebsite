@@ -124,7 +124,7 @@ export function ContactApp() {
             <div className="space-y-4">
               {[
                 { icon: MapPin, label: "Location", value: "NMIET Campus, Talegaon Dabhade\nPune, Maharashtra 410507", color: "#6B4FE8" },
-                { icon: Mail,   label: "Email",    value: "awscloudclub.nmiet@gmail.com",                              color: "#FF9900" },
+                { icon: Mail,   label: "Email",    value: "aws.studentbuildersgroup.nmiet@gmail.com",                          color: "#FF9900" },
               ].map((info) => (
                 <div key={info.label} className="flex items-start gap-3">
                   <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl" style={{ background: `${info.color}12` }}>

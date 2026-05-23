@@ -256,7 +256,7 @@ export function Window({
           height: "calc(100% - 2.75rem)",
           // On mobile: no padding & transparent bg so app fills edge-to-edge
           padding: isMobile ? 0 : undefined,
-          background: isMobile ? "transparent" : "rgba(210, 200, 255, 0.97)",
+          background: isMobile ? "transparent" : "#CCCCFF",
           WebkitOverflowScrolling: "touch",
           overscrollBehavior: "contain",
         }}

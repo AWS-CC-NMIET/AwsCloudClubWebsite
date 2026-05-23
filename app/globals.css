@@ -174,21 +174,21 @@
 
 /* --- Window --- */
 .neu-window {
-  background: rgba(12, 8, 28, 0.94);
+  background: #CCCCFF;
   backdrop-filter: blur(24px);
   box-shadow:
-    0 12px 40px rgba(107, 79, 232, 0.30),
-    0 0 0 1px rgba(168, 85, 247, 0.22) inset;
+    0 4px 16px rgba(0, 0, 0, 0.12),
+    0 0 0 1px rgba(0, 0, 0, 0.08);
   border-radius: 1.5rem;
   overflow: hidden;
 }
 
 .neu-window-active {
-  background: rgba(15, 10, 35, 0.97);
+  background: #CCCCFF;
   backdrop-filter: blur(24px);
   box-shadow:
-    0 20px 60px rgba(107, 79, 232, 0.48),
-    0 0 0 1.5px rgba(168, 85, 247, 0.42) inset;
+    0 8px 32px rgba(0, 0, 0, 0.18),
+    0 0 0 1px rgba(0, 0, 0, 0.12);
   border-radius: 1.5rem;
   overflow: hidden;
 }

@@ -85,7 +85,7 @@ Steps to become a member:
   4. Create an account on this portal → click
      the lock icon on the login screen
 
-📧 Email: awscloudclub.nmiet@gmail.com
+📧 Email: aws.studentbuildersgroup.nmiet@gmail.com
 
 Type 'events' to see upcoming activities!`,
 
@@ -107,12 +107,12 @@ visit meetup.com/aws-cloud-club-at-nutan-… to RSVP.`,
   team: `
 👥 Core Team — AWS Student Builder Group NMIET:
 
-  Neha Sharma     [Captain / Organizer]  🟢 Running
+  Neha Sharma     [SBG Leader]  🟢 Running
   ──────────────────────────────────────────────────
   ${m} members strong and growing!
 
   Interested in a leadership role?
-  Email: awscloudclub.nmiet@gmail.com
+  Email: aws.studentbuildersgroup.nmiet@gmail.com
   or open the Team app for the full roster.`,
 
   skills: `
@@ -142,7 +142,7 @@ Type 'about' for more info.`,
   contact: `
 📬 Contact AWS Student Builder Group NMIET:
 
-  📧 Email   : awscloudclub.nmiet@gmail.com
+  📧 Email   : aws.studentbuildersgroup.nmiet@gmail.com
   🌐 Meetup  : meetup.com/aws-cloud-club-at-nutan-…
   📍 Location: NMIET, Talegaon Dabhade, Pune
 
