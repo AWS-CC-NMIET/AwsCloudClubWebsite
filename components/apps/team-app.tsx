@@ -102,7 +102,7 @@ export function TeamApp() {
               key={member.id}
               variants={item}
               className="neu-raised-sm rounded-2xl p-5"
-              whileHover={{ y: -5, boxShadow: "8px 8px 22px #C2BAF0, -8px -8px 22px #FFFFFF" }}
+              whileHover={{ y: -5, boxShadow: "8px 8px 22px rgba(107,79,232,0.26), -6px -6px 16px rgba(255,255,255,0.72)" }}
               transition={{ type: "spring" as const, stiffness: 300 }}
             >
               <div className="mb-3 flex items-center justify-between">
@@ -134,7 +134,7 @@ export function TeamApp() {
                 </div>
               )}
 
-              <div className="flex gap-2 border-t pt-3" style={{ borderColor: "#D0C8F0" }}>
+              <div className="flex gap-2 border-t pt-3" style={{ borderColor: "rgba(107,79,232,0.22)" }}>
                 {member.github && (
                   <motion.a href={member.github} target="_blank" rel="noopener noreferrer"
                     className="neu-btn flex h-8 w-8 items-center justify-center rounded-xl"

@@ -4,6 +4,7 @@
 import { NextResponse } from "next/server"
 import { putItem, TABLES } from "@/lib/dynamodb"
 import { sendContactEmail } from "@/lib/ses"
+import { rateLimit, getRequestKey, rateLimitResponse } from "@/lib/rate-limit"
 
 export async function GET(request: Request) {
   // Admin-only: list all contact submissions
@@ -24,6 +25,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const rl = rateLimit(getRequestKey(request, "contact"), { limit: 3, windowMs: 60_000 })
+  if (!rl.success) return rateLimitResponse(rl.resetAt)
+
   try {
     const { name, email, subject, message } = await request.json()
 

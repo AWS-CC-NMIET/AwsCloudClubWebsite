@@ -44,26 +44,27 @@ export function QuoteTicker() {
     >
       {/* Thin top rule */}
       <div className="flex items-center gap-3 mb-2 justify-center">
-        <div style={{ width: 32, height: 1, background: "rgba(30,16,96,0.25)" }} />
+        <div style={{ width: 32, height: 1, background: "rgba(168,85,247,0.35)" }} />
         <span
           className="text-xs tracking-[0.2em] uppercase"
-          style={{ color: "rgba(30,16,96,0.4)", fontFamily: "Georgia, serif", letterSpacing: "0.18em" }}
+          style={{ color: "rgba(196,181,253,0.55)", fontFamily: "Georgia, serif", letterSpacing: "0.18em" }}
         >
           quote of the moment
         </span>
-        <div style={{ width: 32, height: 1, background: "rgba(30,16,96,0.25)" }} />
+        <div style={{ width: 32, height: 1, background: "rgba(168,85,247,0.35)" }} />
       </div>
 
       <motion.p
         key={quoteIdx}
         style={{
-          color: "var(--quote-text, #1E1060)",
+          color: "rgba(237,233,254,0.92)",
           fontFamily: "Georgia, 'Times New Roman', serif",
           fontSize: "0.9rem",
           fontStyle: "italic",
           fontWeight: 400,
           lineHeight: 1.55,
           letterSpacing: "0.01em",
+          textShadow: "0 0 20px rgba(168,85,247,0.30)",
         }}
         animate={{ opacity: visible ? 1 : 0, y: visible ? 0 : -5 }}
         transition={{ duration: 0.4 }}
@@ -75,10 +76,11 @@ export function QuoteTicker() {
         key={`a-${quoteIdx}`}
         className="mt-1.5 text-xs tracking-wider"
         style={{
-          color: "rgba(107,79,232,0.75)",
+          color: "#A78BFA",
           fontFamily: "system-ui, sans-serif",
           fontWeight: 600,
           letterSpacing: "0.06em",
+          textShadow: "0 0 12px rgba(168,85,247,0.50)",
         }}
         animate={{ opacity: visible ? 1 : 0 }}
         transition={{ duration: 0.4, delay: 0.08 }}

@@ -222,7 +222,7 @@ export function Desktop({ onLogout }: { onLogout: () => void }) {
       {!introIsMaximized && (
         <div className="absolute right-4 top-4 hidden w-64 md:flex flex-col gap-3 z-10">
           <WeatherWidget />
-          <CalendarWidget />
+          <CalendarWidget onEventDateClick={() => openApp("events")} />
         </div>
       )}
 

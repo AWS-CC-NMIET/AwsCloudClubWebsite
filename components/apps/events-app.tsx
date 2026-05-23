@@ -130,7 +130,7 @@ export function EventsApp() {
               transition={{ type: "spring" as const, stiffness: 300, damping: 26 }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between border-b p-4" style={{ borderColor: "#D0C8F0" }}>
+              <div className="flex items-center justify-between border-b p-4" style={{ borderColor: "rgba(107,79,232,0.22)" }}>
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="rounded-full px-2.5 py-0.5 text-xs font-semibold flex-shrink-0"
                     style={{
@@ -192,7 +192,7 @@ function EventCard({ event, onSelect }: { event: MeetupEvent; onSelect: (e: Meet
     <motion.div
       variants={{ hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 260, damping: 22 } } }}
       className="neu-raised-sm cursor-pointer rounded-2xl p-4"
-      whileHover={{ y: -5, boxShadow: "8px 8px 22px #C2BAF0, -8px -8px 22px #FFFFFF" }}
+      whileHover={{ y: -5, boxShadow: "8px 8px 22px rgba(107,79,232,0.26), -6px -6px 16px rgba(255,255,255,0.72)" }}
       transition={{ type: "spring" as const, stiffness: 300 }}
       onClick={() => onSelect(event)}
     >

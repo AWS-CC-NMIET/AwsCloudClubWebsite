@@ -43,11 +43,11 @@ export function AppDrawer({ apps, isOpen, onClose, onAppClick }: AppDrawerProps)
               width: 240,
               overflowY: "auto",
               zIndex: 210,
-              background: "rgba(234,230,255,0.97)",
-              backdropFilter: "blur(24px)",
-              WebkitBackdropFilter: "blur(24px)",
-              borderRight: "1px solid rgba(194,186,240,0.65)",
-              boxShadow: "8px 0 36px rgba(107,79,232,0.20)",
+              background: "rgba(6, 3, 18, 0.97)",
+              backdropFilter: "blur(28px)",
+              WebkitBackdropFilter: "blur(28px)",
+              borderRight: "1px solid rgba(168,85,247,0.22)",
+              boxShadow: "8px 0 40px rgba(107,79,232,0.30)",
             }}
             initial={{ x: "-100%" }}
             animate={{ x: 0 }}
@@ -57,14 +57,14 @@ export function AppDrawer({ apps, isOpen, onClose, onAppClick }: AppDrawerProps)
             {/* Header */}
             <div
               className="flex items-center justify-between px-5 py-4"
-              style={{ borderBottom: "1px solid rgba(194,186,240,0.50)" }}
+              style={{ borderBottom: "1px solid rgba(168,85,247,0.18)" }}
             >
               <div className="flex items-center gap-2">
-                <LayoutGrid className="h-4 w-4" style={{ color: "#6B4FE8" }} />
-                <span className="text-base font-bold" style={{ color: "#1E1060" }}>All Apps</span>
+                <LayoutGrid className="h-4 w-4" style={{ color: "#A855F7" }} />
+                <span className="text-base font-bold" style={{ color: "#EDE9FE" }}>All Apps</span>
                 <span
                   className="text-xs font-semibold px-2 py-0.5 rounded-full"
-                  style={{ background: "rgba(107,79,232,0.12)", color: "#6B4FE8" }}
+                  style={{ background: "rgba(168,85,247,0.18)", color: "#C084FC" }}
                 >
                   {apps.length}
                 </span>
@@ -72,11 +72,11 @@ export function AppDrawer({ apps, isOpen, onClose, onAppClick }: AppDrawerProps)
               <motion.button
                 onClick={onClose}
                 className="flex h-7 w-7 items-center justify-center rounded-full"
-                style={{ background: "rgba(107,79,232,0.10)" }}
+                style={{ background: "rgba(168,85,247,0.14)", border: "1px solid rgba(168,85,247,0.22)" }}
                 whileTap={{ scale: 0.90 }}
                 title="Close"
               >
-                <X className="h-4 w-4" style={{ color: "#6B4FE8" }} />
+                <X className="h-4 w-4" style={{ color: "#A855F7" }} />
               </motion.button>
             </div>
 
@@ -88,8 +88,8 @@ export function AppDrawer({ apps, isOpen, onClose, onAppClick }: AppDrawerProps)
                   onClick={() => { onAppClick(app.id); onClose() }}
                   className="flex flex-col items-center gap-2 rounded-2xl p-3"
                   style={{
-                    background: "rgba(212,206,255,0.60)",
-                    boxShadow: "4px 4px 12px #C2BAF0, -4px -4px 12px #FFFFFF",
+                    background: "rgba(168,85,247,0.08)",
+                    border: "1px solid rgba(168,85,247,0.16)",
                     touchAction: "manipulation",
                   }}
                   initial={{ opacity: 0, y: 10 }}
@@ -101,14 +101,14 @@ export function AppDrawer({ apps, isOpen, onClose, onAppClick }: AppDrawerProps)
                     className="flex h-12 w-12 items-center justify-center rounded-2xl text-white"
                     style={{
                       background: app.gradient,
-                      boxShadow: "3px 3px 10px rgba(107,79,232,0.30), -2px -2px 8px rgba(255,255,255,0.80)",
+                      boxShadow: "0 4px 12px rgba(107,79,232,0.45)",
                     }}
                   >
                     {app.icon}
                   </div>
                   <span
                     className="text-[11px] font-semibold text-center leading-tight"
-                    style={{ color: "#1E1060" }}
+                    style={{ color: "#DDD6FE" }}
                   >
                     {app.label}
                   </span>

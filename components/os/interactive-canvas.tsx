@@ -223,47 +223,7 @@ export function InteractiveCanvas({ theme = "light", particleCountOverride }: In
       
       ctx.clearRect(0, 0, width, height)
 
-      // 1. Draw connections
-      const maxDist = 135
-      ctx.lineWidth = 1
-      for (let i = 0; i < particles.length; i++) {
-        for (let j = i + 1; j < particles.length; j++) {
-          const p1 = particles[i]
-          const p2 = particles[j]
-
-          const dx = p1.x - p2.x
-          const dy = p1.y - p2.y
-          const dist = Math.sqrt(dx * dx + dy * dy)
-
-          if (dist < maxDist) {
-            const alphaFactor = 1 - dist / maxDist
-            const connAlpha = theme === "dark" 
-              ? alphaFactor * 0.15
-              : alphaFactor * 0.08
-            
-            // Connection line color
-            ctx.strokeStyle = theme === "dark"
-              ? `rgba(155, 143, 255, ${connAlpha})`
-              : `rgba(107, 79, 232, ${connAlpha})`
-            
-            ctx.beginPath()
-            ctx.moveTo(p1.x, p1.y)
-            ctx.lineTo(p2.x, p2.y)
-            ctx.stroke()
-
-            // Spawn data packet along connection between main nodes occasionally
-            if (p1.isMainNode && p2.isMainNode && packets.length < 15 && Math.random() < 0.00035) {
-              packets.push({
-                from: p1,
-                to: p2,
-                progress: 0,
-                speed: 0.008 + Math.random() * 0.015,
-                color: p1.baseColor.replace("1)", "0.95)"),
-              })
-            }
-          }
-        }
-      }
+      // 1. Connections removed — particles float freely without wires
 
       // 2. Update and draw shockwaves
       for (let sIdx = shockwaves.length - 1; sIdx >= 0; sIdx--) {
@@ -302,30 +262,7 @@ export function InteractiveCanvas({ theme = "light", particleCountOverride }: In
         }
       }
 
-      // 3. Update and draw packets
-      for (let pIdx = packets.length - 1; pIdx >= 0; pIdx--) {
-        const pack = packets[pIdx]
-        pack.progress += pack.speed
-
-        if (pack.progress >= 1) {
-          packets.splice(pIdx, 1)
-          continue
-        }
-
-        const px = pack.from.x + (pack.to.x - pack.from.x) * pack.progress
-        const py = pack.from.y + (pack.to.y - pack.from.y) * pack.progress
-
-        // Pulse packet size
-        const pSize = 2.5 + Math.sin(pack.progress * Math.PI * 4) * 0.8
-
-        ctx.shadowColor = pack.color
-        ctx.shadowBlur = theme === "dark" ? 8 : 4
-        ctx.fillStyle = pack.color
-        ctx.beginPath()
-        ctx.arc(px, py, pSize, 0, Math.PI * 2)
-        ctx.fill()
-        ctx.shadowBlur = 0 // reset shadow
-      }
+      // 3. (Packets removed along with connection lines)
 
       // 4. Update and draw sparks
       if (theme === "dark" && Math.random() < 0.25) {

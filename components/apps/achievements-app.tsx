@@ -79,7 +79,7 @@ export function AchievementsApp() {
                       <span className="text-xs font-semibold mt-1 inline-block" style={{ color: ach.color }}>{ach.date}</span>
                     </div>
                     {i < achievements.length - 1 && (
-                      <div className="absolute left-[2.25rem] top-[4.75rem] h-3 w-0.5 rounded-full" style={{ background: "#C2BAF0" }} />
+                      <div className="absolute left-[2.25rem] top-[4.75rem] h-3 w-0.5 rounded-full" style={{ background: "rgba(107,79,232,0.28)" }} />
                     )}
                   </motion.div>
                 )
@@ -92,7 +92,7 @@ export function AchievementsApp() {
       {/* Featured badge */}
       <motion.div variants={item}
         className="rounded-2xl p-6 text-center"
-        style={{ background: "linear-gradient(135deg, rgba(107,79,232,0.10), rgba(184,164,255,0.07))", border: "1px solid rgba(194,186,240,0.50)" }}>
+        style={{ background: "linear-gradient(135deg, rgba(107,79,232,0.10), rgba(184,164,255,0.07))", border: "1px solid rgba(107,79,232,0.22)" }}>
         <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full text-white"
           style={{ background: "linear-gradient(135deg,#6B4FE8,#B8A4FF)", boxShadow: "5px 5px 16px rgba(107,79,232,0.35)" }}>
           <Trophy className="h-8 w-8" />

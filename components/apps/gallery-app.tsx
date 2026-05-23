@@ -1,25 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { ImageIcon, X, ChevronLeft, ChevronRight, Calendar, Camera } from "lucide-react"
-
-// Static gallery data — replace with S3 fetch when bucket is ready
-const galleryAlbums = [
-  {
-    id: "launch",
-    title: "Group Launch Event",
-    date: "February 2026",
-    cover: "/logo-full.png",
-    photos: [
-      { id: "1", src: "/logo-full.png", caption: "Group Launch — Welcome Session" },
-      { id: "2", src: "/logo-full.png", caption: "Inaugural Address" },
-      { id: "3", src: "/logo-full.png", caption: "Q&A With Cloud Experts" },
-    ],
-  },
-]
+import { ImageIcon, X, ChevronLeft, ChevronRight, Calendar, Camera, Loader2 } from "lucide-react"
+import { api } from "@/lib/api-client"
 
 interface Photo { id: string; src: string; caption: string }
+interface Album { id: string; title: string; date: string; cover: string; photos: Photo[] }
 
 function Lightbox({
   photos,
@@ -44,7 +31,6 @@ function Lightbox({
       exit={{ opacity: 0 }}
       onClick={onClose}
     >
-      {/* Navigation */}
       {index > 0 && (
         <motion.button
           className="absolute left-4 flex h-10 w-10 items-center justify-center rounded-full z-10"
@@ -66,7 +52,6 @@ function Lightbox({
         </motion.button>
       )}
 
-      {/* Close */}
       <motion.button
         className="absolute top-4 right-4 flex h-9 w-9 items-center justify-center rounded-full z-10"
         style={{ background: "rgba(255,255,255,0.12)", color: "white" }}
@@ -76,7 +61,6 @@ function Lightbox({
         <X className="h-5 w-5" />
       </motion.button>
 
-      {/* Image */}
       <motion.div
         className="relative max-w-2xl w-full mx-8"
         onClick={(e) => e.stopPropagation()}
@@ -106,17 +90,43 @@ function Lightbox({
 }
 
 export function GalleryApp() {
-  const [selectedAlbum, setSelectedAlbum] = useState<typeof galleryAlbums[0] | null>(null)
-  const [lightboxIdx, setLightboxIdx] = useState<number | null>(null)
+  const [albums, setAlbums]         = useState<Album[]>([])
+  const [loading, setLoading]       = useState(true)
+  const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null)
+  const [lightboxIdx, setLightboxIdx]     = useState<number | null>(null)
+
+  useEffect(() => {
+    api.events.list()
+      .then(({ events }) => {
+        const evts = events as Array<{
+          id: string; title: string; date: string; imageUrls?: string[]
+        }>
+        const withPhotos = evts
+          .filter((e) => Array.isArray(e.imageUrls) && e.imageUrls.length > 0)
+          .map((e) => ({
+            id: e.id,
+            title: e.title,
+            date: e.date,
+            cover: e.imageUrls![0],
+            photos: e.imageUrls!.map((src, i) => ({
+              id: String(i),
+              src,
+              caption: `${e.title} — Photo ${i + 1}`,
+            })),
+          }))
+        setAlbums(withPhotos)
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
 
   const openLightbox = (i: number) => setLightboxIdx(i)
   const closeLightbox = () => setLightboxIdx(null)
 
   return (
-    <div className="h-full overflow-y-auto custom-scrollbar" style={{ background: "#EAE6FF" }}>
+    <div className="h-full overflow-y-auto custom-scrollbar" style={{ background: "rgba(210, 200, 255, 0.97)" }}>
       <div className="max-w-2xl mx-auto px-4 pt-5 pb-10">
 
-        {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <div className="flex h-10 w-10 items-center justify-center rounded-2xl"
             style={{ background: "linear-gradient(135deg,#E85580,#B83060)" }}>
@@ -128,53 +138,55 @@ export function GalleryApp() {
           </div>
         </div>
 
-        {!selectedAlbum ? (
-          // Album grid
+        {loading ? (
+          <div className="flex justify-center py-16">
+            <Loader2 className="h-8 w-8 animate-spin" style={{ color: "#6B4FE8" }} />
+          </div>
+        ) : !selectedAlbum ? (
           <>
             <p className="text-sm font-semibold mb-3" style={{ color: "#7B6FC0" }}>
-              {galleryAlbums.length} {galleryAlbums.length === 1 ? "Album" : "Albums"}
+              {albums.length} {albums.length === 1 ? "Album" : "Albums"}
             </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {galleryAlbums.map((album, i) => (
-                <motion.button
-                  key={album.id}
-                  className="text-left rounded-2xl overflow-hidden"
-                  style={{ boxShadow: "6px 6px 18px #C2BAF0, -6px -6px 18px #FFFFFF" }}
-                  initial={{ opacity: 0, y: 14 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.07 }}
-                  whileHover={{ y: -3 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => setSelectedAlbum(album)}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={album.cover} alt={album.title} className="w-full h-36 object-cover" />
-                  <div className="px-4 py-3" style={{ background: "#EAE6FF" }}>
-                    <h3 className="font-bold text-sm" style={{ color: "#1E1060" }}>{album.title}</h3>
-                    <div className="flex items-center gap-1 mt-1">
-                      <Calendar className="h-3 w-3" style={{ color: "#7B6FC0" }} />
-                      <span className="text-xs" style={{ color: "#7B6FC0" }}>{album.date}</span>
-                      <span className="ml-auto text-xs font-medium" style={{ color: "#6B4FE8" }}>
-                        {album.photos.length} photos
-                      </span>
-                    </div>
-                  </div>
-                </motion.button>
-              ))}
-            </div>
-
-            {galleryAlbums.length === 0 && (
+            {albums.length === 0 ? (
               <div className="flex flex-col items-center gap-4 py-16">
                 <ImageIcon className="h-12 w-12 opacity-20" style={{ color: "#6B4FE8" }} />
                 <p className="text-sm font-medium" style={{ color: "#9B8FC8" }}>No albums yet</p>
                 <p className="text-xs text-center" style={{ color: "rgba(155,143,200,0.70)" }}>
-                  Photos from events will appear here
+                  Photos uploaded to events will appear here
                 </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {albums.map((album, i) => (
+                  <motion.button
+                    key={album.id}
+                    className="text-left rounded-2xl overflow-hidden"
+                    style={{ boxShadow: "6px 6px 18px rgba(107,79,232,0.22), -5px -5px 14px rgba(255,255,255,0.72)" }}
+                    initial={{ opacity: 0, y: 14 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.07 }}
+                    whileHover={{ y: -3 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => setSelectedAlbum(album)}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={album.cover} alt={album.title} className="w-full h-36 object-cover" />
+                    <div className="px-4 py-3" style={{ background: "rgba(204, 192, 255, 0.92)" }}>
+                      <h3 className="font-bold text-sm" style={{ color: "#1E1060" }}>{album.title}</h3>
+                      <div className="flex items-center gap-1 mt-1">
+                        <Calendar className="h-3 w-3" style={{ color: "#7B6FC0" }} />
+                        <span className="text-xs" style={{ color: "#7B6FC0" }}>{album.date}</span>
+                        <span className="ml-auto text-xs font-medium" style={{ color: "#6B4FE8" }}>
+                          {album.photos.length} {album.photos.length === 1 ? "photo" : "photos"}
+                        </span>
+                      </div>
+                    </div>
+                  </motion.button>
+                ))}
               </div>
             )}
           </>
         ) : (
-          // Photo grid
           <>
             <motion.button
               onClick={() => setSelectedAlbum(null)}
@@ -186,14 +198,16 @@ export function GalleryApp() {
               All Albums
             </motion.button>
             <h2 className="text-lg font-bold mb-1" style={{ color: "#1E1060" }}>{selectedAlbum.title}</h2>
-            <p className="text-xs mb-4" style={{ color: "#7B6FC0" }}>{selectedAlbum.date} · {selectedAlbum.photos.length} photos</p>
+            <p className="text-xs mb-4" style={{ color: "#7B6FC0" }}>
+              {selectedAlbum.date} · {selectedAlbum.photos.length} photos
+            </p>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {selectedAlbum.photos.map((photo, i) => (
                 <motion.button
                   key={photo.id}
                   className="rounded-xl overflow-hidden aspect-square"
-                  style={{ boxShadow: "4px 4px 12px #C2BAF0, -3px -3px 10px #FFFFFF" }}
+                  style={{ boxShadow: "4px 4px 12px rgba(107,79,232,0.20), -3px -3px 10px rgba(255,255,255,0.68)" }}
                   initial={{ opacity: 0, scale: 0.90 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: i * 0.05 }}
@@ -210,7 +224,6 @@ export function GalleryApp() {
         )}
       </div>
 
-      {/* Lightbox */}
       <AnimatePresence>
         {lightboxIdx !== null && selectedAlbum && (
           <Lightbox

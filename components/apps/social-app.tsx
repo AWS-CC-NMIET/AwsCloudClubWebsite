@@ -44,17 +44,25 @@ export function SocialApp() {
   const { memberCount } = useMeetup()
   const [links, setLinks]     = useState<SocialLink[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError]     = useState(false)
 
   useEffect(() => {
     api.social.list()
       .then(({ links: l }) => setLinks(l as SocialLink[]))
-      .catch(() => {})
+      .catch(() => setError(true))
       .finally(() => setLoading(false))
   }, [])
 
   if (loading) return (
     <div className="flex h-60 items-center justify-center">
       <Loader2 className="h-8 w-8 animate-spin" style={{ color: "#6B4FE8" }} />
+    </div>
+  )
+
+  if (error) return (
+    <div className="flex h-60 flex-col items-center justify-center gap-3">
+      <Share2 className="h-10 w-10 opacity-20" style={{ color: "#6B4FE8" }} />
+      <p className="text-sm" style={{ color: "#9B8FC8" }}>Could not load social links. Please try again later.</p>
     </div>
   )
 
@@ -74,9 +82,9 @@ export function SocialApp() {
         className="block rounded-2xl p-5"
         style={{
           background: "linear-gradient(135deg, #E83030 0%, #FF5555 100%)",
-          boxShadow: "6px 6px 18px rgba(232,48,48,0.30), -4px -4px 12px #FFFFFF",
+          boxShadow: "6px 6px 18px rgba(232,48,48,0.32)",
         }}
-        whileHover={{ y: -4, boxShadow: "8px 8px 24px rgba(232,48,48,0.38), -4px -4px 12px #FFFFFF" }}
+        whileHover={{ y: -4, boxShadow: "8px 8px 24px rgba(232,48,48,0.42)" }}
         whileTap={{ scale: 0.98 }}
         transition={{ type: "spring" as const, stiffness: 300 }}
       >
@@ -113,7 +121,7 @@ export function SocialApp() {
               <motion.a key={s.id} href={s.url} target="_blank" rel="noopener noreferrer"
                 variants={item}
                 className="neu-raised-sm group block rounded-2xl p-5"
-                whileHover={{ y: -5, boxShadow: "8px 8px 22px #C2BAF0, -8px -8px 22px #FFFFFF" }}
+                whileHover={{ y: -5, boxShadow: "8px 8px 22px rgba(107,79,232,0.26), -6px -6px 16px rgba(255,255,255,0.72)" }}
                 transition={{ type: "spring" as const, stiffness: 300 }}>
                 <div className="mb-3 flex items-center gap-3">
                   <div className="flex h-12 w-12 items-center justify-center rounded-2xl text-white"
@@ -144,7 +152,7 @@ export function SocialApp() {
       {/* Email CTA */}
       <motion.div variants={item}
         className="rounded-2xl p-6 text-center"
-        style={{ background: "linear-gradient(135deg, rgba(107,79,232,0.08), rgba(184,164,255,0.06))", border: "1px solid rgba(194,186,240,0.50)" }}>
+        style={{ background: "linear-gradient(135deg, rgba(107,79,232,0.08), rgba(184,164,255,0.06))", border: "1px solid rgba(107,79,232,0.22)" }}>
         <h3 className="mb-1 text-lg font-bold" style={{ color: "#1E1060" }}>Drop Us an Email</h3>
         <p className="mb-3 text-sm" style={{ color: "#7B6FC0" }}>
           Have questions or want to collaborate? Reach out directly.

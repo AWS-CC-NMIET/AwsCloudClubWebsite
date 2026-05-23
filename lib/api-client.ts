@@ -101,6 +101,7 @@ export async function uploadFileToS3(
   file: File
 ): Promise<string> {
   const { uploadUrl, fileUrl } = await api.upload.getPresignedUrl(folder, file.type)
-  await fetch(uploadUrl, { method: "PUT", body: file, headers: { "Content-Type": file.type } })
+  const res = await fetch(uploadUrl, { method: "PUT", body: file, headers: { "Content-Type": file.type } })
+  if (!res.ok) throw new Error(`S3 upload failed: ${res.status}`)
   return fileUrl
 }

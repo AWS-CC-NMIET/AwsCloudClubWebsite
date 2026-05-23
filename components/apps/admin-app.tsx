@@ -29,8 +29,8 @@ const tabs: { id: AdminTab; label: string; icon: React.ReactNode }[] = [
 ]
 
 const inputCls: React.CSSProperties = {
-  background: "#EAE6FF", boxShadow: "inset 2px 2px 6px #C2BAF0, inset -2px -2px 6px #FFFFFF",
-  border: "none", outline: "none", borderRadius: "0.75rem",
+  background: "rgba(183, 168, 250, 0.78)", boxShadow: "inset 2px 2px 6px rgba(107,79,232,0.20), inset -2px -2px 6px rgba(255,255,255,0.52)",
+  border: "1px solid rgba(107,79,232,0.14)", outline: "none", borderRadius: "0.75rem",
   padding: "0.625rem 0.875rem", color: "#1E1060", width: "100%", fontSize: "0.85rem",
 }
 const textareaCls: React.CSSProperties = { ...inputCls, resize: "none" }
@@ -90,8 +90,60 @@ function ImageUpload({ onUploaded, folder, current }: {
   )
 }
 
+// ── Multi-Image Upload (for event galleries) ──────────────────
+function MultiImageUpload({ urls, onChanged, folder }: {
+  urls: string[]
+  onChanged: (urls: string[]) => void
+  folder: "events" | "team" | "projects" | "general"
+}) {
+  const ref = useRef<HTMLInputElement>(null)
+  const [uploading, setUploading] = useState(false)
+
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    e.target.value = ""
+    try {
+      const url = await uploadFileToS3(folder, file)
+      onChanged([...urls, url])
+    } catch (err) {
+      console.error("Upload failed:", err)
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const remove = (idx: number) => onChanged(urls.filter((_, i) => i !== idx))
+
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap gap-2">
+        {urls.map((url, i) => (
+          <div key={i} className="relative group">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={url} alt="" className="h-16 w-16 rounded-xl object-cover" />
+            <button type="button" onClick={() => remove(i)}
+              className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full text-white text-xs"
+              style={{ background: "#E85555" }}>
+              ×
+            </button>
+          </div>
+        ))}
+        <button type="button" onClick={() => ref.current?.click()}
+          className="neu-btn flex h-16 w-16 flex-col items-center justify-center gap-1 rounded-xl text-xs font-medium"
+          style={{ color: "#7B6FC0" }} disabled={uploading}>
+          {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+          {uploading ? "..." : "Add"}
+        </button>
+      </div>
+      <input ref={ref} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+    </div>
+  )
+}
+
 // ── Dashboard Tab ─────────────────────────────────────────────
-function DashboardTab() {
+function DashboardTab({ setActiveTab }: { setActiveTab: (tab: AdminTab) => void }) {
   const [stats, setStats] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
 
@@ -134,12 +186,17 @@ function DashboardTab() {
       <div className="neu-raised-sm rounded-2xl p-5">
         <h3 className="font-semibold mb-3" style={{ color: "#1E1060" }}>Quick Actions</h3>
         <div className="flex flex-wrap gap-2">
-          {[
-            "Add Event", "Add Team Member", "Add Project", "Add Achievement",
-            "View Contacts", "Add Resource",
-          ].map((action) => (
-            <button key={action} className="neu-btn rounded-xl px-3 py-2 text-sm font-medium" style={{ color: "#6B4FE8" }}>
-              {action}
+          {([
+            { label: "Add Event",       tab: "events"       },
+            { label: "Add Team Member", tab: "team"         },
+            { label: "Add Project",     tab: "projects"     },
+            { label: "Add Achievement", tab: "achievements" },
+            { label: "View Contacts",   tab: "contacts"     },
+            { label: "Add Resource",    tab: "resources"    },
+          ] as { label: string; tab: AdminTab }[]).map(({ label, tab }) => (
+            <button key={label} onClick={() => setActiveTab(tab)}
+              className="neu-btn rounded-xl px-3 py-2 text-sm font-medium" style={{ color: "#6B4FE8" }}>
+              {label}
             </button>
           ))}
         </div>
@@ -153,7 +210,7 @@ function DashboardTab() {
 interface FieldDef {
   key: string
   label: string
-  type: "text" | "textarea" | "number" | "boolean" | "select" | "tags" | "image"
+  type: "text" | "date" | "textarea" | "number" | "boolean" | "select" | "tags" | "image" | "images"
   options?: string[] // for select
   folder?: "events" | "team" | "projects" | "general" // for image
   span?: "full"
@@ -206,6 +263,7 @@ function ListManager({
       defaults[f.key] = f.type === "boolean" ? false
         : f.type === "number" ? 0
         : f.type === "tags" ? []
+        : f.type === "images" ? []
         : f.type === "select" ? (f.options?.[0] ?? "")
         : ""
     })
@@ -324,6 +382,11 @@ function ListManager({
                           placeholder="Or paste URL" style={{ ...(inputCls as React.CSSProperties), fontSize: "0.75rem" }} />
                       )}
                     </div>
+                  ) : field.type === "images" ? (
+                    <MultiImageUpload
+                      folder={field.folder || "events"}
+                      urls={Array.isArray(form[field.key]) ? (form[field.key] as string[]) : []}
+                      onChanged={(urls) => setField(field.key, urls)} />
                   ) : (
                     <input type={field.type} value={String(form[field.key] ?? "")}
                       onChange={(e) => setField(field.key, field.type === "number" ? Number(e.target.value) : e.target.value)}
@@ -353,7 +416,7 @@ function ListManager({
         <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin" style={{ color: "#6B4FE8" }} /></div>
       ) : items.length === 0 ? (
         <div className="neu-inset rounded-2xl py-12 text-center">
-          <Plus className="h-8 w-8 mx-auto mb-2" style={{ color: "#C2BAF0" }} />
+          <Plus className="h-8 w-8 mx-auto mb-2" style={{ color: "rgba(107,79,232,0.35)" }} />
           <p className="text-sm font-medium" style={{ color: "#9B8FC8" }}>No entries yet. Add your first one!</p>
         </div>
       ) : (
@@ -449,7 +512,7 @@ function ContactsTab() {
         <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin" style={{ color: "#6B4FE8" }} /></div>
       ) : submissions.length === 0 ? (
         <div className="neu-inset rounded-2xl py-12 text-center">
-          <Mail className="h-8 w-8 mx-auto mb-2" style={{ color: "#C2BAF0" }} />
+          <Mail className="h-8 w-8 mx-auto mb-2" style={{ color: "rgba(107,79,232,0.35)" }} />
           <p className="text-sm font-medium" style={{ color: "#9B8FC8" }}>No submissions yet.</p>
         </div>
       ) : (
@@ -477,7 +540,7 @@ function ContactsTab() {
                   {String(sub.email)} · {new Date(String(sub.submittedAt)).toLocaleDateString()}
                 </p>
               </div>
-              <ChevronRight className="h-4 w-4 flex-shrink-0 mt-1" style={{ color: "#C2BAF0" }} />
+              <ChevronRight className="h-4 w-4 flex-shrink-0 mt-1" style={{ color: "rgba(107,79,232,0.40)" }} />
             </motion.div>
           ))}
         </div>
@@ -495,7 +558,7 @@ function ContactsTab() {
               exit={{ scale: 0.92, opacity: 0 }}
               transition={{ type: "spring" as const, stiffness: 300, damping: 26 }}
               onClick={(e) => e.stopPropagation()}>
-              <div className="flex items-center justify-between border-b p-4" style={{ borderColor: "#D0C8F0" }}>
+              <div className="flex items-center justify-between border-b p-4" style={{ borderColor: "rgba(107,79,232,0.20)" }}>
                 <h3 className="font-bold" style={{ color: "#1E1060" }}>{String(selected.subject)}</h3>
                 <button onClick={() => setSelected(null)} className="neu-btn flex h-8 w-8 items-center justify-center rounded-xl">
                   <X className="h-4 w-4" style={{ color: "#7B6FC0" }} />
@@ -714,7 +777,7 @@ export function AdminApp() {
 
   const renderTab = () => {
     switch (activeTab) {
-      case "dashboard": return <DashboardTab />
+      case "dashboard": return <DashboardTab setActiveTab={setActiveTab} />
       case "events": return (
         <ListManager
           title="Events Manager" description="Manage past and upcoming events"
@@ -724,13 +787,13 @@ export function AdminApp() {
           displaySub={(i) => `${String(i.date)} · ${String(i.location)} · ${String(i.attendees || 0)} attendees`}
           fields={[
             { key: "title",       label: "Event Title",     type: "text",     span: "full" },
-            { key: "date",        label: "Date",            type: "text",     },
+            { key: "date",        label: "Date",            type: "date",     },
             { key: "location",    label: "Location",        type: "text",     },
             { key: "attendees",   label: "Attendees",       type: "number",   },
             { key: "description", label: "Description",     type: "textarea", span: "full" },
             { key: "tags",        label: "Tags (comma sep)",type: "tags",     span: "full" },
             { key: "isPast",      label: "Is Past Event",   type: "boolean",  },
-            { key: "imageUrls",   label: "Image URLs (comma sep)", type: "tags", span: "full" },
+            { key: "imageUrls",   label: "Event Photos",  type: "images", folder: "events", span: "full" },
           ]}
         />
       )
@@ -836,7 +899,7 @@ export function AdminApp() {
   return (
     <div className="flex h-full">
       {/* Sidebar */}
-      <div className="flex-shrink-0 border-r" style={{ borderColor: "#D0C8F0", width: sidebarOpen ? 180 : 52, transition: "width 0.2s ease" }}>
+      <div className="flex-shrink-0 border-r" style={{ borderColor: "rgba(107,79,232,0.20)", width: sidebarOpen ? 180 : 52, transition: "width 0.2s ease" }}>
         <div className="p-2 space-y-0.5">
           <div className="flex items-center justify-between px-2 py-2 mb-2">
             {sidebarOpen && <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "#9B8FC8" }}>Admin</span>}
@@ -850,9 +913,9 @@ export function AdminApp() {
               onClick={() => setActiveTab(tab.id)}
               className="flex w-full items-center gap-2 rounded-xl px-2 py-2 text-left transition-colors"
               style={{
-                background: activeTab === tab.id ? "rgba(107,79,232,0.12)" : "transparent",
+                background: activeTab === tab.id ? "rgba(107,79,232,0.15)" : "transparent",
                 color: activeTab === tab.id ? "#6B4FE8" : "#7B6FC0",
-                boxShadow: activeTab === tab.id ? "inset 2px 2px 6px #C2BAF0, inset -2px -2px 6px #FFFFFF" : "none",
+                boxShadow: activeTab === tab.id ? "inset 2px 2px 6px rgba(107,79,232,0.20), inset -2px -2px 6px rgba(255,255,255,0.50)" : "none",
               }}
               whileHover={{ x: 2 }}
               title={!sidebarOpen ? tab.label : undefined}

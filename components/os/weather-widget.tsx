@@ -56,22 +56,44 @@ export function WeatherWidget() {
       finally { setLoading(false) }
     }
 
+    const ip_fallback = async () => {
+      try {
+        const res = await fetch("https://ipapi.co/json/")
+        const d = await res.json()
+        if (d.latitude && d.longitude) {
+          fetch_weather(d.latitude, d.longitude)
+        } else {
+          fetch_weather(19.0368, 73.0158)
+        }
+      } catch {
+        fetch_weather(19.0368, 73.0158)
+      }
+    }
+
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         pos => fetch_weather(pos.coords.latitude, pos.coords.longitude),
-        ()  => fetch_weather(19.0368, 73.0158), // NMIET fallback
-        { timeout: 3500 }
+        ()  => ip_fallback(),
+        { timeout: 5000 }
       )
     } else {
-      fetch_weather(19.0368, 73.0158)
+      ip_fallback()
     }
   }, [])
 
+  const darkCard = {
+    background: "rgba(10, 6, 24, 0.92)",
+    backdropFilter: "blur(20px)",
+    WebkitBackdropFilter: "blur(20px)",
+    border: "1px solid rgba(168,85,247,0.22)",
+    boxShadow: "0 8px 28px rgba(107,79,232,0.28)",
+  } as React.CSSProperties
+
   if (loading) return (
-    <div className="rounded-2xl px-4 py-3" style={{ background: "#D4CEFF", boxShadow: "0 6px 20px rgba(0, 0, 0, 0.15)" }}>
+    <div className="rounded-2xl px-4 py-3" style={darkCard}>
       <div className="flex items-center gap-2 animate-pulse">
-        <div className="h-3 w-3 rounded-full" style={{ background: "rgba(107,79,232,0.3)" }} />
-        <span className="text-xs" style={{ color: "#9B8FC8" }}>Loading weather…</span>
+        <div className="h-2 w-2 rounded-full" style={{ background: "rgba(168,85,247,0.6)" }} />
+        <span className="text-xs" style={{ color: "#9775FA" }}>Loading weather…</span>
       </div>
     </div>
   )
@@ -82,38 +104,38 @@ export function WeatherWidget() {
 
   return (
     <motion.div className="rounded-2xl overflow-hidden"
-      style={{ background: "#D4CEFF", boxShadow: "0 6px 20px rgba(0, 0, 0, 0.15)" }}
+      style={darkCard}
       initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.5, type: "spring", stiffness: 260 }}>
       <div className="px-4 py-3"
-        style={{ background: "linear-gradient(135deg,rgba(107,79,232,0.07),rgba(255,153,0,0.04))" }}>
+        style={{ background: "linear-gradient(135deg,rgba(168,85,247,0.07),rgba(255,153,0,0.04))" }}>
         {/* City + live badge */}
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center justify-between mb-2.5">
           <div className="flex items-center gap-1.5">
-            <MapPin className="h-3 w-3" style={{ color: "#9B8FC8" }} />
-            <span className="text-xs font-medium" style={{ color: "#7B6FC0" }}>{weather.city}</span>
+            <MapPin className="h-3 w-3" style={{ color: "#9775FA" }} />
+            <span className="text-xs font-medium" style={{ color: "#A78BFA" }}>{weather.city}</span>
           </div>
-          <span className="text-xs px-1.5 py-0.5 rounded-full font-medium"
-            style={{ background: "rgba(107,79,232,0.1)", color: "#6B4FE8" }}>Live</span>
+          <span className="text-xs px-2 py-0.5 rounded-full font-semibold"
+            style={{ background: "rgba(168,85,247,0.18)", color: "#C084FC", border: "1px solid rgba(168,85,247,0.30)" }}>Live</span>
         </div>
         {/* Temp + icon */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Icon className="h-9 w-9" style={{ color }} />
+            <Icon className="h-10 w-10" style={{ color, filter: `drop-shadow(0 0 6px ${color}88)` }} />
             <div>
-              <div className="text-2xl font-light tabular-nums" style={{ color: "#1E1060" }}>{weather.temp}°C</div>
-              <div className="text-xs" style={{ color: "#7B6FC0" }}>{label}</div>
+              <div className="text-2xl font-light tabular-nums" style={{ color: "#EDE9FE" }}>{weather.temp}°C</div>
+              <div className="text-xs font-medium mt-0.5" style={{ color: "#A78BFA" }}>{label}</div>
             </div>
           </div>
           {/* Extra stats */}
-          <div className="flex flex-col items-end gap-1">
+          <div className="flex flex-col items-end gap-1.5">
             <div className="flex items-center gap-1">
-              <Wind className="h-3 w-3" style={{ color: "#9B8FC8" }} />
-              <span className="text-xs" style={{ color: "#7B6FC0" }}>{weather.wind} km/h</span>
+              <Wind className="h-3 w-3" style={{ color: "#9775FA" }} />
+              <span className="text-xs" style={{ color: "#C4B5FD" }}>{weather.wind} km/h</span>
             </div>
             <div className="flex items-center gap-1">
-              <Droplets className="h-3 w-3" style={{ color: "#5BA8D8" }} />
-              <span className="text-xs" style={{ color: "#7B6FC0" }}>{weather.humidity}%</span>
+              <Droplets className="h-3 w-3" style={{ color: "#60A5FA" }} />
+              <span className="text-xs" style={{ color: "#C4B5FD" }}>{weather.humidity}%</span>
             </div>
           </div>
         </div>

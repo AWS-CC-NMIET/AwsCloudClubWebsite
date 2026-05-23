@@ -62,9 +62,14 @@ export async function PUT(request: Request) {
     if (!existing) return NextResponse.json({ error: "Profile not found" }, { status: 404 })
 
     const { displayName, bio, avatarUrl, linkedinUrl, githubUrl, skills } = body
-    const updated = await updateItem(TABLES.PROFILES, existing.id as string, {
-      displayName, bio, avatarUrl, linkedinUrl, githubUrl, skills,
-    })
+    const updates: Record<string, unknown> = {}
+    if (displayName !== undefined) updates.displayName = displayName
+    if (bio        !== undefined) updates.bio         = bio
+    if (avatarUrl  !== undefined) updates.avatarUrl   = avatarUrl
+    if (linkedinUrl !== undefined) updates.linkedinUrl = linkedinUrl
+    if (githubUrl  !== undefined) updates.githubUrl   = githubUrl
+    if (skills     !== undefined) updates.skills      = skills
+    const updated = await updateItem(TABLES.PROFILES, existing.id as string, updates)
     return NextResponse.json({ profile: updated })
   } catch {
     return NextResponse.json({ error: "Failed to update profile" }, { status: 500 })

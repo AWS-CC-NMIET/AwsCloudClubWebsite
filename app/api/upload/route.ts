@@ -2,21 +2,28 @@
 // Generate S3 presigned upload URL — admin only
 
 import { NextResponse } from "next/server"
-import { validateAdminAuth } from "@/lib/auth"
+import { validateAdminAuth, validateAuth } from "@/lib/auth"
 import { getPresignedUploadUrl } from "@/lib/s3"
 
 export async function POST(request: Request) {
-  const admin = await validateAdminAuth(request)
-  if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const { folder, fileType, fileName } = await request.json()
+
+  const validFolders = ["events", "team", "projects", "general"]
+  if (!validFolders.includes(folder)) {
+    return NextResponse.json({ error: "Invalid folder" }, { status: 400 })
+  }
+
+  // general folder (profile photos) — any authenticated user can upload
+  // content folders (events, team, projects) — admins only
+  if (folder === "general") {
+    const user = await validateAuth(request)
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  } else {
+    const admin = await validateAdminAuth(request)
+    if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
 
   try {
-    const { folder, fileType, fileName } = await request.json()
-
-    const validFolders = ["events", "team", "projects", "general"]
-    if (!validFolders.includes(folder)) {
-      return NextResponse.json({ error: "Invalid folder" }, { status: 400 })
-    }
-
     const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"]
     if (!validTypes.includes(fileType)) {
       return NextResponse.json({ error: "Only image files allowed" }, { status: 400 })

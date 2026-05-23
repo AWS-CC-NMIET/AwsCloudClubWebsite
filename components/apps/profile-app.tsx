@@ -1,27 +1,19 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
-  User, Edit3, Calendar, Palette, ChevronRight, Check, Camera,
+  User, Edit3, Calendar, ChevronRight, Camera,
   LogOut, Star, Loader2, Github, Linkedin
 } from "lucide-react"
-import { api } from "@/lib/api-client"
+import { api, uploadFileToS3 } from "@/lib/api-client"
 import { signOut, getStoredUsername } from "@/lib/auth-client"
 
-const accentPresets = [
-  { name: "Cloud Purple", value: "#6B4FE8", shadow: "rgba(107,79,232,0.4)" },
-  { name: "AWS Orange",   value: "#FF9900", shadow: "rgba(255,153,0,0.4)"  },
-  { name: "Sky Blue",     value: "#1A9DC8", shadow: "rgba(26,157,200,0.4)" },
-  { name: "Emerald",      value: "#10B981", shadow: "rgba(16,185,129,0.4)" },
-  { name: "Rose",         value: "#E85580", shadow: "rgba(232,85,128,0.4)" },
-  { name: "Indigo",       value: "#4338CA", shadow: "rgba(67,56,202,0.4)"  },
-]
 
 const inputStyle: React.CSSProperties = {
-  background: "#EAE6FF",
-  boxShadow: "inset 3px 3px 8px #C2BAF0, inset -3px -3px 8px #FFFFFF",
-  border: "none", outline: "none", borderRadius: "0.75rem",
+  background: "rgba(183, 168, 250, 0.78)",
+  boxShadow: "inset 3px 3px 8px rgba(107,79,232,0.20), inset -3px -3px 8px rgba(255,255,255,0.52)",
+  border: "1px solid rgba(107,79,232,0.14)", outline: "none", borderRadius: "0.75rem",
   padding: "0.625rem 1rem", color: "#1E1060", width: "100%", fontSize: "0.875rem",
 }
 
@@ -45,8 +37,8 @@ export function ProfileApp({ onLogout }: { onLogout: () => void }) {
   const [loading, setLoading]         = useState(true)
   const [isEditing, setIsEditing]     = useState(false)
   const [saving, setSaving]           = useState(false)
-  const [selectedAccent, setSelectedAccent] = useState("#6B4FE8")
-  const [savedAccent, setSavedAccent]       = useState("#6B4FE8")
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const avatarInputRef = useRef<HTMLInputElement>(null)
 
   // Edit form state
   const [editName, setEditName]           = useState("")
@@ -97,7 +89,6 @@ export function ProfileApp({ onLogout }: { onLogout: () => void }) {
         githubUrl: editGithub,
       }) as { profile: Profile }
       setProfile(updated)
-      setSavedAccent(selectedAccent)
       setIsEditing(false)
     } catch {
       // silently fail — keep modal open so user can retry
@@ -107,14 +98,23 @@ export function ProfileApp({ onLogout }: { onLogout: () => void }) {
   }
 
   const cancelEdit = () => {
-    setSelectedAccent(savedAccent)
-    document.documentElement.style.setProperty("--primary", savedAccent)
     setIsEditing(false)
   }
 
-  const applyAccent = (color: string) => {
-    setSelectedAccent(color)
-    document.documentElement.style.setProperty("--primary", color)
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingAvatar(true)
+    e.target.value = ""
+    try {
+      const url = await uploadFileToS3("general", file)
+      const { profile: updated } = await api.profile.update({ avatarUrl: url }) as { profile: Profile }
+      setProfile(updated)
+    } catch (err) {
+      console.error("Avatar upload failed:", err)
+    } finally {
+      setUploadingAvatar(false)
+    }
   }
 
   const handleSignOut = () => {
@@ -144,7 +144,7 @@ export function ProfileApp({ onLogout }: { onLogout: () => void }) {
         className="relative overflow-hidden rounded-3xl p-6"
         style={{
           background: "linear-gradient(135deg, #6B4FE8 0%, #8B6FFF 60%, #B8A4FF 100%)",
-          boxShadow: "8px 8px 24px rgba(107,79,232,0.30), -6px -6px 18px #FFFFFF",
+          boxShadow: "8px 8px 24px rgba(107,79,232,0.30), -6px -6px 18px rgba(255,255,255,0.70)",
         }}
       >
         <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full pointer-events-none"
@@ -155,7 +155,7 @@ export function ProfileApp({ onLogout }: { onLogout: () => void }) {
         <div className="relative z-10 flex items-center gap-5">
           <div className="relative flex-shrink-0">
             <motion.div
-              className="flex h-20 w-20 items-center justify-center rounded-2xl text-2xl font-bold text-white"
+              className="flex h-20 w-20 items-center justify-center rounded-2xl text-2xl font-bold text-white overflow-hidden"
               style={{
                 background: "rgba(255,255,255,0.22)", backdropFilter: "blur(10px)",
                 border: "2px solid rgba(255,255,255,0.35)",
@@ -163,15 +163,24 @@ export function ProfileApp({ onLogout }: { onLogout: () => void }) {
               }}
               whileHover={{ scale: 1.05 }}
             >
-              {initials}
+              {profile?.avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={profile.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+              ) : initials}
             </motion.div>
             <motion.button
+              onClick={() => avatarInputRef.current?.click()}
               className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full"
               style={{ background: "rgba(255,255,255,0.90)", boxShadow: "0 2px 8px rgba(0,0,0,0.15)" }}
               whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.92 }}
+              disabled={uploadingAvatar}
+              title="Change profile photo"
             >
-              <Camera className="h-3.5 w-3.5" style={{ color: "#6B4FE8" }} />
+              {uploadingAvatar
+                ? <Loader2 className="h-3.5 w-3.5 animate-spin" style={{ color: "#6B4FE8" }} />
+                : <Camera className="h-3.5 w-3.5" style={{ color: "#6B4FE8" }} />}
             </motion.button>
+            <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
           </div>
 
           <div className="flex-1 min-w-0">
@@ -301,41 +310,9 @@ export function ProfileApp({ onLogout }: { onLogout: () => void }) {
               <p className="text-sm font-semibold" style={{ color: "#1E1060" }}>{s.label}</p>
               <p className="text-xs" style={{ color: "#9B8FC8" }}>{s.desc}</p>
             </div>
-            <ChevronRight className="h-4 w-4 flex-shrink-0" style={{ color: "#C2BAF0" }} />
+            <ChevronRight className="h-4 w-4 flex-shrink-0" style={{ color: "rgba(107,79,232,0.40)" }} />
           </motion.button>
         ))}
-      </motion.div>
-
-      {/* ── Theme ── */}
-      <motion.div variants={item} className="neu-raised rounded-2xl p-5">
-        <div className="mb-4 flex items-center gap-2">
-          <Palette className="h-5 w-5" style={{ color: "#6B4FE8" }} />
-          <h3 className="font-bold" style={{ color: "#1E1060" }}>Accent Color</h3>
-          <span className="ml-auto text-xs" style={{ color: "#9B8FC8" }}>Live preview</span>
-        </div>
-        <div className="flex flex-wrap gap-3">
-          {accentPresets.map((preset) => (
-            <motion.button key={preset.value} onClick={() => applyAccent(preset.value)}
-              className="group flex flex-col items-center gap-1.5" whileHover={{ y: -3 }} whileTap={{ scale: 0.92 }}>
-              <div className="relative flex h-10 w-10 items-center justify-center rounded-2xl"
-                style={{
-                  background: preset.value,
-                  boxShadow: selectedAccent === preset.value
-                    ? `4px 4px 14px ${preset.shadow}, -3px -3px 10px #FFFFFF`
-                    : "3px 3px 8px #C2BAF0, -3px -3px 8px #FFFFFF",
-                }}>
-                <AnimatePresence>
-                  {selectedAccent === preset.value && (
-                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}>
-                      <Check className="h-5 w-5 text-white" />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-              <span className="text-[10px] font-medium" style={{ color: "#9B8FC8" }}>{preset.name.split(" ")[0]}</span>
-            </motion.button>
-          ))}
-        </div>
       </motion.div>
 
       {/* ── Sign Out ── */}
@@ -344,8 +321,8 @@ export function ProfileApp({ onLogout }: { onLogout: () => void }) {
           onClick={handleSignOut}
           className="w-full flex items-center justify-center gap-2 rounded-2xl py-3 text-sm font-semibold"
           style={{
-            background: "rgba(232,85,85,0.08)", color: "#E85555",
-            boxShadow: "4px 4px 12px rgba(232,85,85,0.08), -4px -4px 12px #FFFFFF",
+            background: "rgba(232,85,85,0.10)", color: "#E85555",
+            boxShadow: "4px 4px 12px rgba(232,85,85,0.16), -3px -3px 10px rgba(255,255,255,0.65)",
           }}
           whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }}
         >

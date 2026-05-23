@@ -64,7 +64,7 @@ export function ProjectsApp() {
             return (
               <motion.div key={p.id} variants={item}
                 className="neu-raised-sm rounded-2xl p-5"
-                whileHover={{ y: -5, boxShadow: "8px 8px 22px #C2BAF0, -8px -8px 22px #FFFFFF" }}
+                whileHover={{ y: -5, boxShadow: "8px 8px 22px rgba(107,79,232,0.26), -6px -6px 16px rgba(255,255,255,0.72)" }}
                 transition={{ type: "spring" as const, stiffness: 300 }}>
                 {p.imageUrl && (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -84,7 +84,7 @@ export function ProjectsApp() {
                     <span key={t} className="neu-tag rounded-lg px-2 py-0.5 text-xs font-medium" style={{ color: "#6B4FE8" }}>{t}</span>
                   ))}
                 </div>
-                <div className="flex items-center justify-between border-t pt-3" style={{ borderColor: "#D0C8F0" }}>
+                <div className="flex items-center justify-between border-t pt-3" style={{ borderColor: "rgba(107,79,232,0.22)" }}>
                   <div className="flex gap-2">
                     {p.githubUrl && (
                       <motion.a href={p.githubUrl} target="_blank" rel="noopener noreferrer"
@@ -127,7 +127,7 @@ export function ProjectsApp() {
               exit={{ scale: 0.92, opacity: 0 }}
               transition={{ type: "spring" as const, stiffness: 300, damping: 26 }}
               onClick={(e) => e.stopPropagation()}>
-              <div className="flex items-center justify-between border-b p-4" style={{ borderColor: "#D0C8F0" }}>
+              <div className="flex items-center justify-between border-b p-4" style={{ borderColor: "rgba(107,79,232,0.22)" }}>
                 <h3 className="font-bold" style={{ color: "#1E1060" }}>{selected.title}</h3>
                 <motion.button onClick={() => setSelected(null)}
                   className="neu-btn flex h-8 w-8 items-center justify-center rounded-xl"

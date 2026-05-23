@@ -40,8 +40,13 @@ export function DesktopIcon({ icon, label, onClick, gradient }: DesktopIconProps
 
       {/* Label */}
       <span
-        className="max-w-full truncate rounded-lg px-1.5 py-0.5 text-center text-[11px] font-medium backdrop-blur-sm"
-        style={{ color: "#1E1060", background: "rgba(234,230,255,0.70)" }}
+        className="max-w-full truncate rounded-lg px-1.5 py-0.5 text-center text-[11px] font-semibold backdrop-blur-sm"
+        style={{
+          color: "#EDE9FE",
+          background: "rgba(10, 5, 25, 0.72)",
+          border: "1px solid rgba(168,85,247,0.18)",
+          textShadow: "0 0 8px rgba(168,85,247,0.40)",
+        }}
       >
         {label}
       </span>

@@ -44,7 +44,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: blob: https://*.amazonaws.com https://api.meetup.com",
-              "connect-src 'self' https://*.amazonaws.com https://api.meetup.com https://cognito-idp.*.amazonaws.com https://nominatim.openstreetmap.org https://api.open-meteo.com",
+              "connect-src 'self' https://*.amazonaws.com https://api.meetup.com https://cognito-idp.*.amazonaws.com https://nominatim.openstreetmap.org https://api.open-meteo.com https://ipapi.co",
               "frame-ancestors 'none'",
               "base-uri 'self'",
               "form-action 'self'",
@@ -63,9 +63,9 @@ const nextConfig = {
   // Bake server-side env vars into the Lambda bundle at build time.
   env: {
     COGNITO_CLIENT_SECRET:            process.env.COGNITO_CLIENT_SECRET,
-    APP_ACCESS_KEY_ID:                process.env.APP_ACCESS_KEY_ID,
-    APP_SECRET_ACCESS_KEY:            process.env.APP_SECRET_ACCESS_KEY,
-    APP_REGION:                       process.env.APP_REGION,
+    AWS_ACCESS_KEY_ID:                process.env.AWS_ACCESS_KEY_ID,
+    AWS_SECRET_ACCESS_KEY:            process.env.AWS_SECRET_ACCESS_KEY,
+    AWS_REGION:                       process.env.AWS_REGION,
     SES_REGION:                       process.env.SES_REGION,
     SES_FROM_EMAIL:                   process.env.SES_FROM_EMAIL,
     SES_TO_EMAIL:                     process.env.SES_TO_EMAIL,

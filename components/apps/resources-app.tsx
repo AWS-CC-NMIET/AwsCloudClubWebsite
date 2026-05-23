@@ -111,7 +111,7 @@ export function ResourcesApp() {
       {/* Quick Links */}
       <motion.div variants={item}
         className="rounded-2xl p-5"
-        style={{ background: "linear-gradient(135deg, rgba(107,79,232,0.07), rgba(184,164,255,0.05))", border: "1px solid rgba(194,186,240,0.50)" }}>
+        style={{ background: "linear-gradient(135deg, rgba(107,79,232,0.07), rgba(184,164,255,0.05))", border: "1px solid rgba(107,79,232,0.22)" }}>
         <h3 className="mb-3 font-semibold text-sm" style={{ color: "#1E1060" }}>Quick Links</h3>
         <div className="flex flex-wrap gap-2">
           {[

@@ -98,13 +98,14 @@ export function Taskbar({ openApps, activeApp, onAppClick, onStartClick, onMobil
         onClick={onStartClick}
         className="flex h-10 items-center gap-1.5 sm:gap-2 rounded-xl px-2 sm:px-3 font-semibold text-white flex-shrink-0"
         style={{
-          background: "linear-gradient(135deg, #6B4FE8, #8B6FFF)",
-          boxShadow: "4px 4px 12px rgba(107,79,232,0.40), -3px -3px 8px rgba(255,255,255,0.60)",
+          background: "linear-gradient(135deg, #7C3AED, #A855F7)",
+          boxShadow: "0 0 16px rgba(168,85,247,0.50), 0 4px 12px rgba(107,79,232,0.40)",
+          border: "1px solid rgba(168,85,247,0.40)",
         }}
-        whileHover={{ y: -2, boxShadow: "6px 6px 16px rgba(107,79,232,0.50), -3px -3px 10px rgba(255,255,255,0.70)" }}
+        whileHover={{ y: -2, boxShadow: "0 0 24px rgba(168,85,247,0.65), 0 6px 16px rgba(107,79,232,0.50)" }}
         whileTap={{ scale: 0.94 }}
       >
-        <Image src="/logo-icon.png" alt="Start" width={20} height={20} className="object-contain" unoptimized />
+        <Image src="/logo-icon.png" alt="Start" width={20} height={20} className="object-contain brightness-0 invert" unoptimized />
         <span className="hidden text-sm sm:inline">Start</span>
       </motion.button>
 
@@ -127,10 +128,17 @@ export function Taskbar({ openApps, activeApp, onAppClick, onStartClick, onMobil
       {/* ── Taskbar Search Bar — hidden on mobile, visible md+ ── */}
       <div ref={searchRef} className="relative mx-2 hidden md:block">
         <div
-          className="neu-inset flex items-center gap-2 rounded-xl px-3 py-2"
-          style={{ minWidth: "160px", width: searchOpen ? "220px" : "160px", transition: "width 0.2s ease" }}
+          className="flex items-center gap-2 rounded-xl px-3 py-2"
+          style={{
+            minWidth: "160px",
+            width: searchOpen ? "220px" : "160px",
+            transition: "width 0.2s ease",
+            background: "rgba(168,85,247,0.10)",
+            border: "1px solid rgba(168,85,247,0.20)",
+            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)",
+          }}
         >
-          <Search className="h-4 w-4 flex-shrink-0" style={{ color: "#9B8FC8" }} />
+          <Search className="h-4 w-4 flex-shrink-0" style={{ color: "#9775FA" }} />
           <input
             ref={inputRef}
             type="text"
@@ -138,12 +146,12 @@ export function Taskbar({ openApps, activeApp, onAppClick, onStartClick, onMobil
             onChange={(e) => { setQuery(e.target.value); setSearchOpen(true) }}
             onFocus={() => setSearchOpen(true)}
             placeholder="Search apps..."
-            className="w-full bg-transparent text-sm outline-none"
-            style={{ color: "#1E1060", fontSize: "16px" /* prevent iOS zoom */ }}
+            className="w-full bg-transparent text-sm outline-none placeholder:text-[#6B5FA0]"
+            style={{ color: "#DDD6FE", fontSize: "16px" /* prevent iOS zoom */ }}
           />
           {query && (
             <button onClick={() => { setQuery(""); inputRef.current?.focus() }}>
-              <X className="h-3.5 w-3.5" style={{ color: "#9B8FC8" }} />
+              <X className="h-3.5 w-3.5" style={{ color: "#9775FA" }} />
             </button>
           )}
         </div>
@@ -177,18 +185,18 @@ export function Taskbar({ openApps, activeApp, onAppClick, onStartClick, onMobil
                         initial={{ opacity: 0, x: -6 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: i * 0.03, type: "spring" as const, stiffness: 340, damping: 24 }}
-                        whileHover={{ background: "rgba(107,79,232,0.08)", x: 2 }}
+                        whileHover={{ background: "rgba(168,85,247,0.12)", x: 2 }}
                         whileTap={{ scale: 0.97 }}
                       >
                         <div
                           className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl text-white"
-                          style={{ background: app.gradient, boxShadow: "2px 2px 6px rgba(107,79,232,0.22)" }}
+                          style={{ background: app.gradient, boxShadow: "2px 2px 8px rgba(107,79,232,0.35)" }}
                         >
                           <Icon className="h-4 w-4" />
                         </div>
-                        <span className="text-sm font-medium" style={{ color: "#1E1060" }}>{app.label}</span>
+                        <span className="text-sm font-medium" style={{ color: "#DDD6FE" }}>{app.label}</span>
                         {openApps.includes(app.id) && (
-                          <span className="ml-auto h-1.5 w-1.5 flex-shrink-0 rounded-full" style={{ background: "#6B4FE8" }} />
+                          <span className="ml-auto h-1.5 w-1.5 flex-shrink-0 rounded-full" style={{ background: "#A855F7" }} />
                         )}
                       </motion.button>
                     )
@@ -217,15 +225,15 @@ export function Taskbar({ openApps, activeApp, onAppClick, onStartClick, onMobil
               className="relative flex h-9 min-w-9 items-center justify-center rounded-xl px-1.5 sm:px-3 transition-colors"
               style={{
                 background: isActive
-                  ? "rgba(107,79,232,0.12)"
+                  ? "rgba(168,85,247,0.18)"
                   : isOpen
-                  ? "rgba(194,186,240,0.25)"
+                  ? "rgba(168,85,247,0.10)"
                   : "transparent",
-                color: isActive ? "#6B4FE8" : isOpen ? "#3D2A90" : "#9B8FC8",
+                color: isActive ? "#C084FC" : isOpen ? "#A78BFA" : "#6B5FA0",
                 boxShadow: isActive
-                  ? "inset 3px 3px 8px #C2BAF0, inset -3px -3px 8px #FFFFFF"
+                  ? "inset 0 1px 0 rgba(168,85,247,0.30), 0 0 12px rgba(168,85,247,0.15)"
                   : isOpen
-                  ? "3px 3px 8px #C2BAF0, -3px -3px 8px #FFFFFF"
+                  ? "0 0 0 1px rgba(168,85,247,0.15)"
                   : "none",
               }}
               whileHover={{ y: -2, scale: 1.05 }}
@@ -237,7 +245,7 @@ export function Taskbar({ openApps, activeApp, onAppClick, onStartClick, onMobil
               {isOpen && (
                 <motion.div
                   className="absolute bottom-1.5 left-1/2 -translate-x-1/2 rounded-full"
-                  style={{ background: isActive ? "#6B4FE8" : "#B8A4FF" }}
+                  style={{ background: isActive ? "#A855F7" : "#7C3AED" }}
                   animate={{ width: isActive ? 20 : 6, height: 3 }}
                   transition={{ type: "spring" as const, stiffness: 400, damping: 28 }}
                 />
@@ -283,12 +291,12 @@ export function Taskbar({ openApps, activeApp, onAppClick, onStartClick, onMobil
                   className="relative flex-shrink-0 flex h-9 w-9 items-center justify-center rounded-xl"
                   style={{
                     background: isActive
-                      ? "rgba(107,79,232,0.14)"
-                      : "rgba(194,186,240,0.28)",
-                    color: isActive ? "#6B4FE8" : "#3D2A90",
+                      ? "rgba(168,85,247,0.18)"
+                      : "rgba(168,85,247,0.08)",
+                    color: isActive ? "#C084FC" : "#7C6FAA",
                     boxShadow: isActive
-                      ? "inset 3px 3px 8px #C2BAF0, inset -3px -3px 8px #FFFFFF"
-                      : "3px 3px 8px #C2BAF0, -3px -3px 8px #FFFFFF",
+                      ? "inset 0 1px 0 rgba(168,85,247,0.30)"
+                      : "0 0 0 1px rgba(168,85,247,0.12)",
                   }}
                   whileTap={{ scale: 0.92 }}
                   title={app.label}
@@ -297,7 +305,7 @@ export function Taskbar({ openApps, activeApp, onAppClick, onStartClick, onMobil
                   {isActive && (
                     <motion.div
                       className="absolute bottom-1 left-1/2 -translate-x-1/2 rounded-full"
-                      style={{ background: "#6B4FE8", width: 14, height: 3 }}
+                      style={{ background: "#A855F7", width: 14, height: 3 }}
                       layoutId="mobile-active-dot"
                     />
                   )}
@@ -305,7 +313,7 @@ export function Taskbar({ openApps, activeApp, onAppClick, onStartClick, onMobil
               )
             })}
           {openApps.filter(id => id !== "home").length === 0 && (
-            <span className="text-[11px] px-1 whitespace-nowrap" style={{ color: "#9B8FC8" }}>
+            <span className="text-[11px] px-1 whitespace-nowrap" style={{ color: "#6B5FA0" }}>
               Tap ⊞ to open apps
             </span>
           )}
@@ -317,7 +325,7 @@ export function Taskbar({ openApps, activeApp, onAppClick, onStartClick, onMobil
         <motion.button
           onClick={() => setShowNotifications((v) => !v)}
           className="relative flex h-10 w-10 items-center justify-center rounded-xl"
-          style={{ color: showNotifications ? "#6B4FE8" : "#7B6FC0" }}
+          style={{ color: showNotifications ? "#A855F7" : "#9775FA" }}
           whileHover={{ scale: 1.1, y: -1 }}
           whileTap={{ scale: 0.93 }}
           title="Notifications"
@@ -333,20 +341,23 @@ export function Taskbar({ openApps, activeApp, onAppClick, onStartClick, onMobil
           )}
         </motion.button>
 
-        <div className="hidden items-center gap-2 rounded-xl px-3 py-2 sm:flex neu-inset-sm">
-          <Wifi    className="h-4 w-4" style={{ color: "#9B8FC8" }} />
-          <Volume2 className="h-4 w-4" style={{ color: "#9B8FC8" }} />
-          <Battery className="h-4 w-4" style={{ color: "#9B8FC8" }} />
+        <div
+          className="hidden items-center gap-2 rounded-xl px-3 py-2 sm:flex"
+          style={{ background: "rgba(168,85,247,0.08)", border: "1px solid rgba(168,85,247,0.15)" }}
+        >
+          <Wifi    className="h-4 w-4" style={{ color: "#9775FA" }} />
+          <Volume2 className="h-4 w-4" style={{ color: "#9775FA" }} />
+          <Battery className="h-4 w-4" style={{ color: "#9775FA" }} />
         </div>
 
         <motion.div
           className="flex flex-col items-end rounded-xl px-2 sm:px-3 py-1.5 cursor-default"
           whileHover={{ scale: 1.03 }}
         >
-          <span className="text-xs sm:text-sm font-semibold tabular-nums" style={{ color: "#1E1060" }}>
+          <span className="text-xs sm:text-sm font-semibold tabular-nums" style={{ color: "#EDE9FE" }}>
             {time ? time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "--:--"}
           </span>
-          <span className="hidden sm:block text-[11px]" style={{ color: "#7B6FC0" }}>
+          <span className="hidden sm:block text-[11px]" style={{ color: "#9775FA" }}>
             {time ? time.toLocaleDateString([], { month: "short", day: "numeric" }) : "---"}
           </span>
         </motion.div>

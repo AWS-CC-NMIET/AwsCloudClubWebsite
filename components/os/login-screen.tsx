@@ -197,8 +197,8 @@ function PrimaryBtn({ loading, children }: { loading: boolean; children: React.R
   )
 }
 
-export function LoginScreen({ onLogin }: { onLogin: () => void }) {
-  const [phase, setPhase] = useState<Phase>("lock")
+export function LoginScreen({ onLogin, initialPhase = "lock" }: { onLogin: () => void; initialPhase?: Phase }) {
+  const [phase, setPhase] = useState<Phase>(initialPhase)
   const [showPw, setShowPw] = useState(false)
   const [showCPw, setShowCPw] = useState(false)
   const [email, setEmail] = useState("")

@@ -541,7 +541,7 @@ function DesktopHome({ memberCount, onLearnMore }: { memberCount: number | null;
           <motion.div
             key={stat.label}
             className="neu-raised-sm flex flex-col items-start gap-2 rounded-2xl p-5"
-            whileHover={{ y: -4, boxShadow: "7px 7px 20px #C2BAF0, -7px -7px 20px #FFFFFF" }}
+            whileHover={{ y: -4, boxShadow: "7px 7px 20px rgba(107,79,232,0.24), -6px -6px 16px rgba(255,255,255,0.72)" }}
             transition={{ type: "spring" as const, stiffness: 300 }}
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-xl" style={{ background: `${stat.color}18` }}>
@@ -605,7 +605,7 @@ function DesktopHome({ memberCount, onLearnMore }: { memberCount: number | null;
         className="rounded-2xl p-6 text-center"
         style={{
           background: "linear-gradient(135deg, rgba(107,79,232,0.08), rgba(184,164,255,0.06))",
-          border: "1px solid rgba(194,186,240,0.50)",
+          border: "1px solid rgba(107,79,232,0.22)",
         }}
       >
         <Sparkles className="mx-auto mb-3 h-8 w-8" style={{ color: "#6B4FE8" }} />

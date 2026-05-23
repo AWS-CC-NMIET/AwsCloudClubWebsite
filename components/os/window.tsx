@@ -183,10 +183,9 @@ export function Window({
         className="flex h-11 cursor-move items-center justify-between px-4 select-none"
         style={{
           background: isActive
-            ? "linear-gradient(135deg, rgba(107,79,232,0.10) 0%, rgba(184,164,255,0.07) 100%)"
-            : "rgba(234,230,255,0.60)",
-          borderBottom: "1px solid rgba(194,186,240,0.50)",
-          // On mobile, disable cursor-move visual cue
+            ? "linear-gradient(135deg, rgba(168,85,247,0.20) 0%, rgba(107,79,232,0.12) 100%)"
+            : "rgba(12, 8, 28, 0.97)",
+          borderBottom: "1px solid rgba(168,85,247,0.20)",
           cursor: isMobile ? "default" : "move",
         }}
         onMouseDown={handleTitleBarMouseDown}
@@ -195,8 +194,8 @@ export function Window({
       >
         {/* Icon + Title */}
         <div className="flex items-center gap-2.5 min-w-0">
-          <span className="flex-shrink-0" style={{ color: "#6B4FE8" }}>{icon}</span>
-          <span className="text-sm font-semibold truncate" style={{ color: "#1E1060" }}>{title}</span>
+          <span className="flex-shrink-0" style={{ color: "#A855F7" }}>{icon}</span>
+          <span className="text-sm font-semibold truncate" style={{ color: "#EDE9FE" }}>{title}</span>
         </div>
 
         {/* macOS-style traffic lights */}
@@ -257,7 +256,7 @@ export function Window({
           height: "calc(100% - 2.75rem)",
           // On mobile: no padding & transparent bg so app fills edge-to-edge
           padding: isMobile ? 0 : undefined,
-          background: isMobile ? "transparent" : "#EAE6FF",
+          background: isMobile ? "transparent" : "rgba(210, 200, 255, 0.97)",
           WebkitOverflowScrolling: "touch",
           overscrollBehavior: "contain",
         }}

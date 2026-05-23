@@ -91,22 +91,25 @@ export function StartMenu({ onAppClick, onClose, onShutdown, isAdmin = false }: 
 
         <div className="p-4">
           {/* Search */}
-          <div className="neu-inset mb-4 flex items-center gap-2 rounded-xl px-3 py-2.5">
-            <Search className="h-4 w-4 flex-shrink-0" style={{ color: "#9B8FC8" }} />
+          <div
+            className="mb-4 flex items-center gap-2 rounded-xl px-3 py-2.5"
+            style={{ background: "rgba(168,85,247,0.10)", border: "1px solid rgba(168,85,247,0.20)" }}
+          >
+            <Search className="h-4 w-4 flex-shrink-0" style={{ color: "#9775FA" }} />
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search applications..."
-              className="flex-1 bg-transparent text-sm outline-none"
-              style={{ color: "#1E1060" }}
+              className="flex-1 bg-transparent text-sm outline-none placeholder:text-[#5B4E8A]"
+              style={{ color: "#DDD6FE" }}
               autoFocus
             />
             {trimmed && (
               <button
                 onClick={() => setQuery("")}
                 className="text-xs font-medium"
-                style={{ color: "#9B8FC8" }}
+                style={{ color: "#9775FA" }}
               >
                 ✕
               </button>
@@ -124,7 +127,7 @@ export function StartMenu({ onAppClick, onClose, onShutdown, isAdmin = false }: 
                 transition={{ duration: 0.15 }}
                 className="mb-4"
               >
-                <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest" style={{ color: "#9B8FC8" }}>
+                <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest" style={{ color: "#9775FA" }}>
                   {filtered.length > 0 ? `${filtered.length} result${filtered.length > 1 ? "s" : ""}` : "No results"}
                 </p>
                 {filtered.length > 0 ? (
@@ -134,26 +137,26 @@ export function StartMenu({ onAppClick, onClose, onShutdown, isAdmin = false }: 
                         key={app.id}
                         onClick={() => handleAppClick(app.id)}
                         className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left"
-                        style={{ background: "rgba(107,79,232,0.04)" }}
+                        style={{ background: "rgba(168,85,247,0.06)" }}
                         initial={{ opacity: 0, x: -8 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: i * 0.04, type: "spring" as const, stiffness: 300, damping: 24 }}
-                        whileHover={{ background: "rgba(107,79,232,0.10)", x: 3 }}
+                        whileHover={{ background: "rgba(168,85,247,0.14)", x: 3 }}
                         whileTap={{ scale: 0.97 }}
                       >
                         <div
                           className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl text-white"
-                          style={{ background: app.gradient, boxShadow: "2px 2px 6px rgba(107,79,232,0.25)" }}
+                          style={{ background: app.gradient, boxShadow: "2px 2px 8px rgba(107,79,232,0.40)" }}
                         >
                           <app.icon className="h-4 w-4" />
                         </div>
-                        <span className="text-sm font-medium" style={{ color: "#1E1060" }}>{app.name}</span>
+                        <span className="text-sm font-medium" style={{ color: "#DDD6FE" }}>{app.name}</span>
                       </motion.button>
                     ))}
                   </div>
                 ) : (
                   <div className="py-6 text-center">
-                    <p className="text-sm" style={{ color: "#9B8FC8" }}>No apps match &quot;{trimmed}&quot;</p>
+                    <p className="text-sm" style={{ color: "#9775FA" }}>No apps match &quot;{trimmed}&quot;</p>
                   </div>
                 )}
               </motion.div>
@@ -166,7 +169,7 @@ export function StartMenu({ onAppClick, onClose, onShutdown, isAdmin = false }: 
                 transition={{ duration: 0.12 }}
                 className="mb-4"
               >
-                <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest" style={{ color: "#9B8FC8" }}>
+                <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest" style={{ color: "#9775FA" }}>
                   Applications
                 </p>
                 <div className="grid grid-cols-5 gap-1">
@@ -183,11 +186,11 @@ export function StartMenu({ onAppClick, onClose, onShutdown, isAdmin = false }: 
                     >
                       <div
                         className="flex h-11 w-11 items-center justify-center rounded-xl text-white"
-                        style={{ background: app.gradient, boxShadow: "3px 3px 8px #C2BAF0, -3px -3px 8px #FFFFFF" }}
+                        style={{ background: app.gradient, boxShadow: "3px 3px 10px rgba(107,79,232,0.45)" }}
                       >
                         <app.icon className="h-5 w-5" />
                       </div>
-                      <span className="text-[9px] font-medium leading-tight text-center" style={{ color: "#7B6FC0" }}>
+                      <span className="text-[9px] font-medium leading-tight text-center" style={{ color: "#A78BFA" }}>
                         {app.name}
                       </span>
                     </motion.button>
@@ -198,30 +201,31 @@ export function StartMenu({ onAppClick, onClose, onShutdown, isAdmin = false }: 
           </AnimatePresence>
 
           {/* Divider */}
-          <div className="mb-3 h-px" style={{ background: "linear-gradient(90deg,transparent,#C2BAF0,transparent)" }} />
+          <div className="mb-3 h-px" style={{ background: "linear-gradient(90deg,transparent,rgba(168,85,247,0.35),transparent)" }} />
 
           {/* Quick Actions */}
           <div className="flex items-center justify-between">
             <motion.button
-              className="neu-btn flex h-9 items-center gap-2 rounded-xl px-3"
+              className="flex h-9 items-center gap-2 rounded-xl px-3"
+              style={{ background: "rgba(168,85,247,0.10)", border: "1px solid rgba(168,85,247,0.20)" }}
               whileHover={{ scale: 1.05, y: -1 }}
               whileTap={{ scale: 0.92 }}
               onClick={() => handleAppClick("profile")}
               title="My Profile"
             >
-              <Settings className="h-4 w-4" style={{ color: "#7B6FC0" }} />
-              <span className="text-xs font-medium" style={{ color: "#7B6FC0" }}>Profile</span>
+              <Settings className="h-4 w-4" style={{ color: "#A78BFA" }} />
+              <span className="text-xs font-medium" style={{ color: "#A78BFA" }}>Profile</span>
             </motion.button>
 
             <motion.button
               onClick={handleShutdown}
               className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium"
               style={{
-                background: "rgba(232,85,85,0.10)",
-                color: "#E85555",
-                boxShadow: "3px 3px 8px rgba(232,85,85,0.08), -3px -3px 8px #FFFFFF",
+                background: "rgba(232,85,85,0.12)",
+                color: "#F87171",
+                border: "1px solid rgba(232,85,85,0.20)",
               }}
-              whileHover={{ scale: 1.04, background: "rgba(232,85,85,0.18)" }}
+              whileHover={{ scale: 1.04, background: "rgba(232,85,85,0.22)" }}
               whileTap={{ scale: 0.94 }}
             >
               <Power className="h-4 w-4" />

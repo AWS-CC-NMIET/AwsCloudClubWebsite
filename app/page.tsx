@@ -2,40 +2,64 @@
 
 import { useState, useEffect } from "react"
 import { AnimatePresence, motion } from "framer-motion"
-import { BootScreen } from "@/components/os/boot-screen"
+import { BootScreen }  from "@/components/os/boot-screen"
 import { LoginScreen } from "@/components/os/login-screen"
-import { Desktop } from "@/components/os/desktop"
+import { Desktop }     from "@/components/os/desktop"
+import { MobileOS }    from "@/components/mobile/mobile-os"
 import { isSessionValid, refreshSession } from "@/lib/auth-client"
 
 type Stage = "checking" | "boot" | "login" | "desktop"
 
 export default function CloudOS() {
-  const [stage, setStage] = useState<Stage>("checking")
+  // null = device type not yet detected (avoids hydration mismatch)
+  const [isMobile, setIsMobile] = useState<boolean | null>(null)
+  const [stage, setStage]       = useState<Stage>("checking")
 
   useEffect(() => {
-    async function restoreSession() {
-      if (isSessionValid()) {
-        setStage("desktop")
-        return
+    // matchMedia is more reliable than innerWidth in DevTools responsive mode
+    const mq     = window.matchMedia("(max-width: 767px)")
+    const mobile = mq.matches
+    setIsMobile(mobile)
+
+    if (!mobile) {
+      // Desktop-only: restore session and decide which stage to show
+      async function restoreSession() {
+        if (isSessionValid()) { setStage("desktop"); return }
+        try {
+          const ok = await refreshSession()
+          if (ok) { setStage("desktop"); return }
+        } catch { /* fall through */ }
+        setStage("boot")
       }
-      // Access token expired — try silent refresh with the refresh token
-      try {
-        const ok = await refreshSession()
-        if (ok) { setStage("desktop"); return }
-      } catch { /* fall through */ }
-      // No valid session — show normal boot → login flow
-      setStage("boot")
+      restoreSession()
     }
-    restoreSession()
+    // Mobile: MobileOS manages its own session-check internally
+
+    // Re-detect on orientation change / resize (handles DevTools toggle)
+    const onChange = (e: MediaQueryListEvent) => setIsMobile(e.matches)
+    mq.addEventListener("change", onChange)
+    return () => mq.removeEventListener("change", onChange)
   }, [])
 
+  // Blank screen while detecting device type (avoids flash)
+  if (isMobile === null) {
+    return <main className="h-screen w-screen" style={{ background: "#0a0a0f" }} />
+  }
+
+  // ── Mobile ──────────────────────────────────────────────────────────────────
+  if (isMobile) {
+    return <MobileOS />
+  }
+
+  // ── Desktop ─────────────────────────────────────────────────────────────────
   if (stage === "checking") {
-    return <main className="h-screen w-screen" style={{ background: "#a4a4b6ff" }} />
+    return <main className="h-screen w-screen" style={{ background: "#0a0a0f" }} />
   }
 
   return (
     <main className="h-screen w-screen overflow-hidden" style={{ background: "#0a0a0f" }}>
       <AnimatePresence mode="wait">
+
         {stage === "boot" && (
           <motion.div
             key="boot"
@@ -72,6 +96,7 @@ export default function CloudOS() {
             <Desktop onLogout={() => setStage("login")} />
           </motion.div>
         )}
+
       </AnimatePresence>
     </main>
   )
