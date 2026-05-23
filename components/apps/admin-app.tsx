@@ -119,7 +119,7 @@ function DashboardTab() {
     <div className="space-y-5">
       <div>
         <h2 className="text-lg font-bold mb-1" style={{ color: "#1E1060" }}>Admin Dashboard</h2>
-        <p className="text-sm" style={{ color: "#7B6FC0" }}>AWS Cloud Club NMIET — Website Control Panel</p>
+        <p className="text-sm" style={{ color: "#7B6FC0" }}>AWS Student Builder Group NMIET — Website Control Panel</p>
       </div>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {statCards.map((s) => (
@@ -757,7 +757,7 @@ export function AdminApp() {
       )
       case "projects": return (
         <ListManager
-          title="Projects" description="Showcase your club's projects"
+          title="Projects" description="Showcase your group's projects"
           fetchFn={api.projects.list} dataKey="projects"
           createFn={api.projects.create} updateFn={api.projects.update} deleteFn={api.projects.delete}
           displayName={(i) => String(i.title)}

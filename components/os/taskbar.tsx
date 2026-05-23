@@ -104,7 +104,7 @@ export function Taskbar({ openApps, activeApp, onAppClick, onStartClick, onMobil
         whileHover={{ y: -2, boxShadow: "6px 6px 16px rgba(107,79,232,0.50), -3px -3px 10px rgba(255,255,255,0.70)" }}
         whileTap={{ scale: 0.94 }}
       >
-        <Image src="/logo-icon.png" alt="Start" width={20} height={20} className="object-contain" />
+        <Image src="/logo-icon.png" alt="Start" width={20} height={20} className="object-contain" unoptimized />
         <span className="hidden text-sm sm:inline">Start</span>
       </motion.button>
 

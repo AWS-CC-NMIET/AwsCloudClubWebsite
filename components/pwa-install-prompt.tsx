@@ -89,7 +89,7 @@ export function PWAInstallPrompt() {
               className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl"
               style={{ background: "linear-gradient(135deg,#6B4FE8,#8B6FFF)", boxShadow: "3px 3px 10px rgba(107,79,232,0.35)" }}
             >
-              <Image src="/logo-icon.png" alt="CloudOS" width={32} height={32} className="rounded-xl object-contain" />
+              <Image src="/logo-icon.png" alt="CloudOS" width={32} height={32} className="rounded-xl object-contain" unoptimized />
             </div>
 
             <div className="flex-1 min-w-0 pr-6">

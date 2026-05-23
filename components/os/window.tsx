@@ -23,13 +23,10 @@ interface WindowProps {
 
 /** Returns true if the viewport is mobile-sized (< 768px) — initializes synchronously to avoid layout flash */
 function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(() => {
-    if (typeof window === "undefined") return false
-    return window.innerWidth < 768
-  })
+  const [isMobile, setIsMobile] = useState(false)
   useEffect(() => {
+    setIsMobile(window.innerWidth < 768)
     const check = () => setIsMobile(window.innerWidth < 768)
-    check()
     window.addEventListener("resize", check)
     return () => window.removeEventListener("resize", check)
   }, [])
@@ -55,21 +52,23 @@ export function Window({
   const windowRef = useRef<HTMLDivElement>(null)
   const isMobile = useIsMobile()
 
-  // On mobile, clamp the initial size to the screen
-  const clampedSize = {
-    width:  typeof window !== "undefined" ? Math.min(initialSize.width,  window.innerWidth  - 16) : initialSize.width,
-    height: typeof window !== "undefined" ? Math.min(initialSize.height, window.innerHeight - 80) : initialSize.height,
-  }
-
   const [position, setPosition] = useState(initialPosition)
-  const [size, setSize] = useState(clampedSize)
+  const [size, setSize] = useState(initialSize)
   const [isClosing, setIsClosing] = useState(false)
 
   const isDraggingRef   = useRef(false)
   const isResizingRef   = useRef(false)
   const dragOffsetRef   = useRef({ x: 0, y: 0 })
   const positionRef     = useRef(initialPosition)
-  const sizeRef         = useRef(clampedSize)
+  const sizeRef         = useRef(initialSize)
+
+  // Clamp size on client side after mount to avoid hydration mismatch
+  useEffect(() => {
+    setSize({
+      width:  Math.min(initialSize.width,  window.innerWidth  - 16),
+      height: Math.min(initialSize.height, window.innerHeight - 80),
+    })
+  }, [initialSize])
 
   useEffect(() => { positionRef.current = position }, [position])
   useEffect(() => { sizeRef.current = size }, [size])

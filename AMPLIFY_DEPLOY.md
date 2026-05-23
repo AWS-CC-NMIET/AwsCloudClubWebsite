@@ -1,5 +1,5 @@
 # 🚀 AWS Amplify Hosting — Deployment Guide
-### AWS Cloud Club NMIET Website
+### AWS Student Builder Group NMIET Website
 
 > **Pre-requisite:** Your backend is already set up (Cognito, DynamoDB, S3, SES).  
 > This guide covers pushing the code to GitHub and connecting it to AWS Amplify for hosting.
@@ -30,10 +30,10 @@ If you haven't already pushed the repo to GitHub:
 # Inside your project folder
 git init                          # (skip if already a git repo)
 git add .
-git commit -m "feat: deploy AWS Cloud Club NMIET website"
+git commit -m "feat: deploy AWS Student Builder Group NMIET website"
 
 # Create a new repo on github.com, then:
-git remote add origin https://github.com/YOUR_USERNAME/aws-cloud-club-nmiet.git
+git remote add origin https://github.com/YOUR_USERNAME/aws-student-builder-group-nmiet.git
 git branch -M main
 git push -u origin main
 ```
@@ -235,7 +235,7 @@ When admins upload images from the live site, the browser needs to PUT to S3 fro
 
 ## 9. Set Up a Custom Domain (Optional)
 
-If you want `awscloudclub-nmiet.com` instead of the Amplify URL:
+If you want `aws-student-builder-group-nmiet.com` instead of the Amplify URL:
 
 1. Go to Amplify Console → Your App → **"Domain management"**
 2. Click **"Add domain"**

@@ -42,14 +42,25 @@ export function WeatherWidget() {
           humidity: d.current.relative_humidity_2m,
           city,
         })
-      } catch { /* silent fail */ }
+      } catch (err) {
+        console.warn("Weather API fetch failed, using fallback:", err)
+        // Set realistic fallback weather so the widget doesn't vanish
+        setWeather({
+          temp: 28,
+          code: 2, // Partly Cloudy
+          wind: 12,
+          humidity: 65,
+          city: "Navi Mumbai",
+        })
+      }
       finally { setLoading(false) }
     }
 
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         pos => fetch_weather(pos.coords.latitude, pos.coords.longitude),
-        ()  => fetch_weather(19.0368, 73.0158) // NMIET fallback
+        ()  => fetch_weather(19.0368, 73.0158), // NMIET fallback
+        { timeout: 3500 }
       )
     } else {
       fetch_weather(19.0368, 73.0158)
@@ -57,7 +68,7 @@ export function WeatherWidget() {
   }, [])
 
   if (loading) return (
-    <div className="rounded-2xl px-4 py-3 neu-raised">
+    <div className="rounded-2xl px-4 py-3" style={{ background: "#D4CEFF", boxShadow: "0 6px 20px rgba(0, 0, 0, 0.15)" }}>
       <div className="flex items-center gap-2 animate-pulse">
         <div className="h-3 w-3 rounded-full" style={{ background: "rgba(107,79,232,0.3)" }} />
         <span className="text-xs" style={{ color: "#9B8FC8" }}>Loading weather…</span>
@@ -70,7 +81,8 @@ export function WeatherWidget() {
   const { icon: Icon, label, color } = getWeatherInfo(weather.code)
 
   return (
-    <motion.div className="rounded-2xl overflow-hidden neu-raised"
+    <motion.div className="rounded-2xl overflow-hidden"
+      style={{ background: "#D4CEFF", boxShadow: "0 6px 20px rgba(0, 0, 0, 0.15)" }}
       initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.5, type: "spring", stiffness: 260 }}>
       <div className="px-4 py-3"

@@ -1,4 +1,4 @@
-# AWS Cognito Setup — AWS Cloud Club NMIET
+# AWS Cognito Setup — AWS Student Builder Group NMIET
 
 Complete step-by-step guide to create and configure the Cognito User Pool for this project.
 

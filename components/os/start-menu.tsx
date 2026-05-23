@@ -77,10 +77,10 @@ export function StartMenu({ onAppClick, onClose, onShutdown, isAdmin = false }: 
             className="flex h-11 w-11 items-center justify-center rounded-xl"
             style={{ background: "rgba(255,255,255,0.18)" }}
           >
-            <Image src="/logo-full.png" alt="Logo" width={36} height={36} className="rounded-lg object-cover" />
+            <Image src="/logo-full.png" alt="Logo" width={36} height={36} className="object-contain" unoptimized />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-white leading-tight truncate">AWS Cloud Club</p>
+            <p className="text-sm font-bold text-white leading-tight truncate">AWS Student Builder Group</p>
             <p className="text-xs text-white/70">NMIET Chapter</p>
           </div>
           <div className="flex items-center gap-1.5">

@@ -1,14 +1,14 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Service Worker — AWS Cloud Club NMIET
+// Service Worker — AWS Student Builder Group NMIET
 // Strategy:
 //   • Static assets (JS, CSS, fonts, images) → Cache First
 //   • API routes (/api/*) → Network First (fresh data priority)
 //   • HTML pages → Network First with offline fallback
 // ─────────────────────────────────────────────────────────────────────────────
 
-const CACHE_NAME = "cloudos-v1"
-const STATIC_CACHE = "cloudos-static-v1"
-const API_CACHE = "cloudos-api-v1"
+const CACHE_NAME = "cloudos-v2"
+const STATIC_CACHE = "cloudos-static-v2"
+const API_CACHE = "cloudos-api-v2"
 
 const PRECACHE_URLS = [
   "/",
@@ -46,6 +46,11 @@ self.addEventListener("fetch", (event) => {
 
   // Only handle same-origin requests
   if (url.origin !== self.location.origin) return
+
+  // Bypass service worker caching on localhost for a smoother development experience
+  if (self.location.hostname === "localhost" || self.location.hostname === "127.0.0.1") {
+    return
+  }
 
   // API routes — Network First
   if (url.pathname.startsWith("/api/")) {

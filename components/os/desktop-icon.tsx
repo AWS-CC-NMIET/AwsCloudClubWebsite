@@ -28,10 +28,10 @@ export function DesktopIcon({ icon, label, onClick, gradient }: DesktopIconProps
         className="flex h-14 w-14 sm:h-14 sm:w-14 items-center justify-center rounded-2xl text-white"
         style={{
           background:  gradient ?? "linear-gradient(135deg,#6B4FE8,#8B6FFF)",
-          boxShadow:   "5px 5px 14px #C2BAF0, -5px -5px 14px #FFFFFF",
+          boxShadow:   "0 4px 10px rgba(0, 0, 0, 0.25)",
         }}
         whileHover={{
-          boxShadow: "7px 7px 20px #C2BAF0, -7px -7px 20px #FFFFFF",
+          boxShadow: "0 6px 16px rgba(0, 0, 0, 0.35)",
         }}
         transition={{ duration: 0.2 }}
       >
