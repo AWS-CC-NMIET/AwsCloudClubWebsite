@@ -63,6 +63,10 @@ const nextConfig = {
   // Bake server-side env vars into the Lambda bundle at build time.
   env: {
     COGNITO_CLIENT_SECRET:            process.env.COGNITO_CLIENT_SECRET,
+    // Support both APP_* (Amplify) and AWS_* (local dev) naming
+    APP_ACCESS_KEY_ID:                process.env.APP_ACCESS_KEY_ID   || process.env.AWS_ACCESS_KEY_ID,
+    APP_SECRET_ACCESS_KEY:            process.env.APP_SECRET_ACCESS_KEY || process.env.AWS_SECRET_ACCESS_KEY,
+    APP_REGION:                       process.env.APP_REGION          || process.env.AWS_REGION,
     AWS_ACCESS_KEY_ID:                process.env.AWS_ACCESS_KEY_ID,
     AWS_SECRET_ACCESS_KEY:            process.env.AWS_SECRET_ACCESS_KEY,
     AWS_REGION:                       process.env.AWS_REGION,

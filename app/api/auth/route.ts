@@ -17,7 +17,7 @@ import { rateLimit, getRequestKey, rateLimitResponse } from "@/lib/rate-limit"
 
 const CLIENT_ID     = process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID!
 const CLIENT_SECRET = process.env.COGNITO_CLIENT_SECRET!
-const REGION        = process.env.AWS_REGION || "ap-south-1"
+const REGION        = process.env.APP_REGION || process.env.AWS_REGION || "ap-south-1"
 
 const cognito = new CognitoIdentityProviderClient({ region: REGION })
 
