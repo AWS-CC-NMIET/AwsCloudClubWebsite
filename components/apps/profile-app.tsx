@@ -4,18 +4,25 @@ import { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   User, Edit3, Calendar, ChevronRight, Camera,
-  LogOut, Star, Loader2, Github, Linkedin
+  LogOut, Star, Loader2, Github, Linkedin, X, Save,
 } from "lucide-react"
 import { api, uploadFileToS3 } from "@/lib/api-client"
 import { signOut, getStoredUsername } from "@/lib/auth-client"
 
-
-const inputStyle: React.CSSProperties = {
-  background: "rgba(183, 168, 250, 0.78)",
-  boxShadow: "inset 3px 3px 8px rgba(107,79,232,0.20), inset -3px -3px 8px rgba(255,255,255,0.52)",
-  border: "1px solid rgba(107,79,232,0.14)", outline: "none", borderRadius: "0.75rem",
-  padding: "0.625rem 1rem", color: "#1E1060", width: "100%", fontSize: "0.875rem",
+const INPUT_STYLE: React.CSSProperties = {
+  background: "rgba(183,168,250,0.65)",
+  boxShadow: "inset 2px 2px 6px rgba(107,79,232,0.18), inset -2px -2px 6px rgba(255,255,255,0.55)",
+  border: "1px solid rgba(107,79,232,0.14)",
+  outline: "none",
+  borderRadius: "0.625rem",
+  padding: "0.5rem 0.75rem",
+  color: "#1E1060",
+  width: "100%",
+  fontSize: "0.85rem",
 }
+
+const CARD = "rounded-xl border"
+const CARD_BG: React.CSSProperties = { background: "rgba(107,79,232,0.05)", border: "1px solid rgba(107,79,232,0.13)" }
 
 const container = { hidden: {}, show: { transition: { staggerChildren: 0.07 } } }
 const item = { hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 260, damping: 22 } } }
@@ -33,18 +40,17 @@ interface Profile {
 }
 
 export function ProfileApp({ onLogout }: { onLogout: () => void }) {
-  const [profile, setProfile]         = useState<Profile | null>(null)
-  const [loading, setLoading]         = useState(true)
-  const [isEditing, setIsEditing]     = useState(false)
-  const [saving, setSaving]           = useState(false)
+  const [profile, setProfile]               = useState<Profile | null>(null)
+  const [loading, setLoading]               = useState(true)
+  const [isEditing, setIsEditing]           = useState(false)
+  const [saving, setSaving]                 = useState(false)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const avatarInputRef = useRef<HTMLInputElement>(null)
 
-  // Edit form state
-  const [editName, setEditName]           = useState("")
-  const [editBio, setEditBio]             = useState("")
-  const [editLinkedin, setEditLinkedin]   = useState("")
-  const [editGithub, setEditGithub]       = useState("")
+  const [editName, setEditName]         = useState("")
+  const [editBio, setEditBio]           = useState("")
+  const [editLinkedin, setEditLinkedin] = useState("")
+  const [editGithub, setEditGithub]     = useState("")
 
   useEffect(() => {
     const load = async () => {
@@ -53,7 +59,6 @@ export function ProfileApp({ onLogout }: { onLogout: () => void }) {
         if (p) {
           setProfile(p)
         } else {
-          // Auto-create profile on first login
           const username = getStoredUsername() || ""
           const { profile: created } = await api.profile.create({
             displayName: username.split("@")[0] || "Cloud User",
@@ -61,7 +66,6 @@ export function ProfileApp({ onLogout }: { onLogout: () => void }) {
           setProfile(created)
         }
       } catch {
-        // If profile fetch fails (e.g. no DynamoDB table yet), show minimal data
         const username = getStoredUsername() || ""
         setProfile({ displayName: username.split("@")[0] || "Cloud User", email: username })
       } finally {
@@ -91,14 +95,10 @@ export function ProfileApp({ onLogout }: { onLogout: () => void }) {
       setProfile(updated)
       setIsEditing(false)
     } catch {
-      // silently fail — keep modal open so user can retry
+      // keep modal open so user can retry
     } finally {
       setSaving(false)
     }
-  }
-
-  const cancelEdit = () => {
-    setIsEditing(false)
   }
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -136,66 +136,73 @@ export function ProfileApp({ onLogout }: { onLogout: () => void }) {
   )
 
   return (
-    <motion.div className="space-y-5" variants={container} initial="hidden" animate="show">
+    <motion.div className="space-y-4 p-1" variants={container} initial="hidden" animate="show">
 
-      {/* ── Profile Header Card ── */}
+      {/* ── Profile Hero Card ─────────────────────────────────── */}
       <motion.div
         variants={item}
-        className="relative overflow-hidden rounded-3xl p-6"
+        className="relative overflow-hidden rounded-2xl p-5"
         style={{
           background: "linear-gradient(135deg, #6B4FE8 0%, #8B6FFF 60%, #B8A4FF 100%)",
-          boxShadow: "8px 8px 24px rgba(107,79,232,0.30), -6px -6px 18px rgba(255,255,255,0.70)",
+          boxShadow: "6px 6px 20px rgba(107,79,232,0.28), -4px -4px 14px rgba(255,255,255,0.65)",
         }}
       >
-        <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full pointer-events-none"
-          style={{ background: "radial-gradient(circle, rgba(255,255,255,0.14), transparent 70%)" }} />
-        <div className="absolute -bottom-8 -left-8 h-28 w-28 rounded-full pointer-events-none"
-          style={{ background: "radial-gradient(circle, rgba(255,255,255,0.08), transparent 70%)" }} />
+        {/* decorative blobs */}
+        <div className="absolute -right-8 -top-8 h-36 w-36 rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(circle, rgba(255,255,255,0.13), transparent 70%)" }} />
+        <div className="absolute -bottom-6 -left-6 h-24 w-24 rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(circle, rgba(255,255,255,0.07), transparent 70%)" }} />
 
-        <div className="relative z-10 flex items-center gap-5">
+        <div className="relative z-10 flex items-center gap-4">
+          {/* Avatar */}
           <div className="relative flex-shrink-0">
             <motion.div
-              className="flex h-20 w-20 items-center justify-center rounded-2xl text-2xl font-bold text-white overflow-hidden"
+              className="flex h-16 w-16 items-center justify-center rounded-xl text-xl font-bold text-white overflow-hidden"
               style={{
-                background: "rgba(255,255,255,0.22)", backdropFilter: "blur(10px)",
+                background: "rgba(255,255,255,0.20)",
+                backdropFilter: "blur(10px)",
                 border: "2px solid rgba(255,255,255,0.35)",
-                boxShadow: "4px 4px 16px rgba(0,0,0,0.15)",
+                boxShadow: "3px 3px 12px rgba(0,0,0,0.12)",
               }}
               whileHover={{ scale: 1.05 }}
             >
-              {profile?.avatarUrl ? (
+              {profile?.avatarUrl
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={profile.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-              ) : initials}
+                ? <img src={profile.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                : initials
+              }
             </motion.div>
             <motion.button
               onClick={() => avatarInputRef.current?.click()}
-              className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full"
-              style={{ background: "rgba(255,255,255,0.90)", boxShadow: "0 2px 8px rgba(0,0,0,0.15)" }}
+              className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full"
+              style={{ background: "rgba(255,255,255,0.92)", boxShadow: "0 2px 6px rgba(0,0,0,0.14)" }}
               whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.92 }}
               disabled={uploadingAvatar}
               title="Change profile photo"
             >
               {uploadingAvatar
-                ? <Loader2 className="h-3.5 w-3.5 animate-spin" style={{ color: "#6B4FE8" }} />
-                : <Camera className="h-3.5 w-3.5" style={{ color: "#6B4FE8" }} />}
+                ? <Loader2 className="h-3 w-3 animate-spin" style={{ color: "#6B4FE8" }} />
+                : <Camera className="h-3 w-3" style={{ color: "#6B4FE8" }} />
+              }
             </motion.button>
             <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
           </div>
 
+          {/* Info */}
           <div className="flex-1 min-w-0">
-            <h2 className="text-xl font-bold text-white truncate">{profile?.displayName}</h2>
-            <p className="text-sm font-medium truncate" style={{ color: "rgba(255,255,255,0.75)" }}>{profile?.email}</p>
+            <h2 className="text-lg font-bold text-white truncate leading-tight">{profile?.displayName}</h2>
+            <p className="text-xs font-medium truncate mt-0.5" style={{ color: "rgba(255,255,255,0.72)" }}>{profile?.email}</p>
             {profile?.bio && (
-              <p className="text-xs mt-1 line-clamp-2" style={{ color: "rgba(255,255,255,0.60)" }}>{profile.bio}</p>
+              <p className="text-[11px] mt-1.5 line-clamp-2 leading-relaxed" style={{ color: "rgba(255,255,255,0.60)" }}>{profile.bio}</p>
             )}
           </div>
 
+          {/* Edit button */}
           <motion.button
             onClick={openEdit}
-            className="flex-shrink-0 flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold"
-            style={{ background: "rgba(255,255,255,0.18)", color: "#FFFFFF", backdropFilter: "blur(10px)" }}
-            whileHover={{ background: "rgba(255,255,255,0.28)", y: -1 }}
+            className="flex-shrink-0 flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold"
+            style={{ background: "rgba(255,255,255,0.16)", color: "#FFFFFF", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.25)" }}
+            whileHover={{ background: "rgba(255,255,255,0.26)", y: -1 }}
             whileTap={{ scale: 0.95 }}
           >
             <Edit3 className="h-3.5 w-3.5" />
@@ -204,51 +211,76 @@ export function ProfileApp({ onLogout }: { onLogout: () => void }) {
         </div>
       </motion.div>
 
-      {/* ── Edit Modal ── */}
+      {/* ── Edit Modal ────────────────────────────────────────── */}
       <AnimatePresence>
         {isEditing && (
           <motion.div
             className="fixed inset-0 z-50 flex items-center justify-center px-4"
-            style={{ background: "rgba(30,16,96,0.20)", backdropFilter: "blur(6px)" }}
+            style={{ background: "rgba(30,16,96,0.25)", backdropFilter: "blur(8px)" }}
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setIsEditing(false)}
           >
             <motion.div
-              className="neu-panel w-full max-w-md rounded-2xl p-6"
-              initial={{ scale: 0.90, opacity: 0, y: 24 }}
+              className="w-full max-w-md rounded-2xl overflow-hidden"
+              style={{
+                background: "rgba(212,206,255,0.98)",
+                border: "1px solid rgba(107,79,232,0.22)",
+                boxShadow: "0 24px 60px rgba(107,79,232,0.28)",
+              }}
+              initial={{ scale: 0.92, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.92, opacity: 0 }}
+              exit={{ scale: 0.94, opacity: 0 }}
               transition={{ type: "spring" as const, stiffness: 300, damping: 26 }}
+              onClick={(e) => e.stopPropagation()}
             >
-              <h3 className="mb-5 text-lg font-bold" style={{ color: "#1E1060" }}>Edit Profile</h3>
-              <div className="space-y-3">
-                <div>
-                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide" style={{ color: "#9B8FC8" }}>Display Name</label>
-                  <input value={editName} onChange={(e) => setEditName(e.target.value)} style={inputStyle} placeholder="Your name" />
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide" style={{ color: "#9B8FC8" }}>Bio</label>
-                  <textarea value={editBio} onChange={(e) => setEditBio(e.target.value)}
-                    style={{ ...inputStyle, resize: "none" }} rows={3} placeholder="Tell us about yourself..." />
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide" style={{ color: "#9B8FC8" }}>LinkedIn URL</label>
-                  <input value={editLinkedin} onChange={(e) => setEditLinkedin(e.target.value)} style={inputStyle} placeholder="https://linkedin.com/in/..." />
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide" style={{ color: "#9B8FC8" }}>GitHub URL</label>
-                  <input value={editGithub} onChange={(e) => setEditGithub(e.target.value)} style={inputStyle} placeholder="https://github.com/..." />
-                </div>
-              </div>
-              <div className="mt-5 flex gap-3">
-                <motion.button onClick={cancelEdit}
-                  className="neu-btn flex-1 rounded-xl py-2.5 text-sm font-semibold"
-                  style={{ color: "#7B6FC0" }} whileHover={{ y: -1 }} whileTap={{ scale: 0.97 }}>
-                  Cancel
+              {/* Modal header */}
+              <div className="flex items-center justify-between px-5 py-4 border-b"
+                style={{ borderColor: "rgba(107,79,232,0.15)" }}>
+                <p className="text-sm font-bold" style={{ color: "#1E1060" }}>Edit Profile</p>
+                <motion.button
+                  onClick={() => setIsEditing(false)}
+                  className="flex h-8 w-8 items-center justify-center rounded-xl"
+                  style={{ background: "rgba(107,79,232,0.08)", border: "1px solid rgba(107,79,232,0.12)" }}
+                  whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.92 }}>
+                  <X className="h-3.5 w-3.5" style={{ color: "#7B6FC0" }} />
                 </motion.button>
+              </div>
+
+              {/* Modal body — scrolls when keyboard pushes viewport up on mobile */}
+              <div className="px-5 py-4 space-y-3 overflow-y-auto" style={{ maxHeight: "52vh" }}>
+                {[
+                  { label: "Display Name",  value: editName,     setter: setEditName,     placeholder: "Your name",                  multiline: false },
+                  { label: "Bio",           value: editBio,      setter: setEditBio,      placeholder: "Tell us about yourself…",   multiline: true  },
+                  { label: "LinkedIn URL",  value: editLinkedin, setter: setEditLinkedin, placeholder: "https://linkedin.com/in/…", multiline: false },
+                  { label: "GitHub URL",    value: editGithub,   setter: setEditGithub,   placeholder: "https://github.com/…",       multiline: false },
+                ].map((f) => (
+                  <div key={f.label}>
+                    <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider" style={{ color: "#9B8FC8" }}>
+                      {f.label}
+                    </label>
+                    {f.multiline
+                      ? <textarea value={f.value} onChange={(e) => f.setter(e.target.value)}
+                          style={{ ...INPUT_STYLE, resize: "none" }} rows={3} placeholder={f.placeholder} />
+                      : <input value={f.value} onChange={(e) => f.setter(e.target.value)}
+                          style={INPUT_STYLE} placeholder={f.placeholder} />
+                    }
+                  </div>
+                ))}
+              </div>
+
+              {/* Modal footer */}
+              <div className="flex gap-2 px-5 pb-5">
+                <button onClick={() => setIsEditing(false)}
+                  className="flex-1 rounded-xl py-2.5 text-xs font-semibold"
+                  style={{ background: "rgba(107,79,232,0.06)", color: "#7B6FC0", border: "1px solid rgba(107,79,232,0.12)" }}>
+                  Cancel
+                </button>
                 <motion.button onClick={saveProfile} disabled={saving}
-                  className="neu-btn-primary flex-1 rounded-xl py-2.5 text-sm font-semibold inline-flex items-center justify-center gap-2"
+                  className="flex-1 flex items-center justify-center gap-1.5 rounded-xl py-2.5 text-xs font-semibold text-white disabled:opacity-60"
+                  style={{ background: "linear-gradient(135deg,#6B4FE8,#8B6FFF)", boxShadow: "0 4px 14px rgba(107,79,232,0.35)" }}
                   whileHover={{ y: -1 }} whileTap={{ scale: 0.97 }}>
-                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Changes"}
+                  {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+                  {saving ? "Saving…" : "Save Changes"}
                 </motion.button>
               </div>
             </motion.div>
@@ -256,80 +288,84 @@ export function ProfileApp({ onLogout }: { onLogout: () => void }) {
         )}
       </AnimatePresence>
 
-      {/* ── Stats ── */}
-      <motion.div variants={item} className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      {/* ── Stats Row ─────────────────────────────────────────── */}
+      <motion.div variants={item} className="grid grid-cols-3 gap-2.5">
         {[
-          { label: "Member Since", value: joinYear,         icon: Star,     color: "#5BA8D8" },
-          { label: "Skills",       value: String(profile?.skills?.length || 0), icon: User, color: "#6B4FE8" },
-          { label: "Events",       value: "—",              icon: Calendar, color: "#FF9900" },
+          { label: "Member Since", value: joinYear,                                       icon: Star,     color: "#5BA8D8" },
+          { label: "Skills",       value: String(profile?.skills?.length || 0),           icon: User,     color: "#6B4FE8" },
+          { label: "Events",       value: "—",                                            icon: Calendar, color: "#FF9900" },
         ].map((s) => (
-          <div key={s.label} className="neu-raised-sm rounded-2xl p-4 text-center">
-            <div className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-xl" style={{ background: `${s.color}14` }}>
-              <s.icon className="h-4.5 w-4.5" style={{ color: s.color, width: 18, height: 18 }} />
+          <div key={s.label} className={`${CARD} p-4 text-center`} style={CARD_BG}>
+            <div className="mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-xl"
+              style={{ background: `${s.color}18` }}>
+              <s.icon className="h-4 w-4" style={{ color: s.color }} />
             </div>
-            <p className="text-2xl font-extrabold" style={{ color: "#1E1060" }}>{s.value}</p>
-            <p className="text-[11px] font-medium mt-0.5" style={{ color: "#7B6FC0" }}>{s.label}</p>
+            <p className="text-xl font-extrabold" style={{ color: "#1E1060" }}>{s.value}</p>
+            <p className="text-[10px] font-medium mt-0.5" style={{ color: "#9B8FC8" }}>{s.label}</p>
           </div>
         ))}
       </motion.div>
 
-      {/* ── Links ── */}
+      {/* ── Links ─────────────────────────────────────────────── */}
       {(profile?.linkedinUrl || profile?.githubUrl) && (
-        <motion.div variants={item} className="neu-raised rounded-2xl p-5">
-          <h3 className="mb-3 font-bold" style={{ color: "#1E1060" }}>Links</h3>
-          <div className="flex gap-3">
+        <motion.div variants={item} className={`${CARD} p-4`} style={CARD_BG}>
+          <p className="text-[10px] font-bold uppercase tracking-wider mb-3" style={{ color: "#9B8FC8" }}>Links</p>
+          <div className="flex flex-wrap gap-2">
             {profile?.linkedinUrl && (
               <motion.a href={profile.linkedinUrl} target="_blank" rel="noopener noreferrer"
-                className="neu-btn flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium"
-                style={{ color: "#0077B5" }} whileHover={{ y: -2 }}>
-                <Linkedin className="h-4 w-4" /> LinkedIn
+                className="flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold"
+                style={{ background: "rgba(0,119,181,0.08)", color: "#0077B5", border: "1px solid rgba(0,119,181,0.18)" }}
+                whileHover={{ y: -2 }}>
+                <Linkedin className="h-3.5 w-3.5" /> LinkedIn
               </motion.a>
             )}
             {profile?.githubUrl && (
               <motion.a href={profile.githubUrl} target="_blank" rel="noopener noreferrer"
-                className="neu-btn flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium"
-                style={{ color: "#1E1060" }} whileHover={{ y: -2 }}>
-                <Github className="h-4 w-4" /> GitHub
+                className="flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold"
+                style={{ background: "rgba(30,16,96,0.07)", color: "#1E1060", border: "1px solid rgba(30,16,96,0.14)" }}
+                whileHover={{ y: -2 }}>
+                <Github className="h-3.5 w-3.5" /> GitHub
               </motion.a>
             )}
           </div>
         </motion.div>
       )}
 
-      {/* ── Account Settings ── */}
-      <motion.div variants={item} className="neu-raised rounded-2xl p-5">
-        <h3 className="mb-3 font-bold" style={{ color: "#1E1060" }}>Settings</h3>
-        {[
-          { label: "Notifications", desc: "Event reminders and updates" },
-          { label: "Privacy",       desc: "Control your data and visibility" },
-        ].map((s) => (
-          <motion.button key={s.label}
-            className="neu-inset-sm flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left mb-2"
-            whileHover={{ x: 3 }} transition={{ type: "spring" as const, stiffness: 300 }}>
-            <div className="flex-1">
-              <p className="text-sm font-semibold" style={{ color: "#1E1060" }}>{s.label}</p>
-              <p className="text-xs" style={{ color: "#9B8FC8" }}>{s.desc}</p>
-            </div>
-            <ChevronRight className="h-4 w-4 flex-shrink-0" style={{ color: "rgba(107,79,232,0.40)" }} />
-          </motion.button>
-        ))}
+      {/* ── Settings ──────────────────────────────────────────── */}
+      <motion.div variants={item} className={`${CARD} p-4`} style={CARD_BG}>
+        <p className="text-[10px] font-bold uppercase tracking-wider mb-3" style={{ color: "#9B8FC8" }}>Settings</p>
+        <div className="space-y-2">
+          {[
+            { label: "Notifications", desc: "Event reminders and updates" },
+            { label: "Privacy",       desc: "Control your data and visibility" },
+          ].map((s) => (
+            <motion.button key={s.label}
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left"
+              style={{ background: "rgba(107,79,232,0.04)", border: "1px solid rgba(107,79,232,0.10)" }}
+              whileHover={{ x: 3 }} transition={{ type: "spring" as const, stiffness: 300 }}>
+              <div className="flex-1">
+                <p className="text-xs font-semibold" style={{ color: "#1E1060" }}>{s.label}</p>
+                <p className="text-[10px] mt-0.5" style={{ color: "#9B8FC8" }}>{s.desc}</p>
+              </div>
+              <ChevronRight className="h-3.5 w-3.5 flex-shrink-0" style={{ color: "rgba(107,79,232,0.35)" }} />
+            </motion.button>
+          ))}
+        </div>
       </motion.div>
 
-      {/* ── Sign Out ── */}
+      {/* ── Sign Out ───────────────────────────────────────────── */}
       <motion.div variants={item}>
         <motion.button
           onClick={handleSignOut}
-          className="w-full flex items-center justify-center gap-2 rounded-2xl py-3 text-sm font-semibold"
-          style={{
-            background: "rgba(232,85,85,0.10)", color: "#E85555",
-            boxShadow: "4px 4px 12px rgba(232,85,85,0.16), -3px -3px 10px rgba(255,255,255,0.65)",
-          }}
+          className="w-full flex items-center justify-center gap-2 rounded-xl py-2.5 text-xs font-semibold"
+          style={{ background: "rgba(232,85,85,0.08)", color: "#E85555", border: "1px solid rgba(232,85,85,0.18)" }}
           whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }}
         >
-          <LogOut className="h-4 w-4" />
+          <LogOut className="h-3.5 w-3.5" />
           Sign Out
         </motion.button>
       </motion.div>
+
     </motion.div>
   )
 }

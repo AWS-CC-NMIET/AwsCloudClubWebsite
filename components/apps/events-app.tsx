@@ -15,6 +15,18 @@ interface MeetupEvent {
   description?: string
   eventUrl: string
   isPast: boolean
+  imageUrls?: string[]
+}
+
+interface DbEvent {
+  id: string
+  title: string
+  date: string
+  location: string
+  attendees: number
+  description?: string
+  imageUrls?: string[]
+  isPast: boolean
 }
 
 const container = { hidden: {}, show: { transition: { staggerChildren: 0.07 } } }
@@ -29,10 +41,50 @@ export function EventsApp() {
   const [filter, setFilter]     = useState<"all" | "upcoming" | "past">("all")
 
   useEffect(() => {
-    api.meetup.data()
-      .then((d) => setEvents(d.events as MeetupEvent[]))
-      .catch(() => {})
-      .finally(() => setLoading(false))
+    const load = async () => {
+      const [meetupRes, dbRes] = await Promise.allSettled([
+        api.meetup.data(),
+        api.events.list(),
+      ])
+
+      const meetupEvents: MeetupEvent[] =
+        meetupRes.status === "fulfilled"
+          ? (meetupRes.value.events as MeetupEvent[])
+          : []
+
+      const dbEvents: MeetupEvent[] =
+        dbRes.status === "fulfilled"
+          ? (dbRes.value.events as DbEvent[]).map((e) => ({
+              id:          e.id,
+              title:       e.title,
+              date:        (() => {
+                try { return new Date(e.date + "T00:00:00").toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }) }
+                catch { return e.date }
+              })(),
+              dateTime:    e.date + "T00:00:00",
+              location:    e.location,
+              attendees:   Number(e.attendees) || 0,
+              description: e.description || "",
+              eventUrl:    MEETUP_URL,
+              isPast:      Boolean(e.isPast),
+              imageUrls:   e.imageUrls || [],
+            }))
+          : []
+
+      // Deduplicate: if the same title already came from Meetup, skip the DB copy
+      const meetupTitles = new Set(meetupEvents.map((e) => e.title.toLowerCase().trim()))
+      const uniqueDb = dbEvents.filter((e) => !meetupTitles.has(e.title.toLowerCase().trim()))
+
+      const merged = [...meetupEvents, ...uniqueDb]
+      merged.sort((a, b) => {
+        if (a.isPast !== b.isPast) return a.isPast ? 1 : -1
+        return new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime()
+      })
+
+      setEvents(merged)
+      setLoading(false)
+    }
+    load()
   }, [])
 
   const upcoming = events.filter((e) => !e.isPast)
@@ -46,10 +98,41 @@ export function EventsApp() {
   ]
 
   return (
-    <div className="flex h-full flex-col md:flex-row gap-4 p-1 overflow-hidden" style={{ minHeight: "520px" }}>
+    <div className="flex h-full flex-col md:flex-row gap-2 md:gap-4 p-1 overflow-hidden" style={{ minHeight: "520px" }}>
 
-      {/* ── Sidebar ── */}
-      <div className="w-full md:w-52 flex-shrink-0 flex flex-col gap-3">
+      {/* ── Mobile-only: compact horizontal filter + meetup strip ── */}
+      <div className="flex md:hidden gap-2 flex-shrink-0 overflow-x-auto hide-scrollbar pb-1">
+        {filterOpts.map((f) => {
+          const isActive = filter === f.id
+          return (
+            <button
+              key={f.id}
+              onClick={() => setFilter(f.id as "all" | "upcoming" | "past")}
+              className={`flex-shrink-0 flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold transition-colors ${
+                isActive
+                  ? "bg-[#6B4FE8] text-white shadow-sm"
+                  : "bg-white/40 text-indigo-950/60 border border-white/40"
+              }`}
+            >
+              <Calendar className="h-3.5 w-3.5 flex-shrink-0" />
+              {f.label}
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${isActive ? "bg-white/25 text-white" : "bg-indigo-950/5 text-indigo-950/40"}`}>
+                {loading ? "—" : f.count}
+              </span>
+            </button>
+          )
+        })}
+        <motion.a
+          href={MEETUP_URL} target="_blank" rel="noopener noreferrer"
+          className="flex-shrink-0 flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold bg-[#E83030] text-white"
+          whileTap={{ scale: 0.96 }}
+        >
+          <ExternalLink className="h-3.5 w-3.5" /> Meetup
+        </motion.a>
+      </div>
+
+      {/* ── Desktop sidebar (hidden on mobile) ── */}
+      <div className="hidden md:flex w-52 flex-shrink-0 flex-col gap-3">
         {/* Path header */}
         <div className="bg-white/30 backdrop-blur-sm border border-white/40 shadow-2xs rounded-xl p-3">
           <p className="text-[10px] font-bold text-indigo-950/50 uppercase tracking-wider px-2 mb-2">Community</p>
@@ -105,12 +188,12 @@ export function EventsApp() {
             </h3>
           </div>
           <span className="text-[10px] text-indigo-950/50 bg-white/30 px-2 py-0.5 rounded border border-white/20">
-            {loading ? "loading..." : `${filtered.length} events`}
+            {loading ? "loading…" : `${filtered.length} events`}
           </span>
         </div>
 
         {/* Content */}
-        <div className="flex-1 p-5 overflow-y-auto custom-scrollbar">
+        <div className="flex-1 p-4 overflow-y-auto custom-scrollbar">
           {loading ? (
             <div className="flex h-40 items-center justify-center">
               <Loader2 className="h-7 w-7 animate-spin text-[#6B4FE8] opacity-60" />
@@ -123,7 +206,7 @@ export function EventsApp() {
             </div>
           ) : (
             <motion.div
-              className="grid gap-4 md:grid-cols-2"
+              className="grid gap-3 md:grid-cols-2"
               variants={container} initial="hidden" animate="show"
             >
               {filtered.map((event) => (
@@ -179,6 +262,17 @@ export function EventsApp() {
                     {selected.description}
                   </p>
                 )}
+
+                {/* Event photos (admin-added) */}
+                {selected.imageUrls && selected.imageUrls.length > 0 && (
+                  <div className="flex gap-2 flex-wrap">
+                    {selected.imageUrls.map((url, i) => (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img key={i} src={url} alt="" className="h-24 w-24 rounded-xl object-cover border border-indigo-100" />
+                    ))}
+                  </div>
+                )}
+
                 <div className="flex flex-wrap gap-2.5">
                   {[
                     { icon: Calendar, text: selected.date },
@@ -193,14 +287,17 @@ export function EventsApp() {
                     </span>
                   ))}
                 </div>
-                <motion.a
-                  href={selected.eventUrl} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 bg-[#6B4FE8] hover:bg-[#5B3FD8] text-white rounded-xl py-2.5 text-sm font-semibold transition-colors"
-                  whileHover={{ y: -1 }} whileTap={{ scale: 0.97 }}
-                >
-                  <ExternalLink className="h-4 w-4" />
-                  {selected.isPast ? "View on Meetup" : "RSVP on Meetup"}
-                </motion.a>
+
+                {selected.eventUrl && (
+                  <motion.a
+                    href={selected.eventUrl} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 bg-[#6B4FE8] hover:bg-[#5B3FD8] text-white rounded-xl py-2.5 text-sm font-semibold transition-colors"
+                    whileHover={{ y: -1 }} whileTap={{ scale: 0.97 }}
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    {selected.isPast ? "View on Meetup" : "RSVP on Meetup"}
+                  </motion.a>
+                )}
               </div>
             </motion.div>
           </motion.div>
