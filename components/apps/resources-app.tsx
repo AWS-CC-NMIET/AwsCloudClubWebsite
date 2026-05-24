@@ -42,19 +42,48 @@ const getTypeColorConfig = (type: string) => {
   return { bg: "bg-amber-500",    text: "text-amber-500",    border: "border-amber-500/20" }
 }
 
+const FALLBACK_RESOURCES: Resource[] = [
+  // Getting Started
+  { id: "fb-1",  name: "AWS Cloud Practitioner Essentials",  category: "Getting Started",  type: "Course",   url: "https://aws.amazon.com/training/digital/aws-cloud-practitioner-essentials/", featured: true,  order: 1  },
+  { id: "fb-2",  name: "AWS Free Tier Overview",             category: "Getting Started",  type: "Document", url: "https://aws.amazon.com/free/",                                              featured: false, order: 2  },
+  { id: "fb-3",  name: "AWS Skill Builder",                  category: "Getting Started",  type: "Course",   url: "https://skillbuilder.aws/",                                                featured: true,  order: 3  },
+  { id: "fb-4",  name: "AWS re:Post Community",              category: "Getting Started",  type: "Document", url: "https://repost.aws/",                                                      featured: false, order: 4  },
+  // Certifications
+  { id: "fb-5",  name: "Cloud Practitioner Exam Guide",      category: "Certifications",   type: "Document", url: "https://d1.awsstatic.com/training-and-certification/docs-cloud-practitioner/AWS-Certified-Cloud-Practitioner_Exam-Guide.pdf", featured: true,  order: 5  },
+  { id: "fb-6",  name: "AWS Training & Certification",       category: "Certifications",   type: "Course",   url: "https://aws.amazon.com/training/",                                         featured: false, order: 6  },
+  { id: "fb-7",  name: "Solutions Architect – Associate",    category: "Certifications",   type: "Document", url: "https://aws.amazon.com/certification/certified-solutions-architect-associate/", featured: true, order: 7 },
+  // Hands-on Labs
+  { id: "fb-8",  name: "AWS Workshops (workshops.aws)",      category: "Hands-on Labs",    type: "Tool",     url: "https://workshops.aws/",                                                   featured: true,  order: 8  },
+  { id: "fb-9",  name: "AWS Samples on GitHub",              category: "Hands-on Labs",    type: "Tool",     url: "https://github.com/aws-samples",                                           featured: false, order: 9  },
+  { id: "fb-10", name: "AWS CDK Workshop",                   category: "Hands-on Labs",    type: "Tool",     url: "https://cdkworkshop.com/",                                                 featured: false, order: 10 },
+  { id: "fb-11", name: "AWS Jam (Challenge Labs)",           category: "Hands-on Labs",    type: "Tool",     url: "https://jam.awsevents.com/",                                               featured: false, order: 11 },
+  // Official Docs
+  { id: "fb-12", name: "AWS Documentation Hub",             category: "Official Docs",     type: "Document", url: "https://docs.aws.amazon.com/",                                             featured: false, order: 12 },
+  { id: "fb-13", name: "AWS Architecture Center",           category: "Official Docs",     type: "Document", url: "https://aws.amazon.com/architecture/",                                     featured: true,  order: 13 },
+  { id: "fb-14", name: "Well-Architected Framework",        category: "Official Docs",     type: "Document", url: "https://docs.aws.amazon.com/wellarchitected/latest/framework/welcome.html", featured: false, order: 14 },
+  // Video Learning
+  { id: "fb-15", name: "AWS Official YouTube Channel",      category: "Video Learning",    type: "Video",    url: "https://www.youtube.com/@amazonwebservices",                               featured: true,  order: 15 },
+  { id: "fb-16", name: "freeCodeCamp AWS Full Course",      category: "Video Learning",    type: "Video",    url: "https://www.youtube.com/watch?v=NhDYbskXRgc",                             featured: false, order: 16 },
+  { id: "fb-17", name: "AWS re:Invent Session Playlist",   category: "Video Learning",    type: "Video",    url: "https://www.youtube.com/c/amazonwebservices/playlists",                    featured: false, order: 17 },
+]
+
 export function ResourcesApp() {
   const [resources, setResources] = useState<Resource[]>([])
   const [loading, setLoading]     = useState(true)
-  const [selectedFolder, setSelectedFolder] = useState<string>("All") // "All" | Dynamic Categories
+  const [selectedFolder, setSelectedFolder] = useState<string>("All")
   const [activeResource, setActiveResource] = useState<Resource | null>(null)
+  // mobile: "grid" shows file grid, "folders" shows sidebar folder list
+  const [mobileView, setMobileView] = useState<"grid" | "folders">("grid")
 
   useEffect(() => {
     api.resources.list()
       .then(({ resources: r }) => {
-        const sorted = (r as Resource[]).sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-        setResources(sorted)
+        const dbResources = (r as Resource[]).sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+        setResources(dbResources.length > 0 ? dbResources : FALLBACK_RESOURCES)
       })
-      .catch(() => {})
+      .catch(() => {
+        setResources(FALLBACK_RESOURCES)
+      })
       .finally(() => setLoading(false))
   }, [])
 
@@ -76,7 +105,9 @@ export function ResourcesApp() {
   return (
     <div className="flex h-full flex-col md:flex-row gap-4 p-1 overflow-hidden" style={{ minHeight: "520px" }}>
       {/* ── Left Sidebar (Folders Navigator) ── */}
-      <div className={`w-full md:w-56 flex-shrink-0 flex flex-col gap-3 ${activeResource ? "hidden md:flex" : "flex"}`}>
+      <div className={`w-full md:w-56 flex-shrink-0 flex flex-col gap-3 ${
+        activeResource ? "hidden md:flex" : mobileView === "folders" ? "flex" : "hidden md:flex"
+      }`}>
         {/* Current Path Header */}
         <div className="bg-white/30 backdrop-blur-xs border border-white/40 shadow-2xs rounded-xl p-3">
           <p className="text-[10px] font-bold text-indigo-950/50 uppercase tracking-wider px-2 mb-2">Cloud Resources</p>
@@ -95,6 +126,7 @@ export function ResourcesApp() {
             onClick={() => {
               setSelectedFolder("All")
               setActiveResource(null)
+              setMobileView("grid")
             }}
             className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left transition-all text-xs ${
               selectedFolder === "All" 
@@ -121,6 +153,7 @@ export function ResourcesApp() {
                 onClick={() => {
                   setSelectedFolder(category)
                   setActiveResource(null)
+                  setMobileView("grid")
                 }}
                 className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left transition-all text-xs ${
                   isSelected 
@@ -143,7 +176,7 @@ export function ResourcesApp() {
 
       {/* ── Main Area (Grid / Document Previewer) ── */}
       <div className={`flex-1 flex flex-col min-w-0 bg-white/35 backdrop-blur-xs border border-white/40 shadow-xs rounded-xl overflow-hidden ${
-        activeResource ? "flex" : "hidden md:flex"
+        activeResource || mobileView === "grid" ? "flex" : "hidden md:flex"
       }`}>
         <AnimatePresence mode="wait">
           {!activeResource ? (
@@ -159,9 +192,17 @@ export function ResourcesApp() {
               {/* Header */}
               <div className="flex items-center justify-between border-b border-white/30 bg-white/20 px-4 py-3 flex-shrink-0">
                 <div className="flex items-center gap-2 min-w-0">
+                  {/* Mobile: Folders toggle button */}
+                  <button
+                    onClick={() => setMobileView("folders")}
+                    className="md:hidden flex items-center gap-1 text-[10px] font-bold text-indigo-950 bg-white/40 border border-white/50 rounded-lg px-2 py-1 mr-1 hover:bg-white/60 transition-all"
+                  >
+                    <Folder className="h-3 w-3" />
+                    <span>Folders</span>
+                  </button>
                   <BookOpen className="h-4 w-4 text-[#6B4FE8]" />
                   <h3 className="text-xs font-semibold text-indigo-950 truncate">
-                    Files — {selectedFolder === "All" ? "All Resources" : `${selectedFolder}`}
+                    {selectedFolder === "All" ? "All Resources" : selectedFolder}
                   </h3>
                 </div>
                 <span className="text-[10px] text-indigo-950/50 bg-white/30 px-2 py-0.5 rounded border border-white/20">

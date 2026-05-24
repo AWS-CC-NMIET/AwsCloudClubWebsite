@@ -7,12 +7,13 @@ import {
   BookOpen, Share2, Trophy, Terminal, ImageIcon, ShieldCheck,
   ArrowLeft, Wifi, Signal, Battery, UserCircle,
 } from "lucide-react"
-import { WeatherWidget }   from "@/components/os/weather-widget"
-import { CalendarWidget }  from "@/components/os/calendar-widget"
+import Image from "next/image"
+import { WeatherWidget }    from "@/components/os/weather-widget"
+import { CalendarWidget }   from "@/components/os/calendar-widget"
 import { InteractiveCanvas } from "@/components/os/interactive-canvas"
-import { MeetupProvider }  from "@/lib/meetup-context"
-import { signOut }         from "@/lib/auth-client"
-import type { AppId }      from "@/lib/types"
+import { MeetupProvider }   from "@/lib/meetup-context"
+import { signOut }          from "@/lib/auth-client"
+import type { AppId }       from "@/lib/types"
 
 // ── Lazy-loaded app components ────────────────────────────────────────────────
 const HomeApp         = lazy(() => import("../apps/home-app").then(m => ({ default: m.HomeApp })))
@@ -37,56 +38,55 @@ const appTitles: Record<AppId, string> = {
   profile: "My Profile", admin: "Admin Panel", gallery: "Gallery",
 }
 
-// ── Small helpers ─────────────────────────────────────────────────────────────
+// ── Loading skeleton ──────────────────────────────────────────────────────────
 function AppSkeleton() {
   return (
-    <div
-      className="flex h-full min-h-[50vh] items-center justify-center"
-      style={{ background: "#050310" }}
-    >
+    <div className="flex h-full min-h-[60vh] items-center justify-center" style={{ background: "#D4CEFF" }}>
       <motion.div
-        className="h-14 w-14 rounded-2xl"
+        className="h-12 w-12 rounded-2xl"
         style={{ background: "linear-gradient(135deg,#6B4FE8,#8B6FFF)" }}
-        animate={{ scale: [1, 1.1, 1], opacity: [0.6, 1, 0.6] }}
-        transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+        animate={{ scale: [1, 1.12, 1], opacity: [0.5, 1, 0.5] }}
+        transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
       />
     </div>
   )
 }
 
+// ── Icon types ────────────────────────────────────────────────────────────────
 interface IconMeta {
   id: AppId
   label: string
   icon: React.ReactNode
-  gradient: string
+  bg: string
 }
 
-function GridIcon({ icon, label, gradient, onClick }: IconMeta & { onClick: () => void }) {
+// ── Grid icon — consistent design with gloss overlay ─────────────────────────
+function GridIcon({ icon, label, bg, onClick }: IconMeta & { onClick: () => void }) {
   return (
     <motion.button
       className="flex flex-col items-center gap-1.5"
       onClick={onClick}
-      whileTap={{ scale: 0.82 }}
+      whileTap={{ scale: 0.84 }}
     >
       <div
-        className="flex items-center justify-center rounded-[18px] text-white"
+        className="relative flex items-center justify-center rounded-[20px] text-white overflow-hidden flex-shrink-0"
         style={{
-          width: 62,
-          height: 62,
-          background: gradient,
-          boxShadow: "0 6px 20px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.10)",
+          width: 58,
+          height: 58,
+          background: bg,
+          boxShadow: "0 4px 14px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.16)",
         }}
       >
-        {icon}
+        {/* Top gloss */}
+        <div
+          className="absolute inset-x-0 top-0 pointer-events-none rounded-t-[20px]"
+          style={{ height: "48%", background: "linear-gradient(to bottom, rgba(255,255,255,0.12), transparent)" }}
+        />
+        <div className="relative z-10">{icon}</div>
       </div>
       <span
         className="text-center leading-tight"
-        style={{
-          fontSize: 10,
-          color: "rgba(220,210,255,0.88)",
-          maxWidth: 68,
-          fontWeight: 500,
-        }}
+        style={{ fontSize: 10, color: "rgba(210,200,255,0.80)", maxWidth: 66, fontWeight: 500 }}
       >
         {label}
       </span>
@@ -94,24 +94,31 @@ function GridIcon({ icon, label, gradient, onClick }: IconMeta & { onClick: () =
   )
 }
 
-function DockIcon({ icon, gradient, onClick }: IconMeta & { onClick: () => void }) {
+// ── Dock icon — slightly larger, same design language ────────────────────────
+function DockIcon({ icon, bg, onClick }: IconMeta & { onClick: () => void }) {
   return (
     <motion.button
       onClick={onClick}
-      whileTap={{ scale: 0.82 }}
-      className="flex items-center justify-center rounded-[20px] text-white"
+      whileTap={{ scale: 0.84 }}
+      className="relative flex items-center justify-center rounded-[22px] text-white overflow-hidden flex-shrink-0"
       style={{
-        width: 66,
-        height: 66,
-        background: gradient,
-        boxShadow: "0 6px 24px rgba(107,79,232,0.45), inset 0 1px 0 rgba(255,255,255,0.12)",
+        width: 62,
+        height: 62,
+        background: bg,
+        boxShadow: "0 6px 20px rgba(0,0,0,0.50), inset 0 1px 0 rgba(255,255,255,0.18)",
       }}
     >
-      {icon}
+      {/* Top gloss */}
+      <div
+        className="absolute inset-x-0 top-0 pointer-events-none rounded-t-[22px]"
+        style={{ height: "48%", background: "linear-gradient(to bottom, rgba(255,255,255,0.13), transparent)" }}
+      />
+      <div className="relative z-10">{icon}</div>
     </motion.button>
   )
 }
 
+// ── App panel — slides up with polished header ────────────────────────────────
 function AppPanel({
   appId,
   children,
@@ -128,94 +135,97 @@ function AppPanel({
       initial={{ y: "100%" }}
       animate={{ y: 0 }}
       exit={{ y: "100%" }}
-      transition={{ type: "spring", stiffness: 320, damping: 34 }}
+      transition={{ type: "spring", stiffness: 310, damping: 34 }}
     >
       {/* Header */}
       <div
-        className="flex-shrink-0 flex items-center gap-3 px-4 pb-3"
+        className="flex-shrink-0 flex items-center gap-3 px-4"
         style={{
-          background: "rgba(10,6,28,0.97)",
-          borderBottom: "1px solid rgba(168,85,247,0.18)",
-          paddingTop: "env(safe-area-inset-top, 48px)",
-          minHeight: 88,
+          background: "linear-gradient(to bottom, rgba(8,4,24,0.98), rgba(8,4,24,0.92))",
+          borderBottom: "1px solid rgba(107,79,232,0.22)",
+          paddingTop: "max(env(safe-area-inset-top, 12px), 44px)",
+          paddingBottom: 14,
         }}
       >
         <motion.button
           onClick={onClose}
-          className="flex items-center justify-center rounded-xl flex-shrink-0"
-          style={{ width: 38, height: 38, background: "rgba(168,85,247,0.16)", color: "#A855F7" }}
+          className="flex items-center gap-1.5 rounded-xl px-3 py-1.5 flex-shrink-0"
+          style={{
+            background: "rgba(107,79,232,0.18)",
+            border: "1px solid rgba(107,79,232,0.28)",
+          }}
           whileTap={{ scale: 0.88 }}
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-4 w-4" style={{ color: "#A855F7" }} />
+          <span className="text-xs font-semibold" style={{ color: "#A855F7" }}>Back</span>
         </motion.button>
-        <span className="font-semibold text-sm" style={{ color: "#EDE9FE" }}>
+        <span className="font-bold text-sm" style={{ color: "rgba(237,233,254,0.92)" }}>
           {appTitles[appId]}
         </span>
       </div>
-
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto">{children}</div>
+      {/* Content — lavender base so frosted-glass apps render correctly */}
+      <div className="flex-1 overflow-y-auto" style={{ background: "#D4CEFF" }}>{children}</div>
     </motion.div>
   )
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
 export function MobileHome({ onLogout, isAdmin }: { onLogout: () => void; isAdmin: boolean }) {
-  const [activeApp, setActiveApp] = useState<AppId | null>(null)
-  const [gridPage,  setGridPage]  = useState(0)
+  const [activeApp,  setActiveApp]  = useState<AppId | null>(null)
+  const [gridPage,   setGridPage]   = useState(0)
   const [statusTime, setStatusTime] = useState("")
 
-  // Live status bar clock
   useEffect(() => {
     const upd = () => {
       const n = new Date()
-      setStatusTime(`${n.getHours().toString().padStart(2,"0")}:${n.getMinutes().toString().padStart(2,"0")}`)
+      setStatusTime(
+        `${n.getHours().toString().padStart(2, "0")}:${n.getMinutes().toString().padStart(2, "0")}`
+      )
     }
     upd()
     const id = setInterval(upd, 10000)
     return () => clearInterval(id)
   }, [])
 
-  const openApp = (id: AppId) => setActiveApp(id)
-  const closeApp = () => setActiveApp(null)
+  const openApp  = (id: AppId) => setActiveApp(id)
+  const closeApp = ()          => setActiveApp(null)
 
-  // ── Dock: 3 priority apps ─────────────────────────────────────────────────
+  // ── Dock: 3 priority apps — all use same gradient style ──────────────────
   const dockApps: IconMeta[] = [
-    { id: "home",    label: "Home",    icon: <Home className="h-7 w-7" />,     gradient: "linear-gradient(135deg,#6B4FE8,#8B6FFF)" },
-    { id: "events",  label: "Events",  icon: <Calendar className="h-7 w-7" />, gradient: "linear-gradient(135deg,#FF9900,#E88800)" },
-    { id: "contact", label: "Contact", icon: <Mail className="h-7 w-7" />,     gradient: "linear-gradient(135deg,#5BA8D8,#3B88C0)" },
+    { id: "home",    label: "Home",    icon: <Home className="h-7 w-7" />,     bg: "linear-gradient(145deg,#8B70FF,#6B4FE8)" },
+    { id: "events",  label: "Events",  icon: <Calendar className="h-7 w-7" />, bg: "linear-gradient(145deg,#FFB840,#FF9900)" },
+    { id: "contact", label: "Contact", icon: <Mail className="h-7 w-7" />,     bg: "linear-gradient(145deg,#70B8E8,#4B98C8)" },
   ]
 
-  // ── Grid: all other apps ──────────────────────────────────────────────────
+  // ── Grid: consistent 145deg gradient, brand color palette ────────────────
   const gridApps: IconMeta[] = [
-    { id: "about",        label: "About Us",     icon: <Cloud className="h-6 w-6" />,      gradient: "linear-gradient(135deg,#B8A4FF,#8B6FFF)" },
-    { id: "team",         label: "Team",         icon: <Users className="h-6 w-6" />,      gradient: "linear-gradient(135deg,#5BA8D8,#4B90C8)" },
-    { id: "projects",     label: "Projects",     icon: <FolderOpen className="h-6 w-6" />, gradient: "linear-gradient(135deg,#50C88A,#3AAA72)" },
-    { id: "resources",    label: "Resources",    icon: <BookOpen className="h-6 w-6" />,   gradient: "linear-gradient(135deg,#6B4FE8,#5B3FD8)" },
-    { id: "social",       label: "Social",       icon: <Share2 className="h-6 w-6" />,     gradient: "linear-gradient(135deg,#E85580,#C83565)" },
-    { id: "achievements", label: "Achievements", icon: <Trophy className="h-6 w-6" />,     gradient: "linear-gradient(135deg,#FFB800,#E89800)" },
-    { id: "gallery",      label: "Gallery",      icon: <ImageIcon className="h-6 w-6" />,  gradient: "linear-gradient(135deg,#E85580,#B83060)" },
-    { id: "terminal",     label: "Terminal",     icon: <Terminal className="h-6 w-6" />,   gradient: "linear-gradient(135deg,#2D1B8A,#1E1060)" },
-    { id: "profile",      label: "Profile",      icon: <UserCircle className="h-6 w-6" />, gradient: "linear-gradient(135deg,#7C3AED,#A855F7)" },
-    ...(isAdmin ? [{ id: "admin" as AppId, label: "Admin", icon: <ShieldCheck className="h-6 w-6" />, gradient: "linear-gradient(135deg,#1E1060,#2D1B8A)" }] : []),
+    { id: "about",        label: "About Us",     icon: <Cloud className="h-[22px] w-[22px]" />,      bg: "linear-gradient(145deg,#9B72FF,#6B4FE8)" },
+    { id: "team",         label: "Team",         icon: <Users className="h-[22px] w-[22px]" />,      bg: "linear-gradient(145deg,#70B8E8,#4B98C8)" },
+    { id: "projects",     label: "Projects",     icon: <FolderOpen className="h-[22px] w-[22px]" />, bg: "linear-gradient(145deg,#5ED4A0,#38AA72)" },
+    { id: "resources",    label: "Resources",    icon: <BookOpen className="h-[22px] w-[22px]" />,   bg: "linear-gradient(145deg,#8B6FFF,#5B3FD8)" },
+    { id: "social",       label: "Social",       icon: <Share2 className="h-[22px] w-[22px]" />,     bg: "linear-gradient(145deg,#F090A8,#E85580)" },
+    { id: "achievements", label: "Achievements", icon: <Trophy className="h-[22px] w-[22px]" />,     bg: "linear-gradient(145deg,#FFD060,#FFB800)" },
+    { id: "gallery",      label: "Gallery",      icon: <ImageIcon className="h-[22px] w-[22px]" />,  bg: "linear-gradient(145deg,#F08070,#E05040)" },
+    { id: "terminal",     label: "Terminal",     icon: <Terminal className="h-[22px] w-[22px]" />,   bg: "linear-gradient(145deg,#5A7AB0,#2A4A80)" },
+    { id: "profile",      label: "Profile",      icon: <UserCircle className="h-[22px] w-[22px]" />, bg: "linear-gradient(145deg,#C080FF,#9040E0)" },
+    ...(isAdmin
+      ? [{ id: "admin" as AppId, label: "Admin", icon: <ShieldCheck className="h-[22px] w-[22px]" />, bg: "linear-gradient(145deg,#5040A8,#2D1B8A)" }]
+      : []),
   ]
 
-  // Chunk into pages of 8
   const APPS_PER_PAGE = 8
   const pages: IconMeta[][] = []
   for (let i = 0; i < gridApps.length; i += APPS_PER_PAGE) {
     pages.push(gridApps.slice(i, i + APPS_PER_PAGE))
   }
 
-  // Swipe left/right on the grid to change pages
   const handleGridDragEnd = (_: PointerEvent | MouseEvent | TouchEvent, info: PanInfo) => {
-    if (info.offset.x < -50 && gridPage < pages.length - 1) setGridPage(p => p + 1)
-    else if (info.offset.x > 50 && gridPage > 0) setGridPage(p => p - 1)
+    if      (info.offset.x < -50 && gridPage < pages.length - 1) setGridPage(p => p + 1)
+    else if (info.offset.x >  50 && gridPage > 0)                setGridPage(p => p - 1)
   }
 
-  // ── App content map ───────────────────────────────────────────────────────
   const appContent: Partial<Record<AppId, React.ReactNode>> = {
-    home:         <Suspense fallback={<AppSkeleton />}><HomeApp onLearnMore={() => openApp("about")} /></Suspense>,
+    home:         <Suspense fallback={<AppSkeleton />}><HomeApp onLearnMore={() => openApp("about")} forceMobileUI /></Suspense>,
     about:        <Suspense fallback={<AppSkeleton />}><AboutApp /></Suspense>,
     team:         <Suspense fallback={<AppSkeleton />}><TeamApp /></Suspense>,
     events:       <Suspense fallback={<AppSkeleton />}><EventsApp /></Suspense>,
@@ -235,19 +245,17 @@ export function MobileHome({ onLogout, isAdmin }: { onLogout: () => void; isAdmi
       <div className="fixed inset-0 overflow-hidden" style={{ background: "#050310" }}>
         <InteractiveCanvas theme="dark" particleCountOverride={45} />
 
-        {/* ── Status bar ─────────────────────────────────────────────────── */}
+        {/* ── Status bar ───────────────────────────────────────────────────── */}
         <div
           className="absolute inset-x-0 top-0 z-20 flex items-center justify-between px-5"
           style={{
             height: 44,
             background: "rgba(5,3,16,0.80)",
+            backdropFilter: "blur(8px)",
             paddingTop: "env(safe-area-inset-top, 0px)",
           }}
         >
-          <span
-            className="text-xs font-semibold tabular-nums"
-            style={{ color: "rgba(196,181,253,0.88)" }}
-          >
+          <span className="text-xs font-semibold tabular-nums" style={{ color: "rgba(196,181,253,0.88)" }}>
             {statusTime}
           </span>
           <div className="flex items-center gap-2" style={{ color: "rgba(196,181,253,0.60)" }}>
@@ -257,33 +265,77 @@ export function MobileHome({ onLogout, isAdmin }: { onLogout: () => void; isAdmi
           </div>
         </div>
 
-        {/* ── Scrollable main content ─────────────────────────────────────── */}
+        {/* ── Scrollable main content ──────────────────────────────────────── */}
         <div
-          className="absolute inset-x-0 overflow-y-auto z-10 space-y-4"
-          style={{
-            top: 44,
-            bottom: 100,
-            paddingLeft: 16,
-            paddingRight: 16,
-            paddingTop: 14,
-            paddingBottom: 20,
-          }}
+          className="absolute inset-x-0 overflow-y-auto z-10 space-y-4 hide-scrollbar"
+          style={{ top: 44, bottom: 106, paddingInline: 16, paddingTop: 14, paddingBottom: 24 }}
         >
-          {/* Weather */}
-          <WeatherWidget />
-
-          {/* Calendar */}
-          <CalendarWidget onEventDateClick={() => openApp("events")} />
-
-          {/* ── App grid (page-swiped) ──────────────────────────────────── */}
-          <div>
-            {/* Subtle section label */}
-            <p
-              className="text-[10px] font-semibold mb-3 tracking-widest uppercase"
-              style={{ color: "rgba(168,85,247,0.55)" }}
+          {/* ── Identity / greeting header ── */}
+          <motion.div
+            className="flex items-center justify-between rounded-2xl px-4 py-3"
+            style={{
+              background: "rgba(107,79,232,0.10)",
+              border: "1px solid rgba(107,79,232,0.22)",
+              backdropFilter: "blur(12px)",
+            }}
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <div>
+              <p className="text-[10px] font-medium tracking-wide" style={{ color: "rgba(196,181,253,0.50)" }}>
+                AWS Student Builder Group
+              </p>
+              <p className="text-sm font-bold text-white leading-tight">NMIET Chapter</p>
+            </div>
+            <motion.button
+              onClick={() => openApp("home")}
+              className="flex h-9 w-9 items-center justify-center rounded-xl flex-shrink-0"
+              style={{
+                background: "rgba(107,79,232,0.25)",
+                border: "1px solid rgba(168,85,247,0.32)",
+              }}
+              whileTap={{ scale: 0.86 }}
             >
-              Apps
-            </p>
+              <Image src="/logo-full.png" alt="logo" width={24} height={24} className="object-contain" unoptimized />
+            </motion.button>
+          </motion.div>
+
+          {/* ── Weather widget ── */}
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}>
+            <WeatherWidget />
+          </motion.div>
+
+          {/* ── Calendar widget ── */}
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.14 }}>
+            <CalendarWidget onEventDateClick={() => openApp("events")} />
+          </motion.div>
+
+          {/* ── App grid ── */}
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.20 }}>
+            {/* Section header with inline page dots */}
+            <div className="flex items-center justify-between mb-3.5">
+              <p className="text-[10px] font-bold tracking-widest uppercase" style={{ color: "rgba(168,85,247,0.60)" }}>
+                Apps
+              </p>
+              {pages.length > 1 && (
+                <div className="flex items-center gap-1.5">
+                  {pages.map((_, pi) => (
+                    <motion.button
+                      key={pi}
+                      onClick={() => setGridPage(pi)}
+                      animate={{ width: pi === gridPage ? 18 : 5 }}
+                      className="rounded-full flex-shrink-0"
+                      style={{
+                        height: 5,
+                        background: pi === gridPage ? "#A855F7" : "rgba(168,85,247,0.28)",
+                      }}
+                      transition={{ type: "spring", stiffness: 400, damping: 28 }}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
 
             <div className="overflow-hidden">
               <AnimatePresence mode="wait" initial={false}>
@@ -308,42 +360,21 @@ export function MobileHome({ onLogout, isAdmin }: { onLogout: () => void; isAdmi
                 </motion.div>
               </AnimatePresence>
             </div>
-
-            {/* Page dots */}
-            {pages.length > 1 && (
-              <div className="flex justify-center gap-2 mt-5">
-                {pages.map((_, pi) => (
-                  <motion.button
-                    key={pi}
-                    onClick={() => setGridPage(pi)}
-                    animate={{ width: pi === gridPage ? 22 : 6 }}
-                    className="rounded-full flex-shrink-0"
-                    style={{
-                      height: 6,
-                      background:
-                        pi === gridPage
-                          ? "#A855F7"
-                          : "rgba(168,85,247,0.32)",
-                    }}
-                    transition={{ type: "spring", stiffness: 400, damping: 28 }}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
+          </motion.div>
         </div>
 
-        {/* ── Dock ───────────────────────────────────────────────────────── */}
+        {/* ── Dock ─────────────────────────────────────────────────────────── */}
         <div
-          className="absolute inset-x-0 bottom-0 z-20 flex justify-around items-center px-8"
+          className="absolute inset-x-0 bottom-0 z-20 flex justify-around items-center"
           style={{
-            background: "rgba(6,3,18,0.90)",
-            backdropFilter: "blur(28px)",
-            WebkitBackdropFilter: "blur(28px)",
-            borderTop: "1px solid rgba(168,85,247,0.20)",
-            boxShadow: "0 -6px 32px rgba(107,79,232,0.15)",
+            paddingInline: 40,
+            background: "rgba(6,3,18,0.88)",
+            backdropFilter: "blur(32px)",
+            WebkitBackdropFilter: "blur(32px)",
+            borderTop: "1px solid rgba(107,79,232,0.18)",
+            boxShadow: "0 -4px 28px rgba(107,79,232,0.12)",
             paddingTop: 16,
-            paddingBottom: "max(20px, env(safe-area-inset-bottom, 20px))",
+            paddingBottom: "max(24px, env(safe-area-inset-bottom, 24px))",
           }}
         >
           {dockApps.map(app => (
@@ -351,7 +382,7 @@ export function MobileHome({ onLogout, isAdmin }: { onLogout: () => void; isAdmi
           ))}
         </div>
 
-        {/* ── App panels ─────────────────────────────────────────────────── */}
+        {/* ── App panels ───────────────────────────────────────────────────── */}
         <AnimatePresence>
           {activeApp && appContent[activeApp] && (
             <AppPanel key={activeApp} appId={activeApp} onClose={closeApp}>

@@ -5,11 +5,9 @@ import { motion, AnimatePresence } from "framer-motion"
 import Image from "next/image"
 import {
   Cloud, Sparkles, Rocket, Zap, Users, Calendar,
-  ArrowRight, Star, ChevronDown, Shield, Globe, Code2,
-  Cpu, Database, Trophy, BookOpen, Share2
+  ArrowRight, Star,
 } from "lucide-react"
 import { useMeetup } from "@/lib/meetup-context"
-import { InteractiveCanvas } from "../os/interactive-canvas"
 
 const MEETUP_URL = "https://www.meetup.com/aws-cloud-club-at-nutan-maharashtra-inst-of-eng-tech/"
 
@@ -44,493 +42,197 @@ const highlights = [
   "236+ RSVPs for Our Very First Event",
 ]
 
-// Mobile-only orbit items
-const orbitItems = [
-  { icon: Cloud,    color: "#6B4FE8", label: "EC2",     angle: 0   },
-  { icon: Database, color: "#FF9900", label: "S3",      angle: 72  },
-  { icon: Shield,   color: "#50C88A", label: "IAM",     angle: 144 },
-  { icon: Code2,    color: "#5BA8D8", label: "Lambda",  angle: 216 },
-  { icon: Globe,    color: "#E85580", label: "Route53", angle: 288 },
-]
-
-// Floating tech tags for hero
-const techTags = [
-  { label: "AWS Lambda",  color: "#FF9900", x: "8%",  y: "22%" },
-  { label: "EC2",         color: "#6B4FE8", x: "68%", y: "15%" },
-  { label: "S3",          color: "#50C88A", x: "75%", y: "72%" },
-  { label: "CloudWatch",  color: "#5BA8D8", x: "5%",  y: "78%" },
-]
 
 const container = { hidden: {}, show: { transition: { staggerChildren: 0.08 } } }
 const item = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 260, damping: 22 } } }
 
-// ─── Mobile Hero — full immersive landing ───────────────────────────────────
+// ─── Mobile Hero — frosted glass, matches desktop style ─────────────────────
 function MobileHero({ memberCount, onLearnMore, onLogoClick }: { memberCount: number | null; onLearnMore?: () => void; onLogoClick: () => void }) {
-  const [activeTag, setActiveTag] = useState(0)
-  const tags = ["Cloud Computing", "AWS Services", "DevOps", "Serverless", "Cloud Security"]
-
-  useEffect(() => {
-    const t = setInterval(() => setActiveTag(i => (i + 1) % tags.length), 2200)
-    return () => clearInterval(t)
-  }, [tags.length])
+  const stats = [
+    { label: "Members",  value: memberCount !== null ? `${memberCount}+` : "299+", icon: Users,    color: "#6B4FE8" },
+    { label: "Events",   value: "1+",  icon: Calendar, color: "#FF9900" },
+    { label: "Projects", value: "3+",  icon: Rocket,   color: "#50C88A" },
+    { label: "Team",     value: "30+", icon: Zap,      color: "#5BA8D8" },
+  ]
 
   return (
-    <div className="relative flex flex-col items-center overflow-hidden" style={{ minHeight: "calc(100dvh - 56px)", backgroundColor: "#0a0a0f" }}>
-
-      {/* Interactive animated canvas background */}
-      <InteractiveCanvas theme="dark" />
-
-      {/* Dot grid overlay */}
-      <svg className="absolute inset-0 w-full h-full opacity-10 pointer-events-none">
-        <defs>
-          <pattern id="mdot" width="28" height="28" patternUnits="userSpaceOnUse">
-            <circle cx="14" cy="14" r="1" fill="rgba(255,255,255,0.8)" />
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#mdot)" />
-      </svg>
-
-      {/* Floating tech tags */}
-      {techTags.map((tag, i) => (
-        <motion.div
-          key={tag.label}
-          className="absolute pointer-events-none"
-          style={{ left: tag.x, top: tag.y }}
-          animate={{ y: [0, -8, 0] }}
-          transition={{ duration: 3 + i * 0.7, repeat: Infinity, ease: "easeInOut", delay: i * 0.5 }}
-        >
-          <div
-            className="flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold text-white"
-            style={{
-              background: `${tag.color}33`,
-              border: `1px solid ${tag.color}55`,
-              backdropFilter: "blur(6px)",
-            }}
-          >
-            <div className="h-1.5 w-1.5 rounded-full" style={{ background: tag.color }} />
-            {tag.label}
-          </div>
-        </motion.div>
-      ))}
-
-      {/* ── Hero content ── */}
-      <div className="relative z-10 flex flex-col items-center pt-14 pb-8 px-5 text-center w-full">
-
-        {/* Badge */}
-        <motion.div
-          initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1, duration: 0.5 }}
-          className="mb-5 inline-flex items-center gap-2 rounded-full px-4 py-1.5"
-          style={{
-            background: "rgba(255,255,255,0.12)",
-            border: "1px solid rgba(255,255,255,0.22)",
-            backdropFilter: "blur(10px)",
-          }}
-        >
-          <Sparkles className="h-3.5 w-3.5 text-yellow-300" />
-          <span className="text-xs font-semibold text-white tracking-wide">Official AWS Student Builder Group · NMIET</span>
-        </motion.div>
-
-        {/* Logo with orbit */}
-        <motion.div
-          className="relative mb-6"
-          initial={{ scale: 0.5, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.2, type: "spring", stiffness: 200, damping: 22 }}
-        >
-          {/* Pulse rings */}
-          {[120, 160, 200].map((r, i) => (
-            <motion.div
-              key={r}
-              className="absolute rounded-full"
-              style={{
-                width: r, height: r,
-                left: "50%", top: "50%",
-                transform: "translate(-50%, -50%)",
-                border: `1.5px solid rgba(255,255,255,${0.20 - i * 0.06})`,
-              }}
-              animate={{ scale: [1, 1.12, 1], opacity: [0.8, 0.2, 0.8] }}
-              transition={{ duration: 3 + i * 1.5, repeat: Infinity, ease: "easeInOut", delay: i * 0.8 }}
-            />
-          ))}
-
-          {/* Rotating orbit */}
+    <motion.div
+      className="flex flex-col gap-3 p-3 overflow-y-auto custom-scrollbar"
+      variants={container} initial="hidden" animate="show"
+    >
+      {/* ── Hero card ── */}
+      <motion.div variants={item} className="bg-white/35 backdrop-blur-sm border border-white/40 shadow-xs rounded-xl p-4">
+        <div className="flex items-start gap-3 mb-3">
           <motion.div
-            className="absolute"
-            style={{
-              width: 180, height: 180,
-              left: "50%", top: "50%",
-              transform: "translate(-50%, -50%)",
-            }}
-            animate={{ rotate: 360 }}
-            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-          >
-            {orbitItems.map((o, i) => {
-              const rad = (o.angle * Math.PI) / 180
-              const r = 88
-              return (
-                <motion.div
-                  key={i}
-                  className="absolute flex h-8 w-8 items-center justify-center rounded-xl"
-                  style={{
-                    left: `calc(50% + ${Math.cos(rad) * r}px - 16px)`,
-                    top:  `calc(50% + ${Math.sin(rad) * r}px - 16px)`,
-                    background: `${o.color}28`,
-                    border: `1px solid ${o.color}50`,
-                    backdropFilter: "blur(6px)",
-                  }}
-                  animate={{ rotate: -360 }}
-                  transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                >
-                  <o.icon className="h-4 w-4" style={{ color: o.color }} />
-                </motion.div>
-              )
-            })}
-          </motion.div>
-
-          {/* Pulsing neon purple outer ring */}
-          <div
-            className="absolute inset-0 rounded-3xl animate-glow-neon-purple"
-            style={{ margin: "-8px" }}
-          />
-          {/* Logo */}
-          <div
             onClick={onLogoClick}
-            className="relative flex h-24 w-24 items-center justify-center rounded-3xl cursor-pointer hover:scale-105 active:scale-95 transition-transform"
-            style={{
-              background: "rgba(255,255,255,0.10)",
-              border: "1px solid rgba(255,255,255,0.20)",
-              backdropFilter: "blur(10px)",
-            }}
+            className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl bg-white/60 border border-white/70 cursor-pointer active:scale-95 transition-transform shadow-sm"
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.1, type: "spring" as const }}
           >
-            <Image src="/logo-full.png" alt="AWS Student Builder Group NMIET" width={80} height={80} className="object-contain" priority unoptimized / >
+            <Image src="/logo-full.png" alt="AWS Student Builder Group NMIET" width={52} height={52} className="object-contain" unoptimized />
+          </motion.div>
+          <div className="flex-1 min-w-0 pt-0.5">
+            <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
+              <span className="text-[9px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                Official AWS Community
+              </span>
+            </div>
+            <h1 className="text-lg font-bold text-indigo-950 leading-tight">AWS Student Builder Group</h1>
+            <p className="text-xs font-medium text-indigo-950/50 mt-0.5">NMIET Chapter · Talegaon, Pune</p>
           </div>
-        </motion.div>
+        </div>
 
-        {/* Headline */}
-        <motion.h1
-          className="text-4xl font-black text-white mb-1 leading-tight tracking-tight"
-          initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35, duration: 0.5 }}
-        >
-          AWS Student Builder Group
-        </motion.h1>
-        <motion.p
-          className="text-lg font-semibold mb-3"
-          style={{ color: "rgba(196,181,253,0.90)" }}
-          initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.42, duration: 0.5 }}
-        >
-          NMIET Chapter
-        </motion.p>
+        <p className="text-sm leading-relaxed text-indigo-950/70 mb-4">
+          Empowering the next generation of cloud innovators through hands-on learning, real-world projects, and a thriving community.
+        </p>
 
-        {/* Cycling tech tags */}
-        <motion.div
-          className="mb-5 h-8 flex items-center justify-center"
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-        >
-          <AnimatePresence mode="wait">
-            <motion.span
-              key={activeTag}
-              className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold"
-              style={{
-                background: "rgba(255,255,255,0.15)",
-                color: "#C4B5FD",
-                border: "1px solid rgba(196,181,253,0.30)",
-              }}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Cpu className="h-3.5 w-3.5" />
-              {tags[activeTag]}
-            </motion.span>
-          </AnimatePresence>
-        </motion.div>
-
-        <motion.p
-          className="text-[15px] leading-relaxed mb-6 max-w-xs"
-          style={{ color: "rgba(255,255,255,0.72)" }}
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-          transition={{ delay: 0.55 }}
-        >
-          Empowering the next generation of cloud innovators through hands-on learning, real-world projects &amp; community.
-        </motion.p>
-
-        {/* CTA buttons */}
-        <motion.div
-          className="flex gap-3 w-full max-w-xs"
-          initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.62 }}
-        >
+        <div className="flex gap-2">
           <motion.a
-            href={MEETUP_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex flex-1 items-center justify-center gap-2 rounded-2xl py-3 text-sm font-bold text-[#6B4FE8]"
-            style={{ background: "#FFFFFF", boxShadow: "0 6px 20px rgba(0,0,0,0.25)" }}
-            whileTap={{ scale: 0.94 }}
+            href={MEETUP_URL} target="_blank" rel="noopener noreferrer"
+            className="flex flex-1 items-center justify-center gap-1.5 bg-[#6B4FE8] text-white rounded-xl py-2.5 text-xs font-semibold"
+            whileTap={{ scale: 0.97 }}
           >
-            <Rocket className="h-4 w-4" />
-            Join Group
+            <Rocket className="h-3.5 w-3.5" /> Join the Group
           </motion.a>
           <motion.button
             onClick={onLearnMore}
-            className="flex flex-1 items-center justify-center gap-2 rounded-2xl py-3 text-sm font-semibold text-white"
-            style={{
-              background: "rgba(255,255,255,0.14)",
-              border: "1px solid rgba(255,255,255,0.28)",
-              backdropFilter: "blur(8px)",
-            }}
-            whileTap={{ scale: 0.94 }}
+            className="flex flex-1 items-center justify-center gap-1.5 bg-white/60 border border-white/70 text-indigo-950 rounded-xl py-2.5 text-xs font-semibold"
+            whileTap={{ scale: 0.97 }}
           >
-            About Us
-            <ArrowRight className="h-4 w-4" />
+            About Us <ArrowRight className="h-3.5 w-3.5" />
           </motion.button>
-        </motion.div>
+        </div>
+      </motion.div>
 
-        {/* Member count live badge */}
-        {memberCount !== null && (
-          <motion.div
-            className="mt-5 flex items-center gap-2 rounded-full px-4 py-2"
-            style={{
-              background: "rgba(80,200,138,0.18)",
-              border: "1px solid rgba(80,200,138,0.35)",
-            }}
-            initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.75, type: "spring" }}
-          >
-            <motion.div
-              className="h-2.5 w-2.5 rounded-full"
-              style={{ background: "#50C88A", boxShadow: "0 0 8px #50C88A" }}
-              animate={{ scale: [1, 1.4, 1] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-            />
-            <span className="text-sm font-bold text-white">{memberCount}+ Members</span>
-            <span className="text-xs" style={{ color: "rgba(80,200,138,0.8)" }}>& growing 🚀</span>
-          </motion.div>
-        )}
-      </div>
+      {/* ── Stats 2×2 grid ── */}
+      <motion.div variants={item} className="grid grid-cols-2 gap-2">
+        {stats.map((stat) => (
+          <div key={stat.label} className="bg-white/35 backdrop-blur-sm border border-white/40 shadow-xs rounded-xl p-3.5 flex items-center gap-3">
+            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl" style={{ background: `${stat.color}18` }}>
+              <stat.icon className="h-4 w-4" style={{ color: stat.color }} />
+            </div>
+            <div>
+              <p className="text-xl font-bold text-indigo-950 leading-none">{stat.value}</p>
+              <p className="text-[11px] text-indigo-950/50 mt-0.5">{stat.label}</p>
+            </div>
+          </div>
+        ))}
+      </motion.div>
 
-      {/* ── Stats row ── */}
-      <motion.div
-        className="relative z-10 w-full px-4 mb-5"
-        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.75 }}
-      >
-        <div
-          className="grid grid-cols-3 gap-2 rounded-2xl p-4"
-          style={{
-            background: "rgba(255,255,255,0.10)",
-            border: "1px solid rgba(255,255,255,0.16)",
-            backdropFilter: "blur(16px)",
-          }}
-        >
-          {[
-            { value: "1+",   label: "Events",   icon: Calendar, color: "#FF9900" },
-            { value: "3+",   label: "Projects", icon: Rocket,   color: "#50C88A" },
-            { value: "30+",  label: "Team",     icon: Users,    color: "#5BA8D8" },
-          ].map((s, i) => (
-            <motion.div
-              key={s.label}
-              className="flex flex-col items-center gap-1"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.80 + i * 0.08, type: "spring" }}
-            >
-              <s.icon className="h-5 w-5 mb-0.5" style={{ color: s.color }} />
-              <span className="text-xl font-extrabold text-white">{s.value}</span>
-              <span className="text-[11px] font-medium" style={{ color: "rgba(255,255,255,0.55)" }}>{s.label}</span>
-            </motion.div>
+      {/* ── What We Do ── */}
+      <motion.div variants={item} className="bg-white/35 backdrop-blur-sm border border-white/40 shadow-xs rounded-xl overflow-hidden">
+        <div className="flex items-center justify-between border-b border-white/30 bg-white/20 px-4 py-2.5">
+          <h2 className="text-xs font-semibold text-indigo-950">What We Do</h2>
+          <span className="text-[10px] text-indigo-950/50 bg-white/30 px-2 py-0.5 rounded border border-white/20">3 pillars</span>
+        </div>
+        <div className="p-3 flex flex-col gap-2">
+          {whatWeDo.map((card) => (
+            <div key={card.title} className="bg-white/50 border border-white/60 rounded-lg p-3 flex items-start gap-3">
+              <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl" style={{ background: card.lightBg }}>
+                <card.icon className="h-4 w-4" style={{ color: card.color }} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-xs font-bold mb-0.5" style={{ color: card.color }}>{card.title}</h3>
+                <p className="text-[11px] leading-relaxed text-indigo-950/60">{card.description}</p>
+              </div>
+            </div>
           ))}
         </div>
       </motion.div>
 
-      {/* ── What We Do — horizontal scroll cards ── */}
-      <div className="relative z-10 w-full mb-5">
-        <p className="px-5 mb-3 text-sm font-bold tracking-widest uppercase" style={{ color: "rgba(196,181,253,0.70)" }}>
-          What We Do
-        </p>
-        <div className="flex gap-3 overflow-x-auto px-5 pb-2 hide-scrollbar">
-          {whatWeDo.map((card, i) => (
-            <motion.div
-              key={card.title}
-              className="flex-shrink-0 rounded-2xl p-4"
-              style={{
-                width: 170,
-                background: "rgba(255,255,255,0.10)",
-                border: "1px solid rgba(255,255,255,0.14)",
-                backdropFilter: "blur(14px)",
-              }}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.85 + i * 0.1 }}
-              whileTap={{ scale: 0.96 }}
-            >
-              <div
-                className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl"
-                style={{ background: card.lightBg, border: `1px solid ${card.color}30` }}
-              >
-                <card.icon className="h-5 w-5" style={{ color: card.color }} />
-              </div>
-              <h3 className="text-base font-bold text-white mb-1">{card.title}</h3>
-              <p className="text-[11px] leading-relaxed" style={{ color: "rgba(255,255,255,0.55)" }}>
-                {card.description}
-              </p>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-
       {/* ── Highlights ── */}
-      <div className="relative z-10 w-full px-4 mb-6">
-        <div className="flex items-center gap-2 mb-3">
-          <Star className="h-4 w-4 text-yellow-300" />
-          <span className="text-sm font-bold text-white tracking-wide">Highlights</span>
+      <motion.div variants={item} className="bg-white/35 backdrop-blur-sm border border-white/40 shadow-xs rounded-xl overflow-hidden">
+        <div className="flex items-center gap-2 border-b border-white/30 bg-white/20 px-4 py-2.5">
+          <Star className="h-3.5 w-3.5 text-amber-500" />
+          <h2 className="text-xs font-semibold text-indigo-950">Highlights</h2>
         </div>
-        <div className="space-y-2">
+        <div className="p-3 flex flex-col gap-1.5">
           {highlights.map((h, i) => (
             <motion.div
               key={h}
-              className="flex items-center gap-3 rounded-xl px-4 py-3"
-              style={{
-                background: "rgba(255,255,255,0.08)",
-                border: "1px solid rgba(255,255,255,0.12)",
-              }}
-              initial={{ opacity: 0, x: -14 }}
+              className="flex items-center gap-2.5 bg-white/50 border border-white/60 rounded-lg px-3 py-2.5"
+              initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.9 + i * 0.06 }}
+              transition={{ delay: 0.3 + i * 0.07 }}
             >
-              <div className="h-2 w-2 rounded-full flex-shrink-0" style={{ background: "linear-gradient(135deg,#6B4FE8,#8B6FFF)" }} />
-              <span className="text-[12px] font-medium text-white leading-tight">{h}</span>
+              <div className="h-1.5 w-1.5 rounded-full flex-shrink-0" style={{ background: "#6B4FE8" }} />
+              <span className="text-[11px] font-medium text-indigo-950/75 leading-snug">{h}</span>
             </motion.div>
           ))}
         </div>
-      </div>
-
-      {/* ── Quick app links ── */}
-      <div className="relative z-10 w-full px-4 mb-8">
-        <p className="mb-3 text-sm font-bold tracking-widest uppercase" style={{ color: "rgba(196,181,253,0.70)" }}>
-          Explore
-        </p>
-        <div className="grid grid-cols-4 gap-2">
-          {[
-            { label: "Team",    icon: Users,    color: "#5BA8D8", gradient: "linear-gradient(135deg,#5BA8D8,#4B90C8)" },
-            { label: "Events",  icon: Calendar, color: "#FF9900", gradient: "linear-gradient(135deg,#FF9900,#E88800)" },
-            { label: "Awards",  icon: Trophy,   color: "#FFB800", gradient: "linear-gradient(135deg,#FFB800,#E89800)" },
-            { label: "Docs",    icon: BookOpen, color: "#6B4FE8", gradient: "linear-gradient(135deg,#6B4FE8,#5B3FD8)" },
-          ].map((q, i) => (
-            <motion.div
-              key={q.label}
-              className="flex flex-col items-center gap-1.5"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.95 + i * 0.07 }}
-            >
-              <div
-                className="flex h-12 w-12 items-center justify-center rounded-2xl text-white"
-                style={{ background: q.gradient, boxShadow: `0 4px 14px ${q.color}40` }}
-              >
-                <q.icon className="h-5 w-5" />
-              </div>
-              <span className="text-[11px] font-semibold text-white/70">{q.label}</span>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-
-      {/* Scroll hint */}
-      <motion.div
-        className="relative z-10 flex flex-col items-center gap-1 pb-4"
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-        transition={{ delay: 1.2 }}
-      >
-        <span className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>Tap grid icon in taskbar to explore apps</span>
-        <motion.div animate={{ y: [0, 4, 0] }} transition={{ duration: 1.4, repeat: Infinity }}>
-          <ChevronDown className="h-4 w-4" style={{ color: "rgba(255,255,255,0.25)" }} />
-        </motion.div>
       </motion.div>
-    </div>
+
+      {/* ── Explore tip ── */}
+      <motion.div
+        variants={item}
+        className="flex items-center gap-3 bg-indigo-50/60 border border-indigo-100 rounded-xl px-4 py-3 mb-1"
+      >
+        <Sparkles className="h-4 w-4 text-indigo-400 flex-shrink-0" />
+        <p className="text-[11px] text-indigo-950/60">
+          Tap the grid on the home screen to explore <span className="font-semibold text-indigo-950/80">Team, Events, Projects</span> and more.
+        </p>
+      </motion.div>
+    </motion.div>
   )
 }
 
-// ─── Desktop content (unchanged) ─────────────────────────────────────────────
+// ─── Desktop content ──────────────────────────────────────────────────────────
 function DesktopHome({ memberCount, onLearnMore, onLogoClick }: { memberCount: number | null; onLearnMore?: () => void; onLogoClick: () => void }) {
   const stats = [
-    { label: "Members",  value: memberCount !== null ? `${memberCount}` : "...", icon: Users,    color: "#6B4FE8" },
+    { label: "Members",  value: memberCount !== null ? `${memberCount}+` : "299+", icon: Users,    color: "#6B4FE8" },
     { label: "Events",   value: "1+",   icon: Calendar, color: "#FF9900" },
     { label: "Projects", value: "3+",   icon: Rocket,   color: "#50C88A" },
     { label: "Team",     value: "30+",  icon: Zap,      color: "#5BA8D8" },
   ]
 
   return (
-    <motion.div className="space-y-6" variants={container} initial="hidden" animate="show">
-      {/* ── Hero ── */}
-      <motion.div
-        variants={item}
-        className="relative overflow-hidden rounded-3xl p-8"
-        style={{
-          background: "linear-gradient(135deg, #6B4FE8 0%, #8B6FFF 60%, #B8A4FF 100%)",
-          boxShadow: "8px 8px 24px rgba(107,79,232,0.30), -6px -6px 18px #FFFFFF",
-        }}
-      >
-        <div className="absolute -right-12 -top-12 h-48 w-48 rounded-full pointer-events-none"
-          style={{ background: "radial-gradient(circle, rgba(255,255,255,0.15), transparent 70%)" }} />
-        <div className="absolute -bottom-10 -left-10 h-36 w-36 rounded-full pointer-events-none"
-          style={{ background: "radial-gradient(circle, rgba(255,255,255,0.10), transparent 70%)" }} />
-
-        <div className="relative z-10 flex flex-col items-start gap-5 lg:flex-row lg:items-center">
+    <motion.div
+      className="flex flex-col gap-4 p-1 overflow-y-auto custom-scrollbar"
+      style={{ minHeight: "520px" }}
+      variants={container} initial="hidden" animate="show"
+    >
+      {/* ── Hero header ── */}
+      <motion.div variants={item} className="bg-white/35 backdrop-blur-sm border border-white/40 shadow-xs rounded-xl p-6">
+        <div className="flex flex-col lg:flex-row items-start gap-5">
           <motion.div
             onClick={onLogoClick}
-            className="flex h-24 w-24 flex-shrink-0 items-center justify-center rounded-2xl cursor-pointer hover:scale-105 active:scale-95 transition-transform"
-            style={{ background: "rgba(255,255,255,0.18)", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.30)" }}
-            initial={{ scale: 0.7, opacity: 0 }}
+            className="flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-2xl bg-white/60 border border-white/70 cursor-pointer hover:scale-105 active:scale-95 transition-transform shadow-sm"
+            initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.15, type: "spring" as const, stiffness: 300 }}
+            transition={{ delay: 0.1, type: "spring" as const }}
           >
-            <Image src="/logo-full.png" alt="AWS Student Builder Group NMIET" width={80} height={80} className="object-contain" unoptimized />
+            <Image src="/logo-full.png" alt="AWS Student Builder Group NMIET" width={68} height={68} className="object-contain" unoptimized />
           </motion.div>
 
-          <div>
-            <div className="mb-2 inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold"
-              style={{ background: "rgba(255,255,255,0.18)", color: "rgba(255,255,255,0.90)" }}>
-              <Sparkles className="h-3.5 w-3.5" />
-              Official Community · NMIET, Talegaon, Pune
-            </div>
-            <h1 className="mb-2 text-4xl font-extrabold tracking-tight text-white leading-tight">
-              AWS Student Builder Group
-              <span className="block text-2xl font-semibold" style={{ color: "rgba(255,255,255,0.75)" }}>
-                NMIET Chapter
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-wrap items-center gap-2 mb-2">
+              <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                Official AWS Community
               </span>
+              <span className="text-[10px] text-indigo-950/40 font-medium">NMIET, Talegaon, Pune</span>
+            </div>
+            <h1 className="text-2xl font-bold text-indigo-950 leading-tight">
+              AWS Student Builder Group
             </h1>
-            <p className="mb-5 max-w-lg text-base leading-relaxed" style={{ color: "rgba(255,255,255,0.80)" }}>
-              Empowering the next generation of cloud innovators through hands-on learning,
-              real-world projects, and a thriving community.
+            <p className="text-sm font-medium text-indigo-950/50 mt-0.5">NMIET Chapter</p>
+            <p className="mt-2.5 text-sm leading-relaxed text-indigo-950/70 max-w-xl">
+              Empowering the next generation of cloud innovators through hands-on learning, real-world projects, and a thriving community.
             </p>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-3 mt-4">
               <motion.a
-                href={MEETUP_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-bold text-[#6B4FE8]"
-                style={{ background: "#FFFFFF", boxShadow: "0 4px 16px rgba(0,0,0,0.12)" }}
-                whileHover={{ y: -2, boxShadow: "0 8px 24px rgba(0,0,0,0.16)" }}
-                whileTap={{ scale: 0.96 }}
+                href={MEETUP_URL} target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 bg-[#6B4FE8] hover:bg-[#5B3FD8] text-white rounded-lg px-5 py-2 text-sm font-semibold transition-colors"
+                whileHover={{ y: -1 }} whileTap={{ scale: 0.97 }}
               >
-                <Rocket className="h-4 w-4" />
-                Join the Group
+                <Rocket className="h-4 w-4" /> Join the Group
               </motion.a>
               <motion.button
                 onClick={onLearnMore}
-                className="inline-flex items-center gap-2 rounded-xl border border-white/30 px-6 py-2.5 text-sm font-semibold text-white"
-                style={{ background: "rgba(255,255,255,0.12)" }}
-                whileHover={{ background: "rgba(255,255,255,0.22)", y: -1 }}
-                whileTap={{ scale: 0.96 }}
+                className="inline-flex items-center gap-2 bg-white/60 hover:bg-white/80 border border-white/70 text-indigo-950 rounded-lg px-5 py-2 text-sm font-semibold transition-colors"
+                whileHover={{ y: -1 }} whileTap={{ scale: 0.97 }}
               >
-                Learn More
-                <ArrowRight className="h-4 w-4" />
+                Learn More <ArrowRight className="h-4 w-4" />
               </motion.button>
             </div>
           </div>
@@ -538,83 +240,74 @@ function DesktopHome({ memberCount, onLearnMore, onLogoClick }: { memberCount: n
       </motion.div>
 
       {/* ── Stats ── */}
-      <motion.div variants={item} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <motion.div variants={item} className="grid gap-3 grid-cols-2 sm:grid-cols-4">
         {stats.map((stat) => (
-          <motion.div
-            key={stat.label}
-            className="neu-raised-sm flex flex-col items-start gap-2 rounded-2xl p-5"
-            whileHover={{ y: -4, boxShadow: "7px 7px 20px rgba(107,79,232,0.24), -6px -6px 16px rgba(255,255,255,0.72)" }}
-            transition={{ type: "spring" as const, stiffness: 300 }}
-          >
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl" style={{ background: `${stat.color}18` }}>
-              <stat.icon className="h-5 w-5" style={{ color: stat.color }} />
+          <div key={stat.label} className="bg-white/35 backdrop-blur-sm border border-white/40 shadow-xs rounded-xl p-4 flex flex-col gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg" style={{ background: `${stat.color}18` }}>
+              <stat.icon className="h-4 w-4" style={{ color: stat.color }} />
             </div>
             <div>
-              <p className="text-3xl font-extrabold" style={{ color: "#1E1060" }}>{stat.value}</p>
-              <p className="text-sm font-medium" style={{ color: "#7B6FC0" }}>{stat.label}</p>
+              <p className="text-2xl font-bold text-indigo-950 leading-none">{stat.value}</p>
+              <p className="text-xs text-indigo-950/50 mt-1">{stat.label}</p>
             </div>
-          </motion.div>
+          </div>
         ))}
       </motion.div>
 
       {/* ── What We Do ── */}
-      <motion.div variants={item}>
-        <h2 className="mb-4 text-xl font-bold" style={{ color: "#1E1060" }}>What We Do</h2>
-        <div className="grid gap-4 md:grid-cols-3">
-          {whatWeDo.map((card, i) => (
+      <motion.div variants={item} className="bg-white/35 backdrop-blur-sm border border-white/40 shadow-xs rounded-xl overflow-hidden">
+        <div className="flex items-center justify-between border-b border-white/30 bg-white/20 px-4 py-3">
+          <h2 className="text-xs font-semibold text-indigo-950">What We Do</h2>
+          <span className="text-[10px] text-indigo-950/50 bg-white/30 px-2 py-0.5 rounded border border-white/20">3 pillars</span>
+        </div>
+        <div className="p-5 grid gap-4 md:grid-cols-3">
+          {whatWeDo.map((card) => (
             <motion.div
               key={card.title}
-              className="neu-raised-sm rounded-2xl p-5"
-              whileHover={{ y: -4 }}
-              transition={{ type: "spring" as const, stiffness: 300, delay: i * 0.05 }}
+              className="bg-white/50 border border-white/60 rounded-lg p-4"
+              whileHover={{ y: -2 }}
+              transition={{ type: "spring" as const, stiffness: 300 }}
             >
-              <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl" style={{ background: card.lightBg }}>
-                <card.icon className="h-6 w-6" style={{ color: card.color }} />
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl mb-3" style={{ background: card.lightBg }}>
+                <card.icon className="h-5 w-5" style={{ color: card.color }} />
               </div>
-              <h3 className="mb-2 text-lg font-bold" style={{ color: card.color }}>{card.title}</h3>
-              <p className="text-sm leading-relaxed" style={{ color: "#7B6FC0" }}>{card.description}</p>
+              <h3 className="text-sm font-bold mb-1.5" style={{ color: card.color }}>{card.title}</h3>
+              <p className="text-xs leading-relaxed text-indigo-950/60">{card.description}</p>
             </motion.div>
           ))}
         </div>
       </motion.div>
 
       {/* ── Highlights ── */}
-      <motion.div variants={item} className="neu-raised-sm rounded-2xl p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Star className="h-5 w-5" style={{ color: "#FFB800" }} />
-          <h2 className="text-xl font-bold" style={{ color: "#1E1060" }}>Our Highlights</h2>
+      <motion.div variants={item} className="bg-white/35 backdrop-blur-sm border border-white/40 shadow-xs rounded-xl overflow-hidden">
+        <div className="flex items-center gap-2 border-b border-white/30 bg-white/20 px-4 py-3">
+          <Star className="h-3.5 w-3.5 text-amber-500" />
+          <h2 className="text-xs font-semibold text-indigo-950">Highlights</h2>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="p-4 grid gap-2 sm:grid-cols-2">
           {highlights.map((h, i) => (
             <motion.div
               key={h}
-              className="neu-inset-sm flex items-center gap-3 rounded-xl px-4 py-3"
+              className="flex items-center gap-3 bg-white/50 border border-white/60 rounded-lg px-4 py-3"
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 + i * 0.08 }}
+              transition={{ delay: 0.3 + i * 0.07 }}
             >
-              <div className="h-2 w-2 rounded-full flex-shrink-0"
-                style={{ background: "linear-gradient(135deg,#6B4FE8,#8B6FFF)" }} />
-              <span className="text-sm font-medium" style={{ color: "#1E1060" }}>{h}</span>
+              <div className="h-2 w-2 rounded-full flex-shrink-0" style={{ background: "#6B4FE8" }} />
+              <span className="text-xs font-medium text-indigo-950/75 leading-snug">{h}</span>
             </motion.div>
           ))}
         </div>
       </motion.div>
 
-      {/* ── Quick Start ── */}
+      {/* ── Explore tip ── */}
       <motion.div
         variants={item}
-        className="rounded-2xl p-6 text-center"
-        style={{
-          background: "linear-gradient(135deg, rgba(107,79,232,0.08), rgba(184,164,255,0.06))",
-          border: "1px solid rgba(107,79,232,0.22)",
-        }}
+        className="flex items-center gap-3 bg-indigo-50/60 border border-indigo-100 rounded-xl px-5 py-4"
       >
-        <Sparkles className="mx-auto mb-3 h-8 w-8" style={{ color: "#6B4FE8" }} />
-        <h3 className="mb-2 text-lg font-bold" style={{ color: "#1E1060" }}>Explore the Cloud OS</h3>
-        <p className="text-sm" style={{ color: "#7B6FC0" }}>
-          Use the desktop icons or taskbar to open apps — Team, Events, Projects, Resources, and more.
-          Drag windows, resize them, and make this OS your own!
+        <Sparkles className="h-5 w-5 text-indigo-400 flex-shrink-0" />
+        <p className="text-xs text-indigo-950/60">
+          Open <span className="font-semibold text-indigo-950/80">Team, Events, Projects, Resources</span> and more from the taskbar or desktop icons.
         </p>
       </motion.div>
     </motion.div>
@@ -622,10 +315,10 @@ function DesktopHome({ memberCount, onLearnMore, onLogoClick }: { memberCount: n
 }
 
 // ─── Main export — switches between Mobile and Desktop views ─────────────────
-export function HomeApp({ onLearnMore }: { onLearnMore?: () => void }) {
+export function HomeApp({ onLearnMore, forceMobileUI }: { onLearnMore?: () => void; forceMobileUI?: boolean }) {
   const { memberCount } = useMeetup()
   const [isMobile, setIsMobile] = useState(() =>
-    typeof window !== "undefined" ? window.innerWidth < 768 : false
+    forceMobileUI || (typeof window !== "undefined" ? window.innerWidth < 768 : false)
   )
   const [clickCount, setClickCount] = useState(0)
   const [lastClickTime, setLastClickTime] = useState(0)
@@ -652,10 +345,11 @@ export function HomeApp({ onLearnMore }: { onLearnMore?: () => void }) {
   }
 
   useEffect(() => {
+    if (forceMobileUI) return
     const check = () => setIsMobile(window.innerWidth < 768)
     window.addEventListener("resize", check)
     return () => window.removeEventListener("resize", check)
-  }, [])
+  }, [forceMobileUI])
 
   const colors = ["#FF9900", "#6B4FE8", "#B8A4FF", "#50C88A", "#5BA8D8", "#FF3E3E"];
 
