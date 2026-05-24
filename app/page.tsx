@@ -16,6 +16,25 @@ export default function CloudOS() {
   const [stage, setStage]       = useState<Stage>("checking")
 
   useEffect(() => {
+    // Console log easter egg ASCII Art
+    console.log(
+      `%c
+   ▲   ▲   ▲   ▲   ▲   ▲   ▲   ▲
+  / \\ / \\ / \\ / \\ / \\ / \\ / \\ / \\
+ ( A | W | S |   | S | B | G |   )
+  \\_/ \\_/ \\_/ \\_/ \\_/ \\_/ \\_/ \\_/
+         _     _
+     _ _| |_ _| |_ ___
+    | | |  _| | | _|_ -|
+    |___|_| |___|___|__|
+          
+      Student Builder Group
+          
+%cHey curious builder 👀 — you'd fit right in. DM us on Instagram.`,
+      "color: #FF9900; font-weight: bold; font-family: monospace; font-size: 12px; line-height: 1.2;",
+      "color: #6B4FE8; font-weight: bold; font-family: sans-serif; font-size: 12px; margin-top: 8px; display: block;"
+    );
+
     // matchMedia is more reliable than innerWidth in DevTools responsive mode
     const mq     = window.matchMedia("(max-width: 767px)")
     const mobile = mq.matches

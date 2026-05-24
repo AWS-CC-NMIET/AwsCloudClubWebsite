@@ -13,11 +13,12 @@ import { api, uploadFileToS3 } from "@/lib/api-client"
 
 type AdminTab =
   | "dashboard" | "events" | "team" | "projects"
-  | "achievements" | "resources" | "social" | "config" | "contacts" | "users"
+  | "achievements" | "resources" | "social" | "config" | "contacts" | "users" | "gallery"
 
 const tabs: { id: AdminTab; label: string; icon: React.ReactNode }[] = [
   { id: "dashboard",    label: "Dashboard",   icon: <LayoutDashboard className="h-4 w-4" /> },
   { id: "events",       label: "Events",      icon: <Calendar className="h-4 w-4" /> },
+  { id: "gallery",      label: "Gallery Albums", icon: <ImageIcon className="h-4 w-4" /> },
   { id: "team",         label: "Team",        icon: <Users className="h-4 w-4" /> },
   { id: "projects",     label: "Projects",    icon: <FolderOpen className="h-4 w-4" /> },
   { id: "achievements", label: "Achievements",icon: <Trophy className="h-4 w-4" /> },
@@ -893,6 +894,42 @@ export function AdminApp() {
       case "config":   return <ConfigTab />
       case "contacts": return <ContactsTab />
       case "users":    return <UsersTab />
+      case "gallery":  return (
+        <ListManager
+          title="Gallery Albums" description="Manage photo albums in the gallery"
+          fetchFn={api.events.list} dataKey="events"
+          createFn={(data) => {
+            const payload = data as Record<string, unknown>
+            return api.events.create({
+              ...payload,
+              location: payload.location || "NMIET Campus",
+              description: payload.description || "Gallery Album",
+              isPast: payload.isPast ?? true,
+              attendees: payload.attendees ?? 0,
+              tags: payload.tags ?? []
+            })
+          }}
+          updateFn={(id, data) => {
+            const payload = data as Record<string, unknown>
+            return api.events.update(id, {
+              ...payload,
+              location: payload.location || "NMIET Campus",
+              description: payload.description || "Gallery Album",
+              isPast: payload.isPast ?? true,
+              attendees: payload.attendees ?? 0,
+              tags: payload.tags ?? []
+            })
+          }}
+          deleteFn={api.events.delete}
+          displayName={(i) => String(i.title)}
+          displaySub={(i) => `${String(i.date)} · ${Array.isArray(i.imageUrls) ? i.imageUrls.length : 0} photos`}
+          fields={[
+            { key: "title",       label: "Album Title",     type: "text",     span: "full" },
+            { key: "date",        label: "Date",            type: "date" },
+            { key: "imageUrls",   label: "Album Photos",    type: "images",   folder: "events", span: "full" },
+          ]}
+        />
+      )
     }
   }
 

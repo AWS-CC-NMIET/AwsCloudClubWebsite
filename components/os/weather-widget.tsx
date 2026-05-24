@@ -102,6 +102,13 @@ export function WeatherWidget() {
 
   const { icon: Icon, label, color } = getWeatherInfo(weather.code)
 
+  const isRainOrDrizzle = weather.code >= 51 && weather.code <= 82
+  const isPune = weather.city.toLowerCase().includes("pune") || 
+                 weather.city.toLowerCase().includes("talegaon") ||
+                 weather.city.toLowerCase().includes("navi mumbai") ||
+                 weather.city.toLowerCase().includes("mumbai")
+  const showPuneCloudsLine = isPune && isRainOrDrizzle
+
   return (
     <motion.div className="rounded-2xl overflow-hidden"
       style={darkCard}
@@ -139,6 +146,15 @@ export function WeatherWidget() {
             </div>
           </div>
         </div>
+        
+        {/* Easter Egg Cloud Line */}
+        {showPuneCloudsLine && (
+          <div className="mt-2.5 pt-2 border-t border-purple-900/20 text-center">
+            <span className="text-[10px] font-bold text-yellow-300 animate-pulse tracking-wide inline-block">
+              Even the clouds are on AWS today ☁️
+            </span>
+          </div>
+        )}
       </div>
     </motion.div>
   )

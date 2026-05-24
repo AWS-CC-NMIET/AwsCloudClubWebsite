@@ -65,7 +65,7 @@ const container = { hidden: {}, show: { transition: { staggerChildren: 0.08 } } 
 const item = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 260, damping: 22 } } }
 
 // ─── Mobile Hero — full immersive landing ───────────────────────────────────
-function MobileHero({ memberCount, onLearnMore }: { memberCount: number | null; onLearnMore?: () => void }) {
+function MobileHero({ memberCount, onLearnMore, onLogoClick }: { memberCount: number | null; onLearnMore?: () => void; onLogoClick: () => void }) {
   const [activeTag, setActiveTag] = useState(0)
   const tags = ["Cloud Computing", "AWS Services", "DevOps", "Serverless", "Cloud Security"]
 
@@ -195,7 +195,8 @@ function MobileHero({ memberCount, onLearnMore }: { memberCount: number | null; 
           />
           {/* Logo */}
           <div
-            className="relative flex h-24 w-24 items-center justify-center rounded-3xl"
+            onClick={onLogoClick}
+            className="relative flex h-24 w-24 items-center justify-center rounded-3xl cursor-pointer hover:scale-105 active:scale-95 transition-transform"
             style={{
               background: "rgba(255,255,255,0.10)",
               border: "1px solid rgba(255,255,255,0.20)",
@@ -456,7 +457,7 @@ function MobileHero({ memberCount, onLearnMore }: { memberCount: number | null; 
 }
 
 // ─── Desktop content (unchanged) ─────────────────────────────────────────────
-function DesktopHome({ memberCount, onLearnMore }: { memberCount: number | null; onLearnMore?: () => void }) {
+function DesktopHome({ memberCount, onLearnMore, onLogoClick }: { memberCount: number | null; onLearnMore?: () => void; onLogoClick: () => void }) {
   const stats = [
     { label: "Members",  value: memberCount !== null ? `${memberCount}` : "...", icon: Users,    color: "#6B4FE8" },
     { label: "Events",   value: "1+",   icon: Calendar, color: "#FF9900" },
@@ -482,7 +483,8 @@ function DesktopHome({ memberCount, onLearnMore }: { memberCount: number | null;
 
         <div className="relative z-10 flex flex-col items-start gap-5 lg:flex-row lg:items-center">
           <motion.div
-            className="flex h-24 w-24 flex-shrink-0 items-center justify-center rounded-2xl"
+            onClick={onLogoClick}
+            className="flex h-24 w-24 flex-shrink-0 items-center justify-center rounded-2xl cursor-pointer hover:scale-105 active:scale-95 transition-transform"
             style={{ background: "rgba(255,255,255,0.18)", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.30)" }}
             initial={{ scale: 0.7, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -625,6 +627,29 @@ export function HomeApp({ onLearnMore }: { onLearnMore?: () => void }) {
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== "undefined" ? window.innerWidth < 768 : false
   )
+  const [clickCount, setClickCount] = useState(0)
+  const [lastClickTime, setLastClickTime] = useState(0)
+  const [showConfetti, setShowConfetti] = useState(false)
+  const [showToast, setShowToast] = useState(false)
+
+  const handleLogoClick = () => {
+    const now = Date.now()
+    if (now - lastClickTime < 1000) {
+      const nextCount = clickCount + 1
+      if (nextCount === 5) {
+        setShowConfetti(true)
+        setShowToast(true)
+        setClickCount(0)
+        setTimeout(() => setShowConfetti(false), 3000)
+        setTimeout(() => setShowToast(false), 5000)
+      } else {
+        setClickCount(nextCount)
+      }
+    } else {
+      setClickCount(1)
+    }
+    setLastClickTime(now)
+  }
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768)
@@ -632,9 +657,71 @@ export function HomeApp({ onLearnMore }: { onLearnMore?: () => void }) {
     return () => window.removeEventListener("resize", check)
   }, [])
 
-  if (isMobile) {
-    return <MobileHero memberCount={memberCount} onLearnMore={onLearnMore} />
-  }
+  const colors = ["#FF9900", "#6B4FE8", "#B8A4FF", "#50C88A", "#5BA8D8", "#FF3E3E"];
 
-  return <DesktopHome memberCount={memberCount} onLearnMore={onLearnMore} />
+  return (
+    <>
+      {isMobile ? (
+        <MobileHero memberCount={memberCount} onLearnMore={onLearnMore} onLogoClick={handleLogoClick} />
+      ) : (
+        <DesktopHome memberCount={memberCount} onLearnMore={onLearnMore} onLogoClick={handleLogoClick} />
+      )}
+
+      {/* Confetti Particle Burst */}
+      <AnimatePresence>
+        {showConfetti && (
+          <div className="fixed inset-0 pointer-events-none z-[9999] overflow-hidden">
+            {Array.from({ length: 80 }).map((_, i) => {
+              const color = colors[i % colors.length];
+              const angle = Math.random() * Math.PI * 2;
+              const distance = 80 + Math.random() * 250;
+              const x = Math.cos(angle) * distance;
+              const y = Math.sin(angle) * distance - 100;
+              const rotate = Math.random() * 360;
+              const scale = 0.4 + Math.random() * 0.8;
+              return (
+                <motion.div
+                  key={i}
+                  className="absolute left-1/2 top-1/2 w-3 h-3 rounded-xs"
+                  style={{ backgroundColor: color }}
+                  initial={{ scale: 0, rotate: 0, opacity: 1, x: 0, y: 0 }}
+                  animate={{
+                    scale: [0, scale, 0],
+                    rotate: [0, rotate],
+                    opacity: [1, 1, 0],
+                    x: x,
+                    y: y + 200,
+                  }}
+                  transition={{
+                    duration: 1.5 + Math.random() * 1.5,
+                    ease: "easeOut",
+                  }}
+                />
+              )
+            })}
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Toast Notification */}
+      <AnimatePresence>
+        {showToast && (
+          <motion.div
+            className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[9999] rounded-2xl px-5 py-3.5 text-sm font-semibold text-white shadow-xl text-center"
+            style={{
+              background: "linear-gradient(135deg, #1E1060, #6B4FE8)",
+              border: "1px solid rgba(168, 85, 247, 0.4)",
+              boxShadow: "0 8px 32px rgba(107, 79, 232, 0.4)",
+            }}
+            initial={{ opacity: 0, y: 32, scale: 0.92, x: "-50%" }}
+            animate={{ opacity: 1, y: 0, scale: 1, x: "-50%" }}
+            exit={{ opacity: 0, y: 16, scale: 0.95, x: "-50%" }}
+            transition={{ type: "spring", stiffness: 350, damping: 26 }}
+          >
+            You found us! True builders are always curious 🚀
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  )
 }

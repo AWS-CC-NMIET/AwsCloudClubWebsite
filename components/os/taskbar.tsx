@@ -55,6 +55,7 @@ export function Taskbar({ openApps, activeApp, onAppClick, onStartClick, onMobil
   const [showNotifications, setShowNotifications] = useState(false)
   const [query, setQuery]                 = useState("")
   const [searchOpen, setSearchOpen]       = useState(false)
+  const [showMidnightPopup, setShowMidnightPopup] = useState(false)
   const searchRef                         = useRef<HTMLDivElement>(null)
   const inputRef                          = useRef<HTMLInputElement>(null)
 
@@ -63,6 +64,16 @@ export function Taskbar({ openApps, activeApp, onAppClick, onStartClick, onMobil
     const timer = setInterval(() => setTime(new Date()), 1000)
     return () => clearInterval(timer)
   }, [])
+
+  const handleClockClick = () => {
+    const now = new Date()
+    const hours = now.getHours()
+    const minutes = now.getMinutes()
+    if (hours === 0 && minutes === 0) {
+      setShowMidnightPopup(true)
+      setTimeout(() => setShowMidnightPopup(false), 4000)
+    }
+  }
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -168,12 +179,18 @@ export function Taskbar({ openApps, activeApp, onAppClick, onStartClick, onMobil
             >
               {/* Label */}
               <p className="px-3 pb-1.5 pt-0.5 text-[10px] font-semibold uppercase tracking-widest" style={{ color: "#9B8FC8" }}>
-                {trimmed
+                {trimmed.toLowerCase() === "easter egg"
+                  ? "Secret Found!"
+                  : trimmed
                   ? results.length > 0 ? `${results.length} app${results.length > 1 ? "s" : ""}` : "No results"
                   : "All Apps"}
               </p>
 
-              {results.length > 0 ? (
+              {trimmed.toLowerCase() === "easter egg" ? (
+                <div className="px-3.5 py-3 text-xs font-semibold text-purple-300">
+                  👀 you already found one
+                </div>
+              ) : results.length > 0 ? (
                 <div className="space-y-0.5 px-2">
                   {results.map((app, i) => {
                     const Icon = app.icon
@@ -351,8 +368,10 @@ export function Taskbar({ openApps, activeApp, onAppClick, onStartClick, onMobil
         </div>
 
         <motion.div
-          className="flex flex-col items-end rounded-xl px-2 sm:px-3 py-1.5 cursor-default"
+          onClick={handleClockClick}
+          className="flex flex-col items-end rounded-xl px-2 sm:px-3 py-1.5 cursor-pointer hover:bg-white/10"
           whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
         >
           <span className="text-xs sm:text-sm font-semibold tabular-nums" style={{ color: "#EDE9FE" }}>
             {time ? time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "--:--"}
@@ -368,6 +387,25 @@ export function Taskbar({ openApps, activeApp, onAppClick, onStartClick, onMobil
         isOpen={showNotifications}
         onClose={() => setShowNotifications(false)}
       />
+
+      {/* Midnight Building Easter Egg Popup */}
+      <AnimatePresence>
+        {showMidnightPopup && (
+          <motion.div
+            className="absolute bottom-16 right-4 z-50 rounded-xl px-4 py-3 text-xs font-semibold text-white shadow-lg text-center"
+            style={{
+              background: "linear-gradient(135deg, #1E1060, #6B4FE8)",
+              border: "1px solid rgba(168, 85, 247, 0.4)",
+              boxShadow: "0 8px 32px rgba(107, 79, 232, 0.4)",
+            }}
+            initial={{ opacity: 0, y: 16, scale: 0.92 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 8, scale: 0.95 }}
+          >
+            Still building at midnight? You belong here 🌙
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

@@ -26,6 +26,7 @@ const awsFacts = [
 export function TerminalApp() {
   const { memberCount } = useMeetup()
   const m = memberCount ?? 299
+  const [isHacking, setIsHacking] = useState(false)
 
   const commandRegistry = useMemo<Record<string, string>>(() => ({
   help: `Available commands:
@@ -39,10 +40,15 @@ export function TerminalApp() {
   achievements  - Group highlights & wins
   contact       - Get in touch with us
   aws           - Random AWS fun fact
-  whoami        - Who are you?
   date          - Show current date
   clear         - Clear terminal
-  echo [text]   - Echo back text`,
+  echo [text]   - Echo back text
+
+🕵️ Hidden Easter Eggs:
+  whoami        - Display current user identity
+  sudo join     - Gain superuser signup access
+  hack          - Execute server penetration test
+  aws free tier - Check AWS pricing policies`,
 
   about: `
 ╔══════════════════════════════════════════════╗
@@ -148,8 +154,6 @@ Type 'about' for more info.`,
 
   Or use the Contact app on the desktop
   to send us a message directly!`,
-
-  whoami: "guest@aws-sbg-nmiet:~$",
   }), [m])
 
   const [lines, setLines] = useState<TerminalLine[]>([
@@ -198,6 +202,31 @@ Type 'about' for more info.`,
       return
     }
 
+    // Easter Egg Intercepts
+    if (lower === "whoami") {
+      setLines((prev) => [...prev, { type: "output", content: "a curious builder 👀" }])
+      return
+    }
+
+    if (lower === "sudo join") {
+      setLines((prev) => [...prev, { type: "output", content: "Permission granted. DM us on Instagram 😄" }])
+      return
+    }
+
+    if (lower === "aws free tier") {
+      setLines((prev) => [...prev, { type: "output", content: "Free Tier fan detected 🫡" }])
+      return
+    }
+
+    if (lower === "hack") {
+      setIsHacking(true)
+      setTimeout(() => {
+        setIsHacking(false)
+        setLines((prev) => [...prev, { type: "output", content: "nice try 😂" }])
+      }, 2000)
+      return
+    }
+
     if (commandRegistry[command]) {
       setLines((prev) => [...prev, { type: "output", content: commandRegistry[command] }])
     } else if (command) {
@@ -218,7 +247,9 @@ Type 'about' for more info.`,
 
   return (
     <div
-      className="flex h-full flex-col rounded-lg bg-[#110d2a] font-mono text-sm"
+      className={`flex h-full flex-col rounded-lg font-mono text-sm transition-all duration-200 ${
+        isHacking ? "bg-red-950/90 text-white animate-pulse" : "bg-[#110d2a]"
+      }`}
       onClick={() => inputRef.current?.focus()}
     >
       {/* Terminal Header */}

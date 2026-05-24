@@ -19,19 +19,29 @@ const AWS_QUOTES = [
 export function QuoteTicker() {
   const [quoteIdx, setQuoteIdx] = useState(0)
   const [visible,  setVisible]  = useState(true)
+  const [isRareQuote, setIsRareQuote] = useState(false)
 
   useEffect(() => {
     const interval = setInterval(() => {
       setVisible(false)
       setTimeout(() => {
-        setQuoteIdx((i) => (i + 1) % AWS_QUOTES.length)
+        // Roll for 1-in-50 (2%) chance of rare quote
+        const roll = Math.random() < 0.02
+        if (roll) {
+          setIsRareQuote(true)
+        } else {
+          setIsRareQuote(false)
+          setQuoteIdx((i) => (i + 1) % AWS_QUOTES.length)
+        }
         setVisible(true)
       }, 500)
     }, 5000)
     return () => clearInterval(interval)
   }, [])
 
-  const q = AWS_QUOTES[quoteIdx]
+  const q = isRareQuote 
+    ? { text: "It's not a bug, it's an undocumented feature.", author: "— AWS Support, probably" }
+    : AWS_QUOTES[quoteIdx]
 
   return (
     // Hidden on mobile — quote ticker overlaps content on small screens
@@ -55,16 +65,16 @@ export function QuoteTicker() {
       </div>
 
       <motion.p
-        key={quoteIdx}
+        key={isRareQuote ? "rare" : quoteIdx}
         style={{
-          color: "rgba(237,233,254,0.92)",
+          color: isRareQuote ? "#FDE047" : "rgba(237,233,254,0.92)",
           fontFamily: "Georgia, 'Times New Roman', serif",
           fontSize: "0.9rem",
           fontStyle: "italic",
-          fontWeight: 400,
+          fontWeight: isRareQuote ? 600 : 400,
           lineHeight: 1.55,
           letterSpacing: "0.01em",
-          textShadow: "0 0 20px rgba(168,85,247,0.30)",
+          textShadow: isRareQuote ? "0 0 24px rgba(254,224,71,0.60)" : "0 0 20px rgba(168,85,247,0.30)",
         }}
         animate={{ opacity: visible ? 1 : 0, y: visible ? 0 : -5 }}
         transition={{ duration: 0.4 }}
@@ -73,14 +83,14 @@ export function QuoteTicker() {
       </motion.p>
 
       <motion.p
-        key={`a-${quoteIdx}`}
+        key={isRareQuote ? "rare-a" : `a-${quoteIdx}`}
         className="mt-1.5 text-xs tracking-wider"
         style={{
-          color: "#A78BFA",
+          color: isRareQuote ? "#F59E0B" : "#A78BFA",
           fontFamily: "system-ui, sans-serif",
           fontWeight: 600,
           letterSpacing: "0.06em",
-          textShadow: "0 0 12px rgba(168,85,247,0.50)",
+          textShadow: isRareQuote ? "0 0 12px rgba(245,158,11,0.50)" : "0 0 12px rgba(168,85,247,0.50)",
         }}
         animate={{ opacity: visible ? 1 : 0 }}
         transition={{ duration: 0.4, delay: 0.08 }}
