@@ -12,8 +12,9 @@ import { WeatherWidget }    from "@/components/os/weather-widget"
 import { CalendarWidget }   from "@/components/os/calendar-widget"
 import { InteractiveCanvas } from "@/components/os/interactive-canvas"
 import { AuthGateModal }    from "@/components/os/auth-gate-modal"
+import { LoginScreen }      from "@/components/os/login-screen"
 import { MeetupProvider }   from "@/lib/meetup-context"
-import { signOut, isSessionValid } from "@/lib/auth-client"
+import { signOut, isSessionValid, getAccessToken, parseJwtPayload } from "@/lib/auth-client"
 import type { AppId }       from "@/lib/types"
 
 // ── Lazy-loaded app components ────────────────────────────────────────────────
@@ -176,15 +177,17 @@ const PROTECTED_APPS = new Set<AppId>([
 ])
 
 // ── Main component ────────────────────────────────────────────────────────────
-export function MobileHome({ onLogout, onRequireSignIn, isAdmin }: {
+export function MobileHome({ onLogout, onRequireSignIn: _onRequireSignIn, isAdmin: initialIsAdmin }: {
   onLogout: () => void
   onRequireSignIn: () => void
   isAdmin: boolean
 }) {
-  const [activeApp,   setActiveApp]   = useState<AppId | null>(null)
-  const [authGateApp, setAuthGateApp] = useState<AppId | null>(null)
-  const [gridPage,    setGridPage]    = useState(0)
-  const [statusTime,  setStatusTime]  = useState("")
+  const [activeApp,    setActiveApp]    = useState<AppId | null>(null)
+  const [authGateApp,  setAuthGateApp]  = useState<AppId | null>(null)
+  const [showLogin,    setShowLogin]    = useState(false)
+  const [isAdmin,      setIsAdmin]      = useState(initialIsAdmin)
+  const [gridPage,     setGridPage]     = useState(0)
+  const [statusTime,   setStatusTime]   = useState("")
 
   useEffect(() => {
     const upd = () => {
@@ -411,9 +414,37 @@ export function MobileHome({ onLogout, onRequireSignIn, isAdmin }: {
         {/* ── Auth Gate Modal ── */}
         <AuthGateModal
           appId={authGateApp}
-          onSignIn={() => { setAuthGateApp(null); onRequireSignIn() }}
+          onSignIn={() => { setAuthGateApp(null); setShowLogin(true) }}
           onDismiss={() => setAuthGateApp(null)}
         />
+
+        {/* ── Login overlay (shown when auth gate Sign In is tapped) ── */}
+        <AnimatePresence>
+          {showLogin && (
+            <motion.div
+              key="mobile-login"
+              className="fixed inset-0 z-[9999]"
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ type: "spring", stiffness: 280, damping: 28 }}
+            >
+              <LoginScreen
+                initialPhase="signin"
+                onLogin={() => {
+                  // Refresh admin status after sign-in
+                  const token = getAccessToken()
+                  if (token) {
+                    const payload = parseJwtPayload(token)
+                    const groups  = (payload["cognito:groups"] as string[]) || []
+                    setIsAdmin(groups.includes("admins"))
+                  }
+                  setShowLogin(false)
+                }}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </MeetupProvider>
   )

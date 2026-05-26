@@ -2,29 +2,25 @@
 
 import { useState, useEffect } from "react"
 import { AnimatePresence, motion } from "framer-motion"
-import { MobileLockscreen }  from "./mobile-lockscreen"
-import { MobileHome }        from "./mobile-home"
-import { LoginScreen }       from "@/components/os/login-screen"
+import { MobileLockscreen } from "./mobile-lockscreen"
+import { MobileHome }       from "./mobile-home"
 import {
   isSessionValid, refreshSession,
   getAccessToken, parseJwtPayload,
 } from "@/lib/auth-client"
 
-type MobileStage = "checking" | "lockscreen" | "login" | "home"
+type MobileStage = "checking" | "lockscreen" | "home"
 
 export function MobileOS() {
-  const [stage,        setStage]        = useState<MobileStage>("checking")
-  const [sessionValid, setSessionValid] = useState(false)
-  const [isAdmin,      setIsAdmin]      = useState(false)
+  const [stage,   setStage]   = useState<MobileStage>("checking")
+  const [isAdmin, setIsAdmin] = useState(false)
 
-  // Check if there's a valid session on mount
   useEffect(() => {
     async function check() {
       let valid = isSessionValid()
       if (!valid) {
         try { valid = await refreshSession() } catch { /* fall through */ }
       }
-      setSessionValid(valid)
       if (valid) refreshAdmin()
       setStage("lockscreen")
     }
@@ -39,24 +35,14 @@ export function MobileOS() {
     setIsAdmin(groups.includes("admins"))
   }
 
-  // Swipe-up from lock screen:
-  //   already logged in  →  go directly to home
-  //   not logged in      →  show login form
-  const handleUnlock = () => setStage(sessionValid ? "home" : "login")
-
-  const handleLogin = () => {
-    setSessionValid(true)
-    refreshAdmin()
-    setStage("home")
-  }
+  // Swipe-up always goes straight to home — no login gate on mobile
+  const handleUnlock = () => setStage("home")
 
   const handleLogout = () => {
-    setSessionValid(false)
     setIsAdmin(false)
     setStage("lockscreen")
   }
 
-  // Blank screen while checking session (avoids flash)
   if (stage === "checking") {
     return <div className="fixed inset-0" style={{ background: "#050310" }} />
   }
@@ -76,20 +62,6 @@ export function MobileOS() {
           </motion.div>
         )}
 
-        {stage === "login" && (
-          <motion.div
-            key="login"
-            className="absolute inset-0"
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ type: "spring", stiffness: 280, damping: 28 }}
-          >
-            {/* Skip the lock-screen phase — jump straight to sign-in */}
-            <LoginScreen onLogin={handleLogin} initialPhase="signin" />
-          </motion.div>
-        )}
-
         {stage === "home" && (
           <motion.div
             key="home"
@@ -100,7 +72,7 @@ export function MobileOS() {
           >
             <MobileHome
               onLogout={handleLogout}
-              onRequireSignIn={() => setStage("login")}
+              onRequireSignIn={() => {/* auth gate modal handles this */}}
               isAdmin={isAdmin}
             />
           </motion.div>
