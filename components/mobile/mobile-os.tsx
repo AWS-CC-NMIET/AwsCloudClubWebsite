@@ -98,7 +98,11 @@ export function MobileOS() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.32, ease: "easeOut" }}
           >
-            <MobileHome onLogout={handleLogout} isAdmin={isAdmin} />
+            <MobileHome
+              onLogout={handleLogout}
+              onRequireSignIn={() => setStage("login")}
+              isAdmin={isAdmin}
+            />
           </motion.div>
         )}
 

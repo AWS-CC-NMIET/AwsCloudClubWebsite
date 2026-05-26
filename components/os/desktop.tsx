@@ -10,15 +10,16 @@ import {
 import Image from "next/image"
 
 // OS chrome — always bundled (tiny, needed immediately)
-import { Window }        from "./window"
-import { Taskbar }       from "./taskbar"
-import { DesktopIcon }   from "./desktop-icon"
-import { StartMenu }     from "./start-menu"
-import { WeatherWidget } from "./weather-widget"
-import { CalendarWidget } from "./calendar-widget"
-import { Wallpaper }     from "./wallpaper"
-import { QuoteTicker }   from "./quote-ticker"
-import { AppDrawer }     from "./app-drawer"
+import { Window }          from "./window"
+import { Taskbar }         from "./taskbar"
+import { DesktopIcon }     from "./desktop-icon"
+import { StartMenu }       from "./start-menu"
+import { WeatherWidget }   from "./weather-widget"
+import { CalendarWidget }  from "./calendar-widget"
+import { Wallpaper }       from "./wallpaper"
+import { QuoteTicker }     from "./quote-ticker"
+import { AppDrawer }       from "./app-drawer"
+import { AuthGateModal }   from "./auth-gate-modal"
 
 // ── Lazy-loaded app components ────────────────────────────────────────────────
 // Each app is split into its own JS chunk and only fetched when the user
@@ -38,7 +39,7 @@ const AdminApp       = lazy(() => import("../apps/admin-app").then(m => ({ defau
 const GalleryApp     = lazy(() => import("../apps/gallery-app").then(m => ({ default: m.GalleryApp })))
 
 // Auth (server-side helpers — not chunked)
-import { getAccessToken, parseJwtPayload, signOut } from "@/lib/auth-client"
+import { getAccessToken, isSessionValid, parseJwtPayload, signOut } from "@/lib/auth-client"
 import { MeetupProvider } from "@/lib/meetup-context"
 import type { AppId, WindowState, AppMeta } from "@/lib/types"
 
@@ -110,8 +111,13 @@ function getInitialPosition(id: AppId) {
   return { x: 80 + (hash % 6) * 15, y: 40 + (hash % 4) * 15 }
 }
 
+// ── Apps that require an authenticated session ────────────────────────────────
+const PROTECTED_APPS = new Set<AppId>([
+  "gallery", "resources", "achievements", "projects", "profile",
+])
+
 // ── Desktop component ─────────────────────────────────────────────────────────
-export function Desktop({ onLogout }: { onLogout: () => void }) {
+export function Desktop({ onLogout, onRequireSignIn }: { onLogout: () => void; onRequireSignIn: () => void }) {
   const [windows, setWindows]       = useState<WindowState[]>([
     { id: "home", isMinimized: false, isMaximized: false, zIndex: 60 },
   ])
@@ -119,6 +125,7 @@ export function Desktop({ onLogout }: { onLogout: () => void }) {
   const [showStartMenu, setShowStartMenu] = useState(false)
   const [showMobileMenu, setShowMobileMenu] = useState(false)
   const [isAdmin, setIsAdmin]             = useState(false)
+  const [authGateApp, setAuthGateApp]     = useState<AppId | null>(null)
 
   // Sync mobile detection — no hydration flash (initialized to false to match SSR, updated on mount)
   const [isMobileDesktop, setIsMobileDesktop] = useState(false)
@@ -140,6 +147,11 @@ export function Desktop({ onLogout }: { onLogout: () => void }) {
 
   // ── Window management ──────────────────────────────────────────────────────
   const openApp = useCallback((appId: AppId) => {
+    // Auth guard — show modal for protected apps when not signed in
+    if (PROTECTED_APPS.has(appId) && !isSessionValid()) {
+      setAuthGateApp(appId)
+      return
+    }
     if (isMobileDesktop && appId === "home") {
       setWindows((prev) => prev.map((w) => ({ ...w, isMinimized: true })))
       return
@@ -157,7 +169,7 @@ export function Desktop({ onLogout }: { onLogout: () => void }) {
       setHighestZIndex((z) => z + 1)
       return [...prev, { id: appId, isMinimized: false, isMaximized: false, zIndex: highestZIndex + 1 }]
     })
-  }, [highestZIndex, isMobileDesktop])
+  }, [highestZIndex, isMobileDesktop, onRequireSignIn])
 
   const closeApp    = useCallback((id: AppId) => setWindows((p) => p.filter((w) => w.id !== id)), [])
   const minimizeApp = useCallback((id: AppId) => setWindows((p) => p.map((w) => w.id === id ? { ...w, isMinimized: true } : w)), [])
@@ -319,6 +331,13 @@ export function Desktop({ onLogout }: { onLogout: () => void }) {
         isOpen={showMobileMenu}
         onClose={() => setShowMobileMenu(false)}
         onAppClick={openApp}
+      />
+
+      {/* ── Auth Gate Modal ── */}
+      <AuthGateModal
+        appId={authGateApp}
+        onSignIn={() => { setAuthGateApp(null); onRequireSignIn() }}
+        onDismiss={() => setAuthGateApp(null)}
       />
     </div>
     </MeetupProvider>

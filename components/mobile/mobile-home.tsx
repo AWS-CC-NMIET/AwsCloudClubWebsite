@@ -11,8 +11,9 @@ import Image from "next/image"
 import { WeatherWidget }    from "@/components/os/weather-widget"
 import { CalendarWidget }   from "@/components/os/calendar-widget"
 import { InteractiveCanvas } from "@/components/os/interactive-canvas"
+import { AuthGateModal }    from "@/components/os/auth-gate-modal"
 import { MeetupProvider }   from "@/lib/meetup-context"
-import { signOut }          from "@/lib/auth-client"
+import { signOut, isSessionValid } from "@/lib/auth-client"
 import type { AppId }       from "@/lib/types"
 
 // ── Lazy-loaded app components ────────────────────────────────────────────────
@@ -169,11 +170,21 @@ function AppPanel({
   )
 }
 
+// ── Apps that require an authenticated session (mobile) ──────────────────────
+const PROTECTED_APPS = new Set<AppId>([
+  "gallery", "resources", "achievements", "projects", "profile",
+])
+
 // ── Main component ────────────────────────────────────────────────────────────
-export function MobileHome({ onLogout, isAdmin }: { onLogout: () => void; isAdmin: boolean }) {
-  const [activeApp,  setActiveApp]  = useState<AppId | null>(null)
-  const [gridPage,   setGridPage]   = useState(0)
-  const [statusTime, setStatusTime] = useState("")
+export function MobileHome({ onLogout, onRequireSignIn, isAdmin }: {
+  onLogout: () => void
+  onRequireSignIn: () => void
+  isAdmin: boolean
+}) {
+  const [activeApp,   setActiveApp]   = useState<AppId | null>(null)
+  const [authGateApp, setAuthGateApp] = useState<AppId | null>(null)
+  const [gridPage,    setGridPage]    = useState(0)
+  const [statusTime,  setStatusTime]  = useState("")
 
   useEffect(() => {
     const upd = () => {
@@ -187,7 +198,13 @@ export function MobileHome({ onLogout, isAdmin }: { onLogout: () => void; isAdmi
     return () => clearInterval(id)
   }, [])
 
-  const openApp  = (id: AppId) => setActiveApp(id)
+  const openApp  = (id: AppId) => {
+    if (PROTECTED_APPS.has(id) && !isSessionValid()) {
+      setAuthGateApp(id)
+      return
+    }
+    setActiveApp(id)
+  }
   const closeApp = ()          => setActiveApp(null)
 
   // ── Dock: 3 priority apps — all use same gradient style ──────────────────
@@ -390,6 +407,13 @@ export function MobileHome({ onLogout, isAdmin }: { onLogout: () => void; isAdmi
             </AppPanel>
           )}
         </AnimatePresence>
+
+        {/* ── Auth Gate Modal ── */}
+        <AuthGateModal
+          appId={authGateApp}
+          onSignIn={() => { setAuthGateApp(null); onRequireSignIn() }}
+          onDismiss={() => setAuthGateApp(null)}
+        />
       </div>
     </MeetupProvider>
   )
