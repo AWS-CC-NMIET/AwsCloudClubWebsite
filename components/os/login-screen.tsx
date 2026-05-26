@@ -226,6 +226,16 @@ export function LoginScreen({ onLogin, initialPhase = "lock" }: { onLogin: () =>
     upd(); const id = setInterval(upd, 1000); return () => clearInterval(id)
   }, [])
 
+  // Press Enter on the lock screen to bypass login and go directly to homepage
+  useEffect(() => {
+    if (phase !== "lock") return
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Enter") onLogin()
+    }
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [phase, onLogin])
+
   const clrErr = () => setError("")
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -332,31 +342,56 @@ export function LoginScreen({ onLogin, initialPhase = "lock" }: { onLogin: () =>
               <p className="text-base font-semibold mt-0.5" style={{ color: "#C4B5FD" }}>NMIET Chapter</p>
             </motion.div>
 
-            {/* Sign in / Sign up buttons */}
-            <motion.div className="flex flex-col items-center gap-3 mt-2"
+            {/* OS-style Press Enter prompt */}
+            <motion.div className="flex flex-col items-center gap-4 mt-2"
               initial={{ y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.55, duration: 0.5 }}>
 
-              <motion.button
-                onClick={() => setPhase("signin")}
-                className="flex items-center gap-3 px-8 py-2.5 rounded-full font-semibold text-sm text-white"
-                style={{
-                  background: "linear-gradient(135deg, rgba(155,143,255,0.4), rgba(196,181,253,0.25))",
-                  border: "1px solid rgba(196,181,253,0.45)",
-                  boxShadow: "0 4px 20px rgba(107,79,232,0.3)",
-                }}
-                whileHover={{ scale: 1.04, background: "rgba(155,143,255,0.55)" as unknown as undefined }}
-                whileTap={{ scale: 0.97 }}>
-                Sign In <ArrowRight className="h-4 w-4" />
-              </motion.button>
+              {/* Animated "Press Enter" hint */}
+              <motion.div
+                className="flex items-center gap-3"
+                animate={{ opacity: [0.45, 1, 0.45] }}
+                transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}>
+                <span
+                  className="text-sm font-light tracking-widest uppercase"
+                  style={{ color: "rgba(196,181,253,0.8)", letterSpacing: "0.22em" }}>
+                  Press
+                </span>
+                <kbd
+                  className="inline-flex items-center px-3 py-1 rounded-lg text-xs font-semibold"
+                  style={{
+                    background: "rgba(255,255,255,0.1)",
+                    border: "1px solid rgba(196,181,253,0.4)",
+                    color: "rgba(255,255,255,0.9)",
+                    boxShadow: "0 2px 0 rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.15)",
+                    letterSpacing: "0.05em",
+                    backdropFilter: "blur(6px)",
+                  }}>
+                  Enter
+                </kbd>
+                <span
+                  className="text-sm font-light tracking-widest uppercase"
+                  style={{ color: "rgba(196,181,253,0.8)", letterSpacing: "0.22em" }}>
+                  to continue
+                </span>
+              </motion.div>
 
-              <motion.button
-                onClick={() => setPhase("register")}
-                className="text-sm font-medium"
-                style={{ color: "rgba(196,181,253,0.7)" }}
-                whileHover={{ color: "rgba(255,255,255,0.95)" as unknown as undefined }}>
-                New user? <span style={{ color: "#C4B5FD", fontWeight: 600 }}>Create account</span>
-              </motion.button>
+              {/* Optional sign-in / register links — subtle, below the fold */}
+              <div className="flex items-center gap-4 mt-1">
+                <motion.button
+                  onClick={() => setPhase("signin")}
+                  className="text-xs font-medium hover:opacity-80 transition-opacity"
+                  style={{ color: "rgba(196,181,253,0.45)" }}>
+                  Sign In
+                </motion.button>
+                <span style={{ color: "rgba(196,181,253,0.2)", fontSize: 10 }}>·</span>
+                <motion.button
+                  onClick={() => setPhase("register")}
+                  className="text-xs font-medium hover:opacity-80 transition-opacity"
+                  style={{ color: "rgba(196,181,253,0.45)" }}>
+                  Create account
+                </motion.button>
+              </div>
             </motion.div>
           </motion.div>
         )}

@@ -9,11 +9,13 @@ import { MobileOS }    from "@/components/mobile/mobile-os"
 import { isSessionValid, refreshSession } from "@/lib/auth-client"
 
 type Stage = "checking" | "boot" | "login" | "desktop"
+type LoginEntry = "lock" | "signin"
 
 export default function CloudOS() {
   // null = device type not yet detected (avoids hydration mismatch)
   const [isMobile, setIsMobile] = useState<boolean | null>(null)
   const [stage, setStage]       = useState<Stage>("checking")
+  const [loginEntry, setLoginEntry] = useState<LoginEntry>("lock")
 
   useEffect(() => {
     // Console log easter egg ASCII Art
@@ -100,7 +102,7 @@ export default function CloudOS() {
             exit={{ opacity: 0, scale: 1.04 }}
             transition={{ duration: 0.45 }}
           >
-            <LoginScreen onLogin={() => setStage("desktop")} />
+            <LoginScreen onLogin={() => setStage("desktop")} initialPhase={loginEntry} />
           </motion.div>
         )}
 
@@ -112,7 +114,10 @@ export default function CloudOS() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
           >
-            <Desktop onLogout={() => setStage("login")} />
+            <Desktop
+              onLogout={() => { setLoginEntry("lock"); setStage("login") }}
+              onRequireSignIn={() => { setLoginEntry("signin"); setStage("login") }}
+            />
           </motion.div>
         )}
 
