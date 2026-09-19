@@ -123,20 +123,20 @@ const JOURNEY_STEPS = [
 
 export function AwsFlagshipApp() {
   return (
-    <div className="min-h-full w-full bg-[#18181d] text-neutral-100 selection:bg-[#7940ea]/30 selection:text-white">
+    <div className="min-h-full w-full bg-[#fbfbfe] dark:bg-[#18181d] text-neutral-800 dark:text-neutral-100 selection:bg-[#7940ea]/30 selection:text-white">
       <div className="mx-auto max-w-4xl px-5 py-8 md:px-10 md:py-12 space-y-12">
         {/* ── Editorial Header ────────────────────────────────────────────────── */}
         <section className="space-y-4">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#7940ea]/40 bg-[#7940ea]/10 px-3 py-1 font-mono text-xs font-semibold text-[#c084fc]">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[#7940ea]/40 bg-[#7940ea]/10 px-3 py-1 font-mono text-xs font-semibold text-[#7940ea] dark:text-[#c084fc]">
             <Sparkles className="size-3.5" />
             <span>AWS SBG NMIET · Official Student Builder Group</span>
           </div>
 
-          <h1 className="text-3xl font-extrabold tracking-tight md:text-5xl text-white leading-[1.12]">
+          <h1 className="text-3xl font-extrabold tracking-tight md:text-5xl text-neutral-900 dark:text-white leading-[1.12]">
             Empowering university students to build, architect, and lead on Amazon Web Services.
           </h1>
 
-          <p className="text-base md:text-lg leading-relaxed text-neutral-300 max-w-3xl">
+          <p className="text-base md:text-lg leading-relaxed text-neutral-600 dark:text-neutral-300 max-w-3xl">
             We bridge academic fundamentals and production-grade cloud engineering. AWS SBG NMIET
             is an official student-led engineering community providing hands-on cloud labs, certification
             mentorship, hackathon squads, and industry connections.
@@ -144,14 +144,14 @@ export function AwsFlagshipApp() {
 
           {/* Tech Pills */}
           <div className="pt-2">
-            <p className="text-xs font-mono uppercase tracking-wider text-neutral-400 mb-2.5">
+            <p className="text-xs font-mono uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2.5">
               Cloud Stack & Technologies:
             </p>
             <div className="flex flex-wrap gap-2">
               {TECH_PILLS.map(tech => (
                 <span
                   key={tech}
-                  className="rounded-md border border-white/12 bg-white/[0.06] px-2.5 py-1 text-xs font-medium text-neutral-200 hover:border-[#7940ea] hover:text-white hover:bg-[#7940ea]/10 transition-colors"
+                  className="rounded-md border border-black/10 dark:border-white/12 bg-black/[0.04] dark:bg-white/[0.06] px-2.5 py-1 text-xs font-medium text-neutral-700 dark:text-neutral-200 hover:border-[#7940ea] hover:text-[#7940ea] dark:hover:text-white hover:bg-[#7940ea]/10 transition-colors"
                 >
                   {tech}
                 </span>
@@ -161,40 +161,40 @@ export function AwsFlagshipApp() {
         </section>
 
         {/* ── Verified Results Grid ────────────────────────────────────────────── */}
-        <section className="border-t border-white/10 pt-8">
-          <h2 className="text-xs font-mono uppercase tracking-[0.2em] text-[#a855f7] font-bold mb-5">
+        <section className="border-t border-black/10 dark:border-white/10 pt-8">
+          <h2 className="text-xs font-mono uppercase tracking-[0.2em] text-[#7940ea] dark:text-[#a855f7] font-bold mb-5">
             Verified Community Impact
           </h2>
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             {STATS.map(stat => (
               <div
                 key={stat.label}
-                className="rounded-xl border border-white/10 bg-[#222228] p-4 space-y-1 shadow-md hover:border-[#7940ea]/40 transition-colors"
+                className="rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-[#222228] p-4 space-y-1 shadow-xs dark:shadow-md hover:border-[#7940ea]/40 transition-colors"
               >
-                <span className="text-3xl font-extrabold text-white tracking-tight">
+                <span className="text-3xl font-extrabold text-neutral-900 dark:text-white tracking-tight">
                   {stat.value}
                 </span>
-                <p className="text-xs font-semibold text-neutral-200">{stat.label}</p>
-                <p className="text-[11px] text-neutral-400">{stat.context}</p>
+                <p className="text-xs font-semibold text-neutral-700 dark:text-neutral-200">{stat.label}</p>
+                <p className="text-[11px] text-neutral-500 dark:text-neutral-400">{stat.context}</p>
               </div>
             ))}
           </div>
         </section>
 
         {/* ── Selected Work Showcase ───────────────────────────────────────────── */}
-        <section className="border-t border-white/10 pt-8 space-y-6">
+        <section className="border-t border-black/10 dark:border-white/10 pt-8 space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-xs font-mono uppercase tracking-[0.2em] text-[#a855f7] font-bold">
+              <h2 className="text-xs font-mono uppercase tracking-[0.2em] text-[#7940ea] dark:text-[#a855f7] font-bold">
                 Featured Deployments
               </h2>
-              <p className="text-xl font-bold text-white mt-1">
+              <p className="text-xl font-bold text-neutral-900 dark:text-white mt-1">
                 Cloud architectures engineered by club members
               </p>
             </div>
             <button
               onClick={() => windowActions.open("finder")}
-              className="hidden items-center gap-1 text-xs font-bold text-[#a855f7] hover:text-[#c084fc] hover:underline sm:flex"
+              className="hidden items-center gap-1 text-xs font-bold text-[#7940ea] dark:text-[#a855f7] hover:text-[#9333ea] dark:hover:text-[#c084fc] hover:underline sm:flex"
             >
               <span>Open Finder</span>
               <ArrowRight className="size-3.5" />
@@ -205,26 +205,26 @@ export function AwsFlagshipApp() {
             {FEATURED_PROJECTS.map(item => (
               <div
                 key={item.slug}
-                className="group flex flex-col justify-between rounded-xl border border-white/10 bg-[#222228] p-5 hover:border-[#7940ea]/50 hover:bg-[#25252c] transition-all shadow-md"
+                className="group flex flex-col justify-between rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-[#222228] p-5 hover:border-[#7940ea]/50 hover:bg-neutral-50 dark:hover:bg-[#25252c] transition-all shadow-xs dark:shadow-md"
               >
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-mono font-medium text-[#a855f7]">
+                    <span className="text-xs font-mono font-medium text-[#7940ea] dark:text-[#a855f7]">
                       {item.result} · {item.context}
                     </span>
                   </div>
-                  <h3 className="text-lg font-bold text-white group-hover:text-[#c084fc] transition-colors">
+                  <h3 className="text-lg font-bold text-neutral-900 dark:text-white group-hover:text-[#7940ea] dark:group-hover:text-[#c084fc] transition-colors">
                     {item.title}
                   </h3>
-                  <p className="text-xs leading-relaxed text-neutral-300">{item.summary}</p>
+                  <p className="text-xs leading-relaxed text-neutral-600 dark:text-neutral-300">{item.summary}</p>
                 </div>
 
-                <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-3">
+                <div className="mt-4 flex items-center justify-between border-t border-black/10 dark:border-white/10 pt-3">
                   <div className="flex flex-wrap gap-1">
                     {item.tags.slice(0, 3).map(tag => (
                       <span
                         key={tag}
-                        className="rounded bg-white/10 px-1.5 py-0.5 text-[10px] font-mono text-neutral-300"
+                        className="rounded bg-black/5 dark:bg-white/10 px-1.5 py-0.5 text-[10px] font-mono text-neutral-600 dark:text-neutral-300"
                       >
                         {tag}
                       </span>
@@ -232,7 +232,7 @@ export function AwsFlagshipApp() {
                   </div>
                   <button
                     onClick={() => windowActions.open("finder")}
-                    className="text-xs font-medium text-[#a855f7] hover:text-[#c084fc] hover:underline flex items-center gap-1"
+                    className="text-xs font-medium text-[#7940ea] dark:text-[#a855f7] hover:text-[#9333ea] dark:hover:text-[#c084fc] hover:underline flex items-center gap-1"
                   >
                     Details <ExternalLink className="size-3" />
                   </button>
@@ -243,12 +243,12 @@ export function AwsFlagshipApp() {
         </section>
 
         {/* ── Club Tracks & Features ───────────────────────────────────────────── */}
-        <section className="border-t border-white/10 pt-8 space-y-6">
+        <section className="border-t border-black/10 dark:border-white/10 pt-8 space-y-6">
           <div>
-            <h2 className="text-xs font-mono uppercase tracking-[0.2em] text-[#a855f7] font-bold">
+            <h2 className="text-xs font-mono uppercase tracking-[0.2em] text-[#7940ea] dark:text-[#a855f7] font-bold">
               Core Club Offerings
             </h2>
-            <p className="text-xl font-bold text-white mt-1">
+            <p className="text-xl font-bold text-neutral-900 dark:text-white mt-1">
               How we prepare students for high-scale cloud careers
             </p>
           </div>
@@ -257,23 +257,23 @@ export function AwsFlagshipApp() {
             {CLUB_PILLARS.map(pillar => (
               <div
                 key={pillar.title}
-                className="rounded-xl border border-white/10 bg-[#222228] p-5 space-y-2 hover:border-[#7940ea]/40 transition-colors shadow-md"
+                className="rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-[#222228] p-5 space-y-2 hover:border-[#7940ea]/40 transition-colors shadow-xs dark:shadow-md"
               >
-                <h3 className="text-base font-bold text-white">{pillar.title}</h3>
-                <p className="text-xs leading-relaxed text-neutral-300">{pillar.description}</p>
-                <p className="text-[11px] font-mono text-[#a855f7] font-medium pt-1">{pillar.credit}</p>
+                <h3 className="text-base font-bold text-neutral-900 dark:text-white">{pillar.title}</h3>
+                <p className="text-xs leading-relaxed text-neutral-600 dark:text-neutral-300">{pillar.description}</p>
+                <p className="text-[11px] font-mono text-[#7940ea] dark:text-[#a855f7] font-medium pt-1">{pillar.credit}</p>
               </div>
             ))}
           </div>
         </section>
 
         {/* ── Four-Step Builder Journey ────────────────────────────────────────── */}
-        <section className="border-t border-white/10 pt-8 space-y-6">
+        <section className="border-t border-black/10 dark:border-white/10 pt-8 space-y-6">
           <div>
-            <h2 className="text-xs font-mono uppercase tracking-[0.2em] text-[#a855f7] font-bold">
+            <h2 className="text-xs font-mono uppercase tracking-[0.2em] text-[#7940ea] dark:text-[#a855f7] font-bold">
               The Builder Curriculum
             </h2>
-            <p className="text-xl font-bold text-white mt-1">
+            <p className="text-xl font-bold text-neutral-900 dark:text-white mt-1">
               From zero cloud knowledge to certified builder
             </p>
           </div>
@@ -282,20 +282,20 @@ export function AwsFlagshipApp() {
             {JOURNEY_STEPS.map(step => (
               <div
                 key={step.number}
-                className="rounded-xl border border-white/10 bg-[#222228] p-4 space-y-2 hover:border-[#7940ea]/40 transition-colors shadow-md"
+                className="rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-[#222228] p-4 space-y-2 hover:border-[#7940ea]/40 transition-colors shadow-xs dark:shadow-md"
               >
-                <span className="font-mono text-xs font-bold text-[#a855f7]">{step.number}</span>
-                <h3 className="text-sm font-bold text-white">{step.title}</h3>
-                <p className="text-xs leading-relaxed text-neutral-300">{step.body}</p>
+                <span className="font-mono text-xs font-bold text-[#7940ea] dark:text-[#a855f7]">{step.number}</span>
+                <h3 className="text-sm font-bold text-neutral-900 dark:text-white">{step.title}</h3>
+                <p className="text-xs leading-relaxed text-neutral-600 dark:text-neutral-300">{step.body}</p>
               </div>
             ))}
           </div>
         </section>
 
         {/* ── Primary Call to Action ───────────────────────────────────────────── */}
-        <section className="rounded-2xl border border-[#7940ea]/30 bg-gradient-to-br from-[#7940ea]/20 via-purple-900/10 to-[#222228] p-6 md:p-8 space-y-4 shadow-xl">
-          <h2 className="text-2xl font-bold text-white">Ready to build in the cloud?</h2>
-          <p className="text-sm leading-relaxed text-neutral-300 max-w-xl">
+        <section className="rounded-2xl border border-[#7940ea]/30 bg-gradient-to-br from-[#7940ea]/15 via-purple-500/10 to-neutral-100 dark:to-[#222228] p-6 md:p-8 space-y-4 shadow-xl">
+          <h2 className="text-2xl font-bold text-neutral-900 dark:text-white">Ready to build in the cloud?</h2>
+          <p className="text-sm leading-relaxed text-neutral-600 dark:text-neutral-300 max-w-xl">
             Join the AWS SBG NMIET chapter today. Attend our upcoming workshops, get access to
             certification vouchers, and collaborate with student developers building real software.
           </p>
@@ -311,14 +311,14 @@ export function AwsFlagshipApp() {
 
             <button
               onClick={() => windowActions.open("calendar")}
-              className="flex items-center gap-2 rounded-lg border border-white/15 bg-[#282832] px-4 py-2.5 text-xs font-semibold text-white hover:border-[#7940ea] hover:bg-[#7940ea]/10 transition-colors"
+              className="flex items-center gap-2 rounded-lg border border-black/10 dark:border-white/15 bg-white dark:bg-[#282832] px-4 py-2.5 text-xs font-semibold text-neutral-800 dark:text-white hover:border-[#7940ea] hover:bg-[#7940ea]/10 transition-colors"
             >
               <span>Upcoming Workshops</span>
             </button>
 
             <button
               onClick={() => windowActions.open("notes")}
-              className="flex items-center gap-2 rounded-lg border border-white/15 bg-[#282832] px-4 py-2.5 text-xs font-semibold text-white hover:border-[#7940ea] hover:bg-[#7940ea]/10 transition-colors"
+              className="flex items-center gap-2 rounded-lg border border-black/10 dark:border-white/15 bg-white dark:bg-[#282832] px-4 py-2.5 text-xs font-semibold text-neutral-800 dark:text-white hover:border-[#7940ea] hover:bg-[#7940ea]/10 transition-colors"
             >
               <span>Certification Roadmaps</span>
             </button>

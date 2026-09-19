@@ -18,6 +18,7 @@ import {
   Activity,
   Lock,
   ChevronRight,
+  Sun,
 } from "lucide-react"
 import {
   useSystemStore,
@@ -164,6 +165,7 @@ export function SettingsApp({ payload }: { payload?: { pane?: string } }) {
   const [searchQuery, setSearchQuery] = useState("")
   const appearance = useSystemStore(s => s.appearance)
   const currentWallpaper = useSystemStore(s => s.wallpaper)
+  const brightness = useSystemStore(s => s.brightness)
 
   useEffect(() => {
     if (payload?.pane) {
@@ -315,29 +317,57 @@ export function SettingsApp({ payload }: { payload?: { pane?: string } }) {
                 onClick={() => systemActions.setAppearance("light")}
                 className={`flex flex-col items-center gap-2.5 rounded-xl border p-4 text-center transition-all ${
                   appearance === "light"
-                    ? "border-[#7940ea] ring-2 ring-[#7940ea]/30 bg-black/5"
-                    : "border-(--win-divider) hover:bg-black/5"
+                    ? "border-[#7940ea] ring-2 ring-[#7940ea]/30 bg-black/5 dark:bg-white/5"
+                    : "border-(--win-divider) hover:bg-black/5 dark:hover:bg-white/5"
                 }`}
               >
                 <div className="h-16 w-full rounded-lg bg-neutral-100 border border-neutral-300 flex items-center justify-center text-xs font-bold text-neutral-800 shadow-inner">
                   Light Theme
                 </div>
-                <span className="text-xs font-semibold">Light</span>
+                <span className="text-xs font-semibold text-(--os-text)">Light</span>
               </button>
 
               <button
                 onClick={() => systemActions.setAppearance("dark")}
                 className={`flex flex-col items-center gap-2.5 rounded-xl border p-4 text-center transition-all ${
                   appearance === "dark"
-                    ? "border-[#7940ea] ring-2 ring-[#7940ea]/30 bg-white/5"
-                    : "border-(--win-divider) hover:bg-white/5"
+                    ? "border-[#7940ea] ring-2 ring-[#7940ea]/30 bg-black/5 dark:bg-white/5"
+                    : "border-(--win-divider) hover:bg-black/5 dark:hover:bg-white/5"
                 }`}
               >
                 <div className="h-16 w-full rounded-lg bg-neutral-900 border border-neutral-700 flex items-center justify-center text-xs font-bold text-neutral-100 shadow-inner">
                   Dark Theme
                 </div>
-                <span className="text-xs font-semibold">Dark</span>
+                <span className="text-xs font-semibold text-(--os-text)">Dark</span>
               </button>
+            </div>
+
+            {/* Display Brightness Section */}
+            <div className="pt-4 border-t border-(--win-divider) space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xs font-bold text-(--os-text)">Display Brightness</h3>
+                  <p className="text-[11px] text-(--os-text-dim)">
+                    Adjust screen brightness for optimal clarity and comfort.
+                  </p>
+                </div>
+                <span className="text-xs font-mono font-semibold text-(--os-text)">
+                  {Math.round(brightness * 100)}%
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Sun className="size-4 text-amber-500 shrink-0" />
+                <input
+                  type="range"
+                  min="0.3"
+                  max="1"
+                  step="0.01"
+                  value={brightness}
+                  onChange={e => systemActions.setBrightness(parseFloat(e.target.value))}
+                  className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-black/10 dark:bg-white/20 accent-[#7940ea]"
+                />
+                <Sun className="size-5 text-amber-500 shrink-0" />
+              </div>
             </div>
 
             {/* Accent Color Selection */}

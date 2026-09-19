@@ -148,7 +148,9 @@ export function AwsMenuBar({ onLockScreen }: { onLockScreen?: () => void }) {
 
   const itemClass = (isOpen: boolean) =>
     `flex h-full items-center rounded px-2.5 text-[13px] font-medium transition-colors ${
-      isOpen ? "bg-[#7940ea] text-white" : "text-(--os-text) hover:bg-black/5 dark:hover:bg-white/10"
+      isOpen
+        ? "bg-[#7940ea] text-white"
+        : "text-neutral-800 dark:text-neutral-200 hover:bg-black/5 dark:hover:bg-white/10"
     }`
 
   const handlePointerEnterMenu = (menuId: string) => {
@@ -161,7 +163,7 @@ export function AwsMenuBar({ onLockScreen }: { onLockScreen?: () => void }) {
     <>
       <header
         ref={containerRef}
-        className="fixed inset-x-0 top-0 z-[950] flex h-7 items-stretch justify-between border-b border-black/5 bg-(--menubar-bg) px-1.5 text-(--os-text) backdrop-blur-2xl dark:border-white/5 select-none"
+        className="fixed inset-x-0 top-0 z-[950] flex h-7 items-stretch justify-between border-b border-black/10 dark:border-white/10 bg-[#f6f6f8]/85 dark:bg-[#16161c]/85 px-1.5 text-neutral-800 dark:text-neutral-200 backdrop-blur-2xl select-none shadow-xs"
       >
         {/* ── Left Menus ────────────────────────────────────────────────────────── */}
         <div className="flex items-stretch gap-0.5">
@@ -184,12 +186,12 @@ export function AwsMenuBar({ onLockScreen }: { onLockScreen?: () => void }) {
             </button>
 
             {activeDropdown === "logo-menu" && (
-              <div className="absolute left-0 top-full mt-1 min-w-60 rounded-lg border border-black/10 bg-(--menu-bg) p-1 shadow-2xl backdrop-blur-2xl dark:border-white/10 animate-in fade-in zoom-in-95 duration-100 z-[960]">
+              <div className="absolute left-0 top-full mt-1 min-w-60 rounded-lg border border-black/10 dark:border-white/10 bg-white/95 dark:bg-[#202028]/95 p-1 shadow-2xl backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-100 z-[960]">
                 {systemMenuItems.map((item, i) => (
                   <React.Fragment key={i}>
                     <button
                       onClick={() => executeCommand(item.command)}
-                      className="flex w-full items-center justify-between gap-8 rounded-[5px] px-2.5 py-[3px] text-left text-[13px] text-(--os-text) hover:bg-[#7940ea] hover:text-white transition-colors"
+                      className="flex w-full items-center justify-between gap-8 rounded-[5px] px-2.5 py-[3px] text-left text-[13px] text-neutral-800 dark:text-neutral-200 hover:bg-[#7940ea] hover:text-white transition-colors"
                     >
                       <span>{item.label}</span>
                       {item.shortcut && (
@@ -211,14 +213,14 @@ export function AwsMenuBar({ onLockScreen }: { onLockScreen?: () => void }) {
               className={`flex h-full items-center rounded px-2 text-[13px] font-bold tracking-tight transition-colors ${
                 activeDropdown === "app-menu"
                   ? "bg-[#7940ea] text-white"
-                  : "text-(--os-text) hover:bg-black/5 dark:hover:bg-white/10"
+                  : "text-neutral-900 dark:text-neutral-100 hover:bg-black/5 dark:hover:bg-white/10"
               }`}
             >
               {focusedMeta.name}
             </button>
 
             {activeDropdown === "app-menu" && (
-              <div className="absolute left-0 top-full mt-1 min-w-60 rounded-lg border border-black/10 bg-(--menu-bg) p-1 shadow-2xl backdrop-blur-2xl dark:border-white/10 animate-in fade-in zoom-in-95 duration-100 z-[960]">
+              <div className="absolute left-0 top-full mt-1 min-w-60 rounded-lg border border-black/10 dark:border-white/10 bg-white/95 dark:bg-[#202028]/95 p-1 shadow-2xl backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-100 z-[960]">
                 {appMenuItems.map((item, idx) => (
                   <React.Fragment key={idx}>
                     <button
@@ -226,8 +228,8 @@ export function AwsMenuBar({ onLockScreen }: { onLockScreen?: () => void }) {
                       onClick={() => executeCommand(item.command)}
                       className={`flex w-full items-center justify-between gap-8 rounded-[5px] px-2.5 py-[3px] text-left text-[13px] transition-colors ${
                         item.disabled
-                          ? "cursor-default text-(--os-text-dim) opacity-40"
-                          : "text-(--os-text) hover:bg-[#7940ea] hover:text-white"
+                          ? "cursor-default text-neutral-400 dark:text-neutral-500 opacity-40"
+                          : "text-neutral-800 dark:text-neutral-200 hover:bg-[#7940ea] hover:text-white"
                       }`}
                     >
                       <span>{item.label}</span>
@@ -255,7 +257,7 @@ export function AwsMenuBar({ onLockScreen }: { onLockScreen?: () => void }) {
                 </button>
 
                 {activeDropdown === menu.title && (
-                  <div className="absolute left-0 top-full mt-1 min-w-60 rounded-lg border border-black/10 bg-(--menu-bg) p-1 shadow-2xl backdrop-blur-2xl dark:border-white/10 animate-in fade-in zoom-in-95 duration-100 z-[960]">
+                  <div className="absolute left-0 top-full mt-1 min-w-60 rounded-lg border border-black/10 dark:border-white/10 bg-white/95 dark:bg-[#202028]/95 p-1 shadow-2xl backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-100 z-[960]">
                     {menu.items.map((item, idx) => (
                       <React.Fragment key={idx}>
                         <button
@@ -263,8 +265,8 @@ export function AwsMenuBar({ onLockScreen }: { onLockScreen?: () => void }) {
                           onClick={() => executeCommand(item.command)}
                           className={`flex w-full items-center justify-between gap-8 rounded-[5px] px-2.5 py-[3px] text-left text-[13px] transition-colors ${
                             item.disabled
-                              ? "cursor-default text-(--os-text-dim) opacity-40"
-                              : "text-(--os-text) hover:bg-[#7940ea] hover:text-white"
+                              ? "cursor-default text-neutral-400 dark:text-neutral-500 opacity-40"
+                              : "text-neutral-800 dark:text-neutral-200 hover:bg-[#7940ea] hover:text-white"
                           }`}
                         >
                           <span>{item.label}</span>
@@ -287,10 +289,10 @@ export function AwsMenuBar({ onLockScreen }: { onLockScreen?: () => void }) {
           {/* AWS Cloud Health Pill */}
           <button
             onClick={() => windowActions.open("aws")}
-            className="hidden items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-0.5 text-xs text-neutral-200 hover:bg-[#7940ea]/30 transition-colors sm:flex"
+            className="hidden items-center gap-1.5 rounded-full bg-black/5 dark:bg-white/10 px-2.5 py-0.5 text-xs text-neutral-800 dark:text-neutral-200 hover:bg-[#7940ea]/15 dark:hover:bg-[#7940ea]/30 transition-colors sm:flex border border-black/10 dark:border-white/10"
             title="AWS SBG NMIET Chapter Status"
           >
-            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
+            <span className="h-2 w-2 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
             <span className="font-mono text-[11px] font-semibold tracking-wide">AWS SBG NMIET Active</span>
           </button>
 
@@ -302,7 +304,7 @@ export function AwsMenuBar({ onLockScreen }: { onLockScreen?: () => void }) {
             title={isAudioPlaying ? "AWS SBG Radio (Playing)" : "AWS SBG Radio (Paused)"}
           >
             {isAudioMuted || !isAudioPlaying ? (
-              <VolumeX className="h-3.5 w-3.5 text-neutral-400" />
+              <VolumeX className="h-3.5 w-3.5 opacity-60" />
             ) : (
               <Volume2 className="h-3.5 w-3.5 text-[#8c4bff] animate-pulse" />
             )}
@@ -316,31 +318,31 @@ export function AwsMenuBar({ onLockScreen }: { onLockScreen?: () => void }) {
               aria-label="Wi-Fi Networks"
               title="Wi-Fi: Connected to AWS-SBG-NMIET-5G"
             >
-              <Wifi className="h-3.5 w-3.5 text-neutral-200" />
+              <Wifi className="h-3.5 w-3.5" />
             </button>
 
             {wifiMenuOpen && (
-              <div className="absolute right-0 top-full mt-1 min-w-[240px] rounded-xl border border-black/10 bg-(--menu-bg) p-2 text-[13px] text-(--os-text) shadow-2xl backdrop-blur-3xl dark:border-white/10 animate-in fade-in zoom-in-95 duration-100 z-[960]">
+              <div className="absolute right-0 top-full mt-1 min-w-[240px] rounded-xl border border-black/10 dark:border-white/10 bg-white/95 dark:bg-[#202028]/95 p-2 text-[13px] text-neutral-800 dark:text-neutral-100 shadow-2xl backdrop-blur-3xl animate-in fade-in zoom-in-95 duration-100 z-[960]">
                 <div className="flex items-center justify-between px-2 py-1 border-b border-black/10 dark:border-white/10 mb-1">
-                  <span className="font-semibold text-xs">Wi-Fi</span>
-                  <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">Connected</span>
+                  <span className="font-semibold text-xs text-neutral-800 dark:text-neutral-100">Wi-Fi</span>
+                  <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">Connected</span>
                 </div>
                 <div className="space-y-0.5">
-                  <div className="flex items-center justify-between px-2 py-1.5 rounded-lg bg-[#7940ea]/20 text-[#7940ea] dark:text-[#c084fc] font-semibold text-xs">
+                  <div className="flex items-center justify-between px-2 py-1.5 rounded-lg bg-[#7940ea]/15 dark:bg-[#7940ea]/20 text-[#7940ea] dark:text-[#c084fc] font-semibold text-xs">
                     <div className="flex items-center gap-2">
-                      <Wifi className="size-3.5 text-[#7940ea]" />
+                      <Wifi className="size-3.5 text-[#7940ea] dark:text-[#c084fc]" />
                       <span>AWS-SBG-NMIET-5G</span>
                     </div>
-                    <Check className="size-3.5 text-emerald-400" />
+                    <Check className="size-3.5 text-emerald-500 dark:text-emerald-400" />
                   </div>
-                  <div className="flex items-center justify-between px-2 py-1.5 rounded-lg text-(--os-text-dim) hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-xs">
+                  <div className="flex items-center justify-between px-2 py-1.5 rounded-lg text-neutral-600 dark:text-neutral-400 hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-xs">
                     <div className="flex items-center gap-2">
                       <Wifi className="size-3.5 opacity-50" />
                       <span>NMIET-Campus-WiFi</span>
                     </div>
                     <Lock className="size-3 opacity-50" />
                   </div>
-                  <div className="flex items-center justify-between px-2 py-1.5 rounded-lg text-(--os-text-dim) hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-xs">
+                  <div className="flex items-center justify-between px-2 py-1.5 rounded-lg text-neutral-600 dark:text-neutral-400 hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-xs">
                     <div className="flex items-center gap-2">
                       <Wifi className="size-3.5 opacity-50" />
                       <span>AWS-Guest</span>
@@ -354,7 +356,7 @@ export function AwsMenuBar({ onLockScreen }: { onLockScreen?: () => void }) {
                       windowActions.open("settings")
                       setWifiMenuOpen(false)
                     }}
-                    className="w-full text-left px-2 py-1 rounded text-xs text-(--os-text) hover:bg-[#7940ea] hover:text-white transition-colors"
+                    className="w-full text-left px-2 py-1 rounded text-xs text-neutral-800 dark:text-neutral-200 hover:bg-[#7940ea] hover:text-white transition-colors"
                   >
                     Wi-Fi Settings…
                   </button>
@@ -370,7 +372,7 @@ export function AwsMenuBar({ onLockScreen }: { onLockScreen?: () => void }) {
             aria-label="Spotlight Search (Cmd+K)"
             title="Spotlight Search (⌘K)"
           >
-            <Search className="h-3.5 w-3.5 text-neutral-200" />
+            <Search className="h-3.5 w-3.5" />
           </button>
 
           {/* Control Center Toggle */}
@@ -381,13 +383,13 @@ export function AwsMenuBar({ onLockScreen }: { onLockScreen?: () => void }) {
             aria-label="Control Center"
             title="Control Center"
           >
-            <Sliders className="h-3.5 w-3.5 text-neutral-200" />
+            <Sliders className="h-3.5 w-3.5" />
           </button>
 
           {/* Date and Time */}
-          <div className="flex items-center gap-1.5 px-2 text-[13px] font-medium text-neutral-100 tracking-tight">
-            <span className="hidden sm:inline text-neutral-300">{currentDate}</span>
-            <span>{currentTime}</span>
+          <div className="flex items-center gap-1.5 px-2 text-[13px] font-medium text-neutral-800 dark:text-neutral-200 tracking-tight">
+            <span className="hidden sm:inline text-neutral-500 dark:text-neutral-400">{currentDate}</span>
+            <span className="font-semibold text-neutral-900 dark:text-neutral-100">{currentTime}</span>
           </div>
         </div>
       </header>

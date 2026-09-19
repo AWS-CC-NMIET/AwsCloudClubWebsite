@@ -6,6 +6,7 @@ import { BootScreen } from "@/components/os/boot-screen"
 import { LoginScreen } from "@/components/os/login-screen"
 import { DesktopContainer } from "@/components/os/desktop-container"
 import { MobileOS } from "@/components/mobile/mobile-os"
+import { ScreenBrightnessOverlay } from "@/components/os/screen-brightness-overlay"
 import { isSessionValid, refreshSession } from "@/lib/auth-client"
 
 type Stage = "checking" | "boot" | "login" | "desktop"
@@ -75,63 +76,76 @@ export default function CloudOS() {
 
   // ── Mobile ──────────────────────────────────────────────────────────────────
   if (isMobile) {
-    return <MobileOS />
+    return (
+      <>
+        <MobileOS />
+        <ScreenBrightnessOverlay />
+      </>
+    )
   }
 
   // ── Desktop ─────────────────────────────────────────────────────────────────
   if (stage === "checking") {
-    return <main className="wallpaper h-screen w-screen" />
+    return (
+      <>
+        <main className="wallpaper h-screen w-screen" />
+        <ScreenBrightnessOverlay />
+      </>
+    )
   }
 
   return (
-    <main className="h-screen w-screen overflow-hidden">
-      <AnimatePresence mode="wait">
-        {stage === "boot" && (
-          <motion.div
-            key="boot"
-            className="absolute inset-0"
-            initial={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <BootScreen onComplete={() => setStage("desktop")} />
-          </motion.div>
-        )}
+    <>
+      <main className="h-screen w-screen overflow-hidden">
+        <AnimatePresence mode="wait">
+          {stage === "boot" && (
+            <motion.div
+              key="boot"
+              className="absolute inset-0"
+              initial={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <BootScreen onComplete={() => setStage("desktop")} />
+            </motion.div>
+          )}
 
-        {stage === "login" && (
-          <motion.div
-            key="login"
-            className="absolute inset-0"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, scale: 1.04 }}
-            transition={{ duration: 0.45 }}
-          >
-            <LoginScreen onLogin={() => setStage("desktop")} initialPhase={loginEntry} />
-          </motion.div>
-        )}
+          {stage === "login" && (
+            <motion.div
+              key="login"
+              className="absolute inset-0"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0, scale: 1.04 }}
+              transition={{ duration: 0.45 }}
+            >
+              <LoginScreen onLogin={() => setStage("desktop")} initialPhase={loginEntry} />
+            </motion.div>
+          )}
 
-        {stage === "desktop" && (
-          <motion.div
-            key="desktop"
-            className="absolute inset-0"
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-          >
-            <DesktopContainer
-              onLogout={() => {
-                setLoginEntry("lock")
-                setStage("login")
-              }}
-              onRequireSignIn={() => {
-                setLoginEntry("signin")
-                setStage("login")
-              }}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </main>
+          {stage === "desktop" && (
+            <motion.div
+              key="desktop"
+              className="absolute inset-0"
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+            >
+              <DesktopContainer
+                onLogout={() => {
+                  setLoginEntry("lock")
+                  setStage("login")
+                }}
+                onRequireSignIn={() => {
+                  setLoginEntry("signin")
+                  setStage("login")
+                }}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </main>
+      <ScreenBrightnessOverlay />
+    </>
   )
 }

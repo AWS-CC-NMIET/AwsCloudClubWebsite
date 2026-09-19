@@ -201,14 +201,14 @@ export function AwsDesktop({ children }: { children?: React.ReactNode }) {
       {contextMenu && (
         <div
           style={{ position: "fixed", left: contextMenu.x, top: contextMenu.y }}
-          className="z-[999] min-w-[200px] rounded-lg border border-white/15 bg-[#202028]/95 p-1 text-[13px] text-white shadow-2xl backdrop-blur-3xl animate-in fade-in zoom-in-95 duration-100"
+          className="z-[999] min-w-[200px] rounded-xl border border-black/10 dark:border-white/15 bg-white/90 dark:bg-[#202028]/95 p-1 text-[13px] text-neutral-800 dark:text-neutral-200 shadow-2xl backdrop-blur-3xl animate-in fade-in zoom-in-95 duration-100"
         >
           <button
             onClick={() => {
               windowActions.open("settings", { pane: "wallpaper" })
               setContextMenu(null)
             }}
-            className="flex w-full items-center justify-between px-3 py-1.5 text-left rounded-md text-neutral-200 hover:bg-[#7940ea] hover:text-white font-medium transition-colors"
+            className="flex w-full items-center justify-between px-3 py-1.5 text-left rounded-md text-neutral-800 dark:text-neutral-200 hover:bg-[#7940ea] hover:text-white font-medium transition-colors"
           >
             <span>Edit Background…</span>
             <span className="text-[10px] opacity-60 font-mono">⌘,</span>
@@ -219,7 +219,7 @@ export function AwsDesktop({ children }: { children?: React.ReactNode }) {
               systemActions.setControlCenterOpen(true)
               setContextMenu(null)
             }}
-            className="flex w-full items-center justify-between px-3 py-1.5 text-left rounded-md text-neutral-200 hover:bg-[#7940ea] hover:text-white font-medium transition-colors"
+            className="flex w-full items-center justify-between px-3 py-1.5 text-left rounded-md text-neutral-800 dark:text-neutral-200 hover:bg-[#7940ea] hover:text-white font-medium transition-colors"
           >
             <span>Control Center</span>
           </button>
@@ -228,18 +228,18 @@ export function AwsDesktop({ children }: { children?: React.ReactNode }) {
               widgetActions.setEditorOpen(true)
               setContextMenu(null)
             }}
-            className="flex w-full items-center justify-between px-3 py-1.5 text-left rounded-md text-neutral-200 hover:bg-[#7940ea] hover:text-white font-medium transition-colors"
+            className="flex w-full items-center justify-between px-3 py-1.5 text-left rounded-md text-neutral-800 dark:text-neutral-200 hover:bg-[#7940ea] hover:text-white font-medium transition-colors"
           >
             <span>Edit Widgets…</span>
           </button>
-          <div className="my-1 h-px bg-white/10" />
+          <div className="my-1 h-px bg-black/10 dark:bg-white/10" />
 
           <button
             onClick={() => {
               windowActions.open("finder")
               setContextMenu(null)
             }}
-            className="flex w-full items-center px-3 py-1.5 text-left rounded-md text-neutral-200 hover:bg-[#7940ea] hover:text-white font-medium transition-colors"
+            className="flex w-full items-center px-3 py-1.5 text-left rounded-md text-neutral-800 dark:text-neutral-200 hover:bg-[#7940ea] hover:text-white font-medium transition-colors"
           >
             Open Finder
           </button>
@@ -248,17 +248,17 @@ export function AwsDesktop({ children }: { children?: React.ReactNode }) {
               windowActions.open("aws")
               setContextMenu(null)
             }}
-            className="flex w-full items-center px-3 py-1.5 text-left rounded-md text-neutral-200 hover:bg-[#7940ea] hover:text-white font-medium transition-colors"
+            className="flex w-full items-center px-3 py-1.5 text-left rounded-md text-neutral-800 dark:text-neutral-200 hover:bg-[#7940ea] hover:text-white font-medium transition-colors"
           >
             About AWS SBG NMIET
           </button>
-          <div className="my-1 h-px bg-white/10" />
+          <div className="my-1 h-px bg-black/10 dark:bg-white/10" />
           <button
             onClick={() => {
               systemActions.setPartyMode(!partyMode)
               setContextMenu(null)
             }}
-            className="flex w-full items-center px-3 py-1.5 text-left rounded-md text-neutral-200 hover:bg-[#7940ea] hover:text-white font-medium transition-colors"
+            className="flex w-full items-center px-3 py-1.5 text-left rounded-md text-neutral-800 dark:text-neutral-200 hover:bg-[#7940ea] hover:text-white font-medium transition-colors"
           >
             {partyMode ? "Stop Party Mode" : "🪩 Party Mode"}
           </button>
@@ -270,30 +270,30 @@ export function AwsDesktop({ children }: { children?: React.ReactNode }) {
         {spotlightOpen && (
           <div
             onClick={() => systemActions.setSpotlightOpen(false)}
-            className="fixed inset-0 z-[1200] flex items-start justify-center pt-24 bg-black/60 backdrop-blur-md pointer-events-auto"
+            className="fixed inset-0 z-[1200] flex items-start justify-center pt-24 bg-black/50 backdrop-blur-md pointer-events-auto"
           >
             <motion.div
               onClick={e => e.stopPropagation()}
               initial={{ scale: 0.95, opacity: 0, y: -10 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: -10 }}
-              className="w-full max-w-xl overflow-hidden rounded-2xl border border-white/20 bg-[#1e1e26]/98 p-3 text-white shadow-2xl backdrop-blur-3xl"
+              className="w-full max-w-xl overflow-hidden rounded-2xl border border-black/10 dark:border-white/20 bg-white/95 dark:bg-[#1e1e26]/98 p-3 text-neutral-900 dark:text-white shadow-2xl backdrop-blur-3xl"
             >
-              <div className="flex items-center gap-3 border-b border-white/15 pb-2.5 px-2">
+              <div className="flex items-center gap-3 border-b border-black/10 dark:border-white/15 pb-2.5 px-2">
                 <span className="text-xl">🔍</span>
                 <input
                   autoFocus
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
                   placeholder="Search AWS SBG NMIET apps, projects, roadmaps, events..."
-                  className="w-full bg-transparent text-base text-white outline-none placeholder:text-neutral-400"
+                  className="w-full bg-transparent text-base text-neutral-900 dark:text-white outline-none placeholder:text-neutral-400"
                 />
-                <kbd className="rounded border border-white/20 bg-white/10 px-1.5 py-0.5 font-mono text-[11px] text-neutral-300">
+                <kbd className="rounded border border-black/10 dark:border-white/20 bg-black/5 dark:bg-white/10 px-1.5 py-0.5 font-mono text-[11px] text-neutral-600 dark:text-neutral-300">
                   ESC
                 </kbd>
               </div>
 
-              <div className="mt-2 max-h-72 overflow-y-auto divide-y divide-white/10">
+              <div className="mt-2 max-h-72 overflow-y-auto divide-y divide-black/5 dark:divide-white/10">
                 {searchResults.slice(0, 7).map(item => (
                   <button
                     key={item.id}
@@ -301,13 +301,13 @@ export function AwsDesktop({ children }: { children?: React.ReactNode }) {
                       windowActions.open(item.id)
                       systemActions.setSpotlightOpen(false)
                     }}
-                    className="flex w-full items-center justify-between rounded-lg p-2.5 text-left hover:bg-[#7940ea]/20 transition-colors"
+                    className="flex w-full items-center justify-between rounded-lg p-2.5 text-left hover:bg-black/5 dark:hover:bg-[#7940ea]/20 transition-colors"
                   >
                     <div>
-                      <p className="text-sm font-semibold text-white">{item.name}</p>
-                      <p className="text-xs text-neutral-400">{item.spotlight.description}</p>
+                      <p className="text-sm font-semibold text-neutral-900 dark:text-white">{item.name}</p>
+                      <p className="text-xs text-neutral-500 dark:text-neutral-400">{item.spotlight.description}</p>
                     </div>
-                    <span className="text-xs text-[#a855f7] font-semibold">Open</span>
+                    <span className="text-xs text-[#7940ea] dark:text-[#a855f7] font-semibold">Open</span>
                   </button>
                 ))}
               </div>

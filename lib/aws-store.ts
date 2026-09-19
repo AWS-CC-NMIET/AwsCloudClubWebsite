@@ -391,9 +391,20 @@ const systemStore = createStore<SystemState>({
 // Initialize from localStorage in browser
 if (typeof window !== "undefined") {
   try {
+    const savedAppearance = localStorage.getItem("aws-os:appearance") as "light" | "dark" | null
+    if (savedAppearance === "light" || savedAppearance === "dark") {
+      systemStore.set({ appearance: savedAppearance })
+    }
     const savedWallpaper = localStorage.getItem("aws-os:wallpaper") as WallpaperId | null
     if (savedWallpaper) {
       systemStore.set({ wallpaper: savedWallpaper })
+    }
+    const savedBrightness = localStorage.getItem("aws-os:brightness")
+    if (savedBrightness) {
+      const b = parseFloat(savedBrightness)
+      if (!isNaN(b)) {
+        systemStore.set({ brightness: Math.min(1, Math.max(0.2, b)) })
+      }
     }
   } catch {}
 }
@@ -401,6 +412,9 @@ if (typeof window !== "undefined") {
 export const systemActions = {
   setAppearance: (appearance: "light" | "dark") => {
     systemStore.set({ appearance })
+    try {
+      localStorage.setItem("aws-os:appearance", appearance)
+    } catch {}
     if (typeof document !== "undefined") {
       if (appearance === "dark") {
         document.documentElement.classList.add("dark")
@@ -421,7 +435,11 @@ export const systemActions = {
     } catch {}
   },
   setBrightness: (brightness: number) => {
-    systemStore.set({ brightness: Math.min(1, Math.max(0.2, brightness)) })
+    const clamped = Math.min(1, Math.max(0.2, brightness))
+    systemStore.set({ brightness: clamped })
+    try {
+      localStorage.setItem("aws-os:brightness", clamped.toString())
+    } catch {}
   },
   setSpotlightOpen: (spotlightOpen: boolean) => systemStore.set({ spotlightOpen }),
   setControlCenterOpen: (controlCenterOpen: boolean) => systemStore.set({ controlCenterOpen }),
