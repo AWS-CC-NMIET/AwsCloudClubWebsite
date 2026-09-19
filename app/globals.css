@@ -4,60 +4,65 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* === AWS Student Builder Group NMIET — Neumorphic Palette === */
-  /* Primary derived from logo background #6B4FE8 */
+  --os-text: #1d1d1f;
+  --os-text-dim: #00000073;
+  --win-bg: #f5f5f7;
+  --titlebar-bg: #f6f6f6f5;
+  --win-divider: #00000014;
+  --menubar-bg: #f6f6f8a8;
+  --menu-bg: #f8f8fad1;
+  --tl-dim: #c9c9cd;
+  --accent: #7940ea;
 
-  --neu-base: #D4CEFF;
-  --neu-dark: #B0A4EE;
-  --neu-light: #F2EEFF;
+  --background: #f5f5f7;
+  --foreground: #1d1d1f;
+  --card: #ffffff;
+  --card-foreground: #1d1d1f;
+  --popover: #f8f8fad1;
+  --popover-foreground: #1d1d1f;
+  --primary: #7940ea;
+  --primary-foreground: #ffffff;
+  --secondary: #f0f0f2;
+  --secondary-foreground: #1d1d1f;
+  --muted: #e5e5ea;
+  --muted-foreground: #86868b;
+  --border: #d2d2d7;
+  --input: #e5e5ea;
+  --ring: #7940ea;
+  --radius: 0.625rem;
+}
 
-  --background: #D4CEFF;
-  --foreground: #1E1060;
-  --card: #D4CEFF;
-  --card-foreground: #1E1060;
-  --popover: #D4CEFF;
-  --popover-foreground: #1E1060;
+.dark {
+  --os-text: #f5f5f7;
+  --os-text-dim: #a1a1aa;
+  --win-bg: #1e1e24;
+  --titlebar-bg: #282830;
+  --win-divider: rgba(255, 255, 255, 0.12);
+  --menubar-bg: rgba(22, 22, 28, 0.92);
+  --menu-bg: rgba(32, 32, 40, 0.96);
+  --tl-dim: #444448;
+  --accent: #7940ea;
 
-  /* Logo purple */
-  --primary: #6B4FE8;
-  --primary-foreground: #FFFFFF;
-
-  /* Logo lavender accent (#B8A4FF) */
-  --secondary: #B8A4FF;
-  --secondary-foreground: #1E1060;
-
-  --muted: #D8D2F8;
-  --muted-foreground: #7B6FC0;
-  --accent: #8B6FFF;
-  --accent-foreground: #FFFFFF;
-  --destructive: #E85555;
-  --destructive-foreground: #FFFFFF;
-  --border: #D0C8F0;
-  --input: #E2DEFF;
-  --ring: #6B4FE8;
-
-  /* Chart colors */
-  --chart-1: #6B4FE8;
-  --chart-2: #B8A4FF;
-  --chart-3: #5BA8D8;
-  --chart-4: #FF9900;
-  --chart-5: #50C88A;
-
-  --radius: 1rem;
-
-  --sidebar: #EAE6FF;
-  --sidebar-foreground: #1E1060;
-  --sidebar-primary: #6B4FE8;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #B8A4FF;
-  --sidebar-accent-foreground: #1E1060;
-  --sidebar-border: #D0C8F0;
-  --sidebar-ring: #6B4FE8;
+  --background: #141416;
+  --foreground: #f5f5f7;
+  --card: #232327;
+  --card-foreground: #f5f5f7;
+  --popover: #222228d1;
+  --popover-foreground: #f5f5f7;
+  --primary: #7940ea;
+  --primary-foreground: #ffffff;
+  --secondary: #2c2c30;
+  --secondary-foreground: #f5f5f7;
+  --muted: #2c2c30;
+  --muted-foreground: #a1a1a6;
+  --border: #38383e;
+  --input: #2c2c30;
+  --ring: #7940ea;
 }
 
 @theme inline {
-  --font-sans: var(--font-geist-sans), 'Geist', 'Geist Fallback';
-  --font-mono: var(--font-geist-mono), 'Geist Mono', 'Geist Mono Fallback';
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -71,402 +76,186 @@
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* OS system colors */
+  --color-os-text: var(--os-text);
+  --color-os-text-dim: var(--os-text-dim);
+  --color-win-bg: var(--win-bg);
+  --color-titlebar-bg: var(--titlebar-bg);
+  --color-win-divider: var(--win-divider);
+  --color-menubar-bg: var(--menubar-bg);
+  --color-menu-bg: var(--menu-bg);
+  --color-tl-dim: var(--tl-dim);
 }
 
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-
-  body {
-    background-color: #0a0a0f;
-    @apply text-foreground;
-  }
+/* ── Fallback Direct Utility Classes (Ensures 100% Reliability) ───────────── */
+.text-os-text, .text-\(--os-text\) {
+  color: var(--os-text);
+}
+.text-os-text-dim, .text-\(--os-text-dim\) {
+  color: var(--os-text-dim);
+}
+.text-accent, .text-\(--accent\) {
+  color: var(--accent);
+}
+.bg-win-bg, .bg-\(--win-bg\) {
+  background-color: var(--win-bg);
+}
+.bg-titlebar-bg, .bg-\(--titlebar-bg\) {
+  background-color: var(--titlebar-bg);
+}
+.bg-menubar-bg, .bg-\(--menubar-bg\) {
+  background-color: var(--menubar-bg);
+}
+.bg-menu-bg, .bg-\(--menu-bg\) {
+  background-color: var(--menu-bg);
+}
+.bg-tl-dim, .bg-\(--tl-dim\) {
+  background-color: var(--tl-dim);
+}
+.border-win-divider, .border-\(--win-divider\) {
+  border-color: var(--win-divider);
 }
 
-/* Hide scrollbars globally for overflow containers */
-.hide-scrollbar {
-  scrollbar-width: none;
-  /* Firefox */
-  -ms-overflow-style: none;
-  /* IE/Edge */
-}
+/* ── Wallpaper System ──────────────────────────────────────────────────────── */
 
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
-  /* Chrome/Safari */
-}
+/* ── Authentic AWS Cloud Club Wallpapers ────────────────────────────────── */
 
-/* ============================================================
-   NEUMORPHISM SYSTEM — Mid-tone Frosted Hybrid
-   Base: rgba(204,192,255,0.92)  |  Shadow: purple-tinted + white
-   ============================================================ */
-
-/* --- Surfaces --- */
-.neu-raised {
-  background: rgba(204, 192, 255, 0.92);
-  box-shadow:
-    7px 7px 18px rgba(107, 79, 232, 0.20),
-    -5px -5px 14px rgba(255, 255, 255, 0.75);
-  border: 1px solid rgba(107, 79, 232, 0.14);
-  border-radius: 1.25rem;
-}
-
-.neu-raised-sm {
-  background: rgba(204, 192, 255, 0.90);
-  box-shadow:
-    4px 4px 10px rgba(107, 79, 232, 0.17),
-    -3px -3px 8px rgba(255, 255, 255, 0.70);
-  border: 1px solid rgba(107, 79, 232, 0.12);
-  border-radius: 0.875rem;
-}
-
-.neu-raised-lg {
-  background: rgba(204, 192, 255, 0.93);
-  box-shadow:
-    10px 10px 24px rgba(107, 79, 232, 0.23),
-    -7px -7px 18px rgba(255, 255, 255, 0.75);
-  border: 1px solid rgba(107, 79, 232, 0.16);
-  border-radius: 1.5rem;
-}
-
-/* --- Inset / sunken --- */
-.neu-inset {
-  background: rgba(175, 160, 248, 0.78);
-  box-shadow:
-    inset 3px 3px 8px rgba(107, 79, 232, 0.22),
-    inset -3px -3px 8px rgba(255, 255, 255, 0.52);
-  border: 1px solid rgba(107, 79, 232, 0.10);
-  border-radius: 0.875rem;
-}
-
-.neu-inset-sm {
-  background: rgba(178, 163, 248, 0.72);
-  box-shadow:
-    inset 2px 2px 5px rgba(107, 79, 232, 0.18),
-    inset -2px -2px 5px rgba(255, 255, 255, 0.48);
-  border: 1px solid rgba(107, 79, 232, 0.08);
-  border-radius: 0.625rem;
-}
-
-/* --- Window --- */
-.neu-window {
-  background: #CCCCFF;
-  backdrop-filter: blur(24px);
-  box-shadow:
-    0 4px 16px rgba(0, 0, 0, 0.12),
-    0 0 0 1px rgba(0, 0, 0, 0.08);
-  border-radius: 1.5rem;
+.wallpaper {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 0;
   overflow: hidden;
+  background: radial-gradient(90rem 60rem at 110% -10%, #f3350c52, transparent 60%),
+              radial-gradient(80rem 50rem at -20% 30%, #ffa88a6b, transparent 55%),
+              radial-gradient(70rem 60rem at 50% 120%, #5e3a8c38, transparent 60%),
+              linear-gradient(160deg, #f3f0ee 0%, #e3dcd7 100%);
+  transition: background 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.neu-window-active {
-  background: #CCCCFF;
-  backdrop-filter: blur(24px);
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.18),
-    0 0 0 1px rgba(0, 0, 0, 0.12);
-  border-radius: 1.5rem;
-  overflow: hidden;
+.dark .wallpaper {
+  background: radial-gradient(90rem 60rem at 110% -10%, #f3350c8c, transparent 60%),
+              radial-gradient(70rem 50rem at -10% 40%, #7940ea80, transparent 55%),
+              radial-gradient(60rem 50rem at 50% 125%, #1c387280, transparent 65%),
+              linear-gradient(160deg, #101014 0%, #17141f 100%);
 }
 
-/* --- Taskbar --- */
-.neu-taskbar {
-  background: rgba(18, 10, 45, 0.92);
-  backdrop-filter: blur(28px);
-  border-top: 1px solid rgba(168, 85, 247, 0.28);
-  box-shadow: 0 -8px 32px rgba(107, 79, 232, 0.22);
+.wallpaper::after {
+  content: "";
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  position: absolute;
+  inset: 0;
+  z-index: 1;
 }
 
-/* --- Panel / start menu --- */
-.neu-panel {
-  background: rgba(10, 6, 24, 0.97);
-  backdrop-filter: blur(28px);
-  box-shadow:
-    0 12px 40px rgba(107, 79, 232, 0.35),
-    0 0 0 1px rgba(168, 85, 247, 0.22) inset;
-  border-radius: 1.5rem;
+/* Ember: Signature fire & embers */
+.wallpaper[data-wallpaper="ember"],
+.wallpaper[data-wallpaper=ember],
+.dark .wallpaper[data-wallpaper="ember"],
+.dark .wallpaper[data-wallpaper=ember] {
+  background: radial-gradient(90rem 60rem at 110% -10%, #f3350ca6, transparent 60%),
+              radial-gradient(70rem 50rem at -10% 40%, #991b1b99, transparent 55%),
+              radial-gradient(60rem 50rem at 50% 120%, #d9770680, transparent 60%),
+              linear-gradient(160deg, #2a0f08 0%, #120a08 100%) !important;
 }
 
-/* --- Buttons --- */
-.neu-btn {
-  background: rgba(212, 202, 255, 0.88);
-  box-shadow:
-    3px 3px 8px rgba(107, 79, 232, 0.16),
-    -3px -3px 8px rgba(255, 255, 255, 0.72);
-  transition: box-shadow 0.15s ease, transform 0.12s ease;
-  cursor: pointer;
-  border: 1px solid rgba(107, 79, 232, 0.10);
-  border-radius: 0.875rem;
-  color: #1E1060;
+/* Violet: Cosmic ultraviolet / AWS purple */
+.wallpaper[data-wallpaper="violet"],
+.wallpaper[data-wallpaper=violet],
+.dark .wallpaper[data-wallpaper="violet"],
+.dark .wallpaper[data-wallpaper=violet] {
+  background: radial-gradient(90rem 60rem at 110% -10%, #7940eab3, transparent 60%),
+              radial-gradient(70rem 50rem at -10% 40%, #9333eab3, transparent 55%),
+              radial-gradient(60rem 50rem at 50% 125%, #2563ebb3, transparent 65%),
+              linear-gradient(160deg, #181126 0%, #0d0a18 100%) !important;
 }
 
-.neu-btn:hover {
-  box-shadow:
-    4px 4px 12px rgba(107, 79, 232, 0.24),
-    -4px -4px 12px rgba(255, 255, 255, 0.80);
-  border-color: rgba(107, 79, 232, 0.20);
+/* Slate: Studio slate metallic */
+.wallpaper[data-wallpaper="slate"],
+.wallpaper[data-wallpaper=slate],
+.dark .wallpaper[data-wallpaper="slate"],
+.dark .wallpaper[data-wallpaper=slate] {
+  background: radial-gradient(80rem 60rem at 80% 0%, #787a8266, transparent 60%),
+              radial-gradient(60rem 50rem at 20% 60%, #4b556355, transparent 55%),
+              linear-gradient(160deg, #2c2c33 0%, #0d0d0f 100%) !important;
 }
 
-.neu-btn:active {
-  box-shadow:
-    inset 3px 3px 8px rgba(107, 79, 232, 0.20),
-    inset -3px -3px 8px rgba(255, 255, 255, 0.55);
-  transform: scale(0.97);
+/* Dawn: Warm morning peach apricot */
+.wallpaper[data-wallpaper="dawn"],
+.wallpaper[data-wallpaper=dawn],
+.dark .wallpaper[data-wallpaper="dawn"],
+.dark .wallpaper[data-wallpaper=dawn] {
+  background: radial-gradient(90rem 60rem at 110% -10%, #f9731680, transparent 60%),
+              radial-gradient(80rem 50rem at -10% 30%, #ec489973, transparent 55%),
+              radial-gradient(60rem 50rem at 50% 110%, #fbbf2473, transparent 60%),
+              linear-gradient(160deg, #26131c 0%, #130a0f 100%) !important;
 }
 
-/* Primary (logo purple gradient) */
-.neu-btn-primary {
-  background: linear-gradient(135deg, #6B4FE8, #8B6FFF);
-  box-shadow:
-    5px 5px 15px rgba(107, 79, 232, 0.45),
-    -3px -3px 10px rgba(255, 255, 255, 0.65);
-  color: #FFFFFF;
-  border: none;
-  border-radius: 0.875rem;
-  transition: all 0.15s ease;
-  cursor: pointer;
+/* Midnight: Deep oceanic sapphire */
+.wallpaper[data-wallpaper="midnight"],
+.wallpaper[data-wallpaper=midnight],
+.dark .wallpaper[data-wallpaper="midnight"],
+.dark .wallpaper[data-wallpaper=midnight] {
+  background: radial-gradient(80rem 60rem at 100% -10%, #2563ebb3, transparent 60%),
+              radial-gradient(60rem 50rem at 30% 120%, #7940eab3, transparent 60%),
+              radial-gradient(50rem 40rem at 60% 30%, #06b6d480, transparent 60%),
+              linear-gradient(160deg, #0a0c16 0%, #06070e 100%) !important;
 }
 
-.neu-btn-primary:hover {
-  box-shadow:
-    7px 7px 20px rgba(107, 79, 232, 0.55),
-    -3px -3px 12px rgba(255, 255, 255, 0.70);
-  transform: translateY(-1px);
+/* ── Boot Progress Bar ─────────────────────────────────────────────────────── */
+
+@keyframes static-boot-fill {
+  0% { width: 0%; }
+  65% { width: 62%; }
+  100% { width: 100%; }
 }
 
-.neu-btn-primary:active {
-  box-shadow:
-    inset 3px 3px 8px rgba(50, 20, 150, 0.3),
-    inset -2px -2px 6px rgba(180, 160, 255, 0.3);
-  transform: translateY(0);
+.boot-bar-inner {
+  animation: static-boot-fill 2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* --- Input fields --- */
-.neu-input {
-  background: rgba(183, 168, 250, 0.78);
-  box-shadow:
-    inset 3px 3px 8px rgba(107, 79, 232, 0.20),
-    inset -3px -3px 8px rgba(255, 255, 255, 0.52);
-  border: 1px solid rgba(107, 79, 232, 0.14);
-  outline: none;
-  color: #1E1060;
-  transition: box-shadow 0.2s ease;
-  border-radius: 0.75rem;
+/* ── Party Mode & Glitch ───────────────────────────────────────────────────── */
+
+@keyframes party-spin {
+  0% { filter: hue-rotate(0deg) saturate(1.6); }
+  100% { filter: hue-rotate(360deg) saturate(1.6); }
 }
 
-.neu-input::placeholder {
-  color: rgba(107, 79, 232, 0.42);
+.party {
+  animation: 1.6s linear infinite party-spin;
 }
 
-.neu-input:focus {
-  box-shadow:
-    inset 4px 4px 10px rgba(107, 79, 232, 0.22),
-    inset -4px -4px 10px rgba(255, 255, 255, 0.52),
-    0 0 0 2px rgba(107, 79, 232, 0.28);
+/* ── Custom Sleek Scrollbar ───────────────────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
 }
 
-/* --- Icon containers --- */
-.neu-icon {
-  background: rgba(212, 202, 255, 0.88);
-  box-shadow:
-    5px 5px 14px rgba(107, 79, 232, 0.20),
-    -5px -5px 14px rgba(255, 255, 255, 0.72);
-  border: 1px solid rgba(107, 79, 232, 0.10);
-  border-radius: 1.25rem;
-  transition: box-shadow 0.2s ease;
+::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-.neu-icon:hover {
-  box-shadow:
-    7px 7px 18px rgba(107, 79, 232, 0.26),
-    -7px -7px 18px rgba(255, 255, 255, 0.78);
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 99px;
 }
 
-/* --- Tags / Badges --- */
-.neu-tag {
-  background: rgba(107, 79, 232, 0.12);
-  border: 1px solid rgba(107, 79, 232, 0.22);
-  border-radius: 0.5rem;
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.22);
 }
 
-/* --- Card within app content --- */
-.neu-card {
-  background: rgba(204, 192, 255, 0.90);
-  box-shadow:
-    5px 5px 14px rgba(107, 79, 232, 0.18),
-    -4px -4px 12px rgba(255, 255, 255, 0.70);
-  border: 1px solid rgba(107, 79, 232, 0.12);
-  border-radius: 1.25rem;
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.35);
 }
 
-/* ============================================================
-   SCROLLBAR
-   ============================================================ */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(183, 168, 250, 0.60);
-  box-shadow: inset 1px 1px 4px rgba(107, 79, 232, 0.18);
-  border-radius: 4px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(107, 79, 232, 0.25);
-  border-radius: 4px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(107, 79, 232, 0.45);
-}
-
-/* ============================================================
-   KEYFRAMES & ANIMATIONS
-   ============================================================ */
-@keyframes float {
-
-  0%,
-  100% {
-    transform: translateY(0px);
-  }
-
-  50% {
-    transform: translateY(-12px);
-  }
-}
-
-@keyframes boot-pulse {
-
-  0%,
-  100% {
-    opacity: 0.45;
-  }
-
-  50% {
-    opacity: 1;
-  }
-}
-
-@keyframes sparkle {
-
-  0%,
-  100% {
-    opacity: 0;
-    transform: scale(0) rotate(0deg);
-  }
-
-  50% {
-    opacity: 1;
-    transform: scale(1) rotate(180deg);
-  }
-}
-
-@keyframes glow-purple {
-
-  0%,
-  100% {
-    box-shadow: 0 0 22px rgba(107, 79, 232, 0.4);
-  }
-
-  50% {
-    box-shadow: 0 0 55px rgba(107, 79, 232, 0.75), 0 0 90px rgba(139, 111, 255, 0.35);
-  }
-}
-
-@keyframes pulse-ring {
-  0% {
-    transform: scale(0.9);
-    opacity: 0.8;
-  }
-
-  100% {
-    transform: scale(1.6);
-    opacity: 0;
-  }
-}
-
-.animate-float {
-  animation: float 4s ease-in-out infinite;
-}
-
-.animate-boot-pulse {
-  animation: boot-pulse 1.5s ease-in-out infinite;
-}
-
-.animate-sparkle {
-  animation: sparkle 2s ease-in-out infinite;
-}
-
-.animate-glow-purple {
-  animation: glow-purple 2.5s ease-in-out infinite;
-}
-
-.animate-pulse-ring {
-  animation: pulse-ring 1.8s ease-out infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* Icon hover (taskbar) */
-.icon-hover {
-  transition: all 0.18s ease;
-}
-
-.icon-hover:hover {
-  transform: scale(1.08);
-}
-
-.icon-hover:active {
-  transform: scale(0.93);
-}
-
-/* Antigravity Neon Purple Glow Animation */
-@keyframes glow-neon-purple {
-
-  0%,
-  100% {
-    filter: drop-shadow(0 0 15px rgba(107, 79, 232, 0.45)) drop-shadow(0 0 30px rgba(107, 79, 232, 0.2));
-  }
-
-  50% {
-    filter: drop-shadow(0 0 30px rgba(139, 111, 255, 0.85)) drop-shadow(0 0 50px rgba(107, 79, 232, 0.5)) drop-shadow(0 0 80px rgba(107, 79, 232, 0.2));
-  }
-}
-
-.animate-glow-neon-purple {
-  animation: glow-neon-purple 3s ease-in-out infinite;
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.38);
 }

@@ -18,11 +18,11 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'AWS Student Builder Group NMIET | Cloud OS',
-  description: 'Official website of AWS Student Builder Group NMIET — empowering the next generation of cloud innovators through hands-on learning, real-world projects & community.',
-  keywords: ['AWS', 'Student Builder Group', 'Student Builder Groups', 'NMIET', 'Cloud Computing', 'DevOps', 'Serverless', 'Student Community'],
-  authors: [{ name: 'AWS Student Builder Group NMIET' }],
-  creator: 'AWS Student Builder Group NMIET',
+  title: 'AWS SBG NMIET | Cloud OS',
+  description: 'Official website of AWS SBG NMIET — empowering the next generation of cloud innovators through hands-on learning, real-world projects & community.',
+  keywords: ['AWS', 'AWS SBG', 'NMIET', 'Student Builder Group', 'Cloud Computing', 'DevOps', 'Serverless', 'Student Community'],
+  authors: [{ name: 'AWS SBG NMIET' }],
+  creator: 'AWS SBG NMIET',
   manifest: '/manifest.json',
   icons: {
     icon: '/favicon.png',
@@ -37,9 +37,9 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_IN',
-    title: 'AWS Student Builder Group NMIET | Cloud OS',
-    description: 'Official AWS Student Builder Group NMIET — Cloud OS. Build, learn and connect with the cloud.',
-    siteName: 'AWS Student Builder Group NMIET',
+    title: 'AWS SBG NMIET | Cloud OS',
+    description: 'Official AWS SBG NMIET — Cloud OS. Build, learn and connect with the cloud.',
+    siteName: 'AWS SBG NMIET',
   },
 }
 
@@ -49,8 +49,8 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#000000ff' },
-    { media: '(prefers-color-scheme: dark)', color: '#4B2FA8' },
+    { media: '(prefers-color-scheme: light)', color: '#f5f5f7' },
+    { media: '(prefers-color-scheme: dark)', color: '#1d1d1f' },
   ],
 }
 
@@ -60,9 +60,26 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <head>
-        {/* PWA service worker registration */}
+        {/* Dark mode priority init & PWA service worker registration */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  if (localStorage.getItem('aws-os:appearance') === 'light') {
+                    document.documentElement.classList.remove('dark');
+                  } else {
+                    document.documentElement.classList.add('dark');
+                  }
+                } catch(e) {
+                  document.documentElement.classList.add('dark');
+                }
+              })();
+            `,
+          }}
+        />
         <script
           dangerouslySetInnerHTML={{
             __html: `

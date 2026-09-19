@@ -1,294 +1,147 @@
+// components/apps/terminal-app.tsx
+// Interactive cloud terminal with AWS CLI and club commands
+
 "use client"
 
-import { useState, useRef, useEffect, useMemo } from "react"
-import { useMeetup } from "@/lib/meetup-context"
+import React, { useState, useRef, useEffect } from "react"
+import { windowActions, systemActions } from "@/lib/aws-store"
 
-interface TerminalLine {
-  type: "input" | "output" | "error"
-  content: string
+interface TerminalHistoryItem {
+  command: string
+  output: string | React.ReactNode
 }
 
-const awsFacts = [
-  "AWS has over 200 fully featured services from data centers globally.",
-  "The first AWS service was S3, launched in March 2006.",
-  "AWS operates in 33 geographic regions with 105 Availability Zones.",
-  "Lambda was the first mainstream FaaS (serverless compute) service, launched in 2014.",
-  "EC2 stands for Elastic Compute Cloud — it launched in August 2006.",
-  "AWS accounts for roughly 31% of the global cloud market share.",
-  "Amazon S3 stores over 100 trillion objects worldwide.",
-  "AWS CloudFront has over 600 Points of Presence worldwide.",
-  "Amazon DynamoDB can handle over 10 trillion requests per day.",
-  "AWS was the first cloud provider to offer a managed Kubernetes service (EKS) in 2018.",
-  "Amazon Route 53 performs over 100 billion DNS queries daily.",
-  "AWS re:Invent 2023 had over 52,000 in-person attendees in Las Vegas.",
-]
-
 export function TerminalApp() {
-  const { memberCount } = useMeetup()
-  const m = memberCount ?? 299
-  const [isHacking, setIsHacking] = useState(false)
-
-  const commandRegistry = useMemo<Record<string, string>>(() => ({
-  help: `Available commands:
-  help          - Show this help message
-  about         - About AWS Student Builder Group NMIET
-  mission       - Our mission & vision
-  join          - How to join the group
-  events        - Our events & activities
-  team          - Core team structure
-  skills        - Technologies we work with
-  achievements  - Group highlights & wins
-  contact       - Get in touch with us
-  aws           - Random AWS fun fact
-  date          - Show current date
-  clear         - Clear terminal
-  echo [text]   - Echo back text
-
-🕵️ Hidden Easter Eggs:
-  whoami        - Display current user identity
-  sudo join     - Gain superuser signup access
-  hack          - Execute server penetration test
-  aws free tier - Check AWS pricing policies`,
-
-  about: `
-╔══════════════════════════════════════════════╗
-║    AWS Student Builder Group at NMIET v1.0   ║
-║    Nutan Maharashtra Inst. of Eng. & Tech    ║
-╠══════════════════════════════════════════════╣
-║  Teaching students AWS Cloud use cases:      ║
-║  security, AI, business analytics &          ║
-║  business transformation.                    ║
-║                                              ║
-║  📍 Talegaon Dabhade, Pune, Maharashtra      ║
-║  📅 Founded: February 16, 2026               ║
-║  👥 ${m} Members   🌐 Student Builder Groups ║
-╚══════════════════════════════════════════════╝`,
-
-  mission: `
-🎯 Mission:
-   To bridge the gap between academic learning and
-   real-world cloud computing by giving students
-   hands-on AWS experience and industry exposure.
-
-👁️  Vision:
-   Build a thriving cloud community where every
-   student can learn, build, and launch on AWS.
-
-💜 Values:
-   • Learn by doing — workshops, not just lectures
-   • Open community — everyone is welcome
-   • Real projects — actual AWS deployments
-   • Give back — share knowledge freely`,
-
-  join: `
-🚀 Join AWS Student Builder Group NMIET!
-
-Steps to become a member:
-  1. Visit our Meetup page and RSVP to events
-     meetup.com/aws-cloud-club-at-nutan-…
-  2. Attend our next workshop or event
-  3. Connect with us on social media
-  4. Create an account on this portal → click
-     the lock icon on the login screen
-
-📧 Email: aws.studentbuildersgroup.nmiet@gmail.com
-
-Type 'events' to see upcoming activities!`,
-
-  events: `
-📅 Events:
-
-  ┌─────────────────────────────────────────────┐
-  │ 🚀 AWS Student Builder Group Intro Event    │
-  │    📅 April 8, 2026  10:00 AM – 12:00 PM   │
-  │    📍 In-person at NMIET, Pune              │
-  │    👥 236 RSVPs  (Open to all!)             │
-  │    Covers: AWS fundamentals, career paths,  │
-  │    upcoming workshops & hands-on projects.  │
-  └─────────────────────────────────────────────┘
-
-More events coming! Check the Events app or
-visit meetup.com/aws-cloud-club-at-nutan-… to RSVP.`,
-
-  team: `
-👥 Core Team — AWS Student Builder Group NMIET:
-
-  Neha Sharma     [SBG Leader]  🟢 Running
-  ──────────────────────────────────────────────────
-  ${m} members strong and growing!
-
-  Interested in a leadership role?
-  Email: aws.studentbuildersgroup.nmiet@gmail.com
-  or open the Team app for the full roster.`,
-
-  skills: `
-☁️  Technologies & AWS Services we work with:
-
-  AWS Core        ████████████████░░░░  80%
-  Serverless      ███████████████░░░░░  75%
-  DevOps / CI-CD  ██████████████░░░░░░  70%
-  Cloud Security  ███████████████░░░░░  75%
-  Machine Learning████████████░░░░░░░░  60%
-  IaC (CDK/CFN)   ████████████░░░░░░░░  60%
-
-  Key services: EC2, S3, Lambda, DynamoDB,
-  API Gateway, Cognito, CloudFront, SES, IAM`,
-
-  achievements: `
-🏆 Group Highlights:
-
-  ★ Official AWS Student Builder Group (est. Feb 2026)
-  ★ ${m} Members on Meetup & Growing Fast
-  ★ 236+ RSVPs for Our Very First Event
-  ★ Part of AWS Student Builder Groups Global Network
-  ★ Open Community — Anyone Can Join!
-
-Type 'about' for more info.`,
-
-  contact: `
-📬 Contact AWS Student Builder Group NMIET:
-
-  📧 Email   : aws.studentbuildersgroup.nmiet@gmail.com
-  🌐 Meetup  : meetup.com/aws-cloud-club-at-nutan-…
-  📍 Location: NMIET, Talegaon Dabhade, Pune
-
-  Or use the Contact app on the desktop
-  to send us a message directly!`,
-  }), [m])
-
-  const [lines, setLines] = useState<TerminalLine[]>([
-    { type: "output", content: "AWS Student Builder Group NMIET — Terminal v1.0" },
-    { type: "output", content: "Nutan Maharashtra Institute of Engineering & Technology" },
-    { type: "output", content: '─────────────────────────────────────────────────────' },
-    { type: "output", content: 'Type "help" for available commands.\n' },
+  const [history, setHistory] = useState<TerminalHistoryItem[]>([
+    {
+      command: "welcome",
+      output: (
+        <div className="space-y-1">
+          <p className="text-[#c084fc] font-bold">AWS SBG NMIET Shell v2.4 (x86_64-aws-cloud)</p>
+          <p className="text-neutral-400 text-xs">
+            Type <span className="text-[#c084fc] font-bold">&apos;help&apos;</span> to see available cloud commands.
+          </p>
+        </div>
+      ),
+    },
   ])
-  const [input, setInput] = useState("")
+  const [inputVal, setInputVal] = useState("")
   const inputRef = useRef<HTMLInputElement>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
+  const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (containerRef.current) {
-      containerRef.current.scrollTop = containerRef.current.scrollHeight
-    }
-  }, [lines])
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [history])
 
-  const handleCommand = (cmd: string) => {
-    const trimmed = cmd.trim()
-    const lower = trimmed.toLowerCase()
-    const parts = lower.split(" ")
-    const command = parts[0]
-    const args = parts.slice(1).join(" ")
-
-    setLines((prev) => [...prev, { type: "input", content: `$ ${trimmed}` }])
-
-    if (command === "clear") {
-      setLines([])
-      return
-    }
-
-    if (command === "echo") {
-      setLines((prev) => [...prev, { type: "output", content: args || "" }])
-      return
-    }
-
-    if (command === "date") {
-      setLines((prev) => [...prev, { type: "output", content: new Date().toString() }])
-      return
-    }
-
-    if (command === "aws") {
-      const fact = awsFacts[Math.floor(Math.random() * awsFacts.length)]
-      setLines((prev) => [...prev, { type: "output", content: `☁️  AWS Fun Fact:\n\n"${fact}"` }])
-      return
-    }
-
-    // Easter Egg Intercepts
-    if (lower === "whoami") {
-      setLines((prev) => [...prev, { type: "output", content: "a curious builder 👀" }])
-      return
-    }
-
-    if (lower === "sudo join") {
-      setLines((prev) => [...prev, { type: "output", content: "Permission granted. DM us on Instagram 😄" }])
-      return
-    }
-
-    if (lower === "aws free tier") {
-      setLines((prev) => [...prev, { type: "output", content: "Free Tier fan detected 🫡" }])
-      return
-    }
-
-    if (lower === "hack") {
-      setIsHacking(true)
-      setTimeout(() => {
-        setIsHacking(false)
-        setLines((prev) => [...prev, { type: "output", content: "nice try 😂" }])
-      }, 2000)
-      return
-    }
-
-    if (commandRegistry[command]) {
-      setLines((prev) => [...prev, { type: "output", content: commandRegistry[command] }])
-    } else if (command) {
-      setLines((prev) => [
-        ...prev,
-        { type: "error", content: `Command not found: ${command}. Type "help" for available commands.` },
-      ])
-    }
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleCommand = (e: React.FormEvent) => {
     e.preventDefault()
-    if (input.trim()) {
-      handleCommand(input)
-      setInput("")
+    const trimmed = inputVal.trim()
+    if (!trimmed) return
+
+    const lower = trimmed.toLowerCase()
+    let output: React.ReactNode = ""
+
+    if (lower === "help") {
+      output = (
+        <div className="space-y-1 text-neutral-300 text-xs">
+          <p className="font-bold text-[#c084fc]">Available commands:</p>
+          <p><span className="text-emerald-400">aws --version</span> - Show AWS CLI & Cloud credentials</p>
+          <p><span className="text-emerald-400">team</span> - List core student leadership team</p>
+          <p><span className="text-emerald-400">events</span> - Show upcoming workshops and hackathons</p>
+          <p><span className="text-emerald-400">projects</span> - Display deployed cloud architectures</p>
+          <p><span className="text-emerald-400">certs</span> - View certification preparation roadmaps</p>
+          <p><span className="text-emerald-400">neofetch</span> - Display AWS SBG NMIET system specs</p>
+          <p><span className="text-emerald-400">theme [dark|light]</span> - Switch OS appearance</p>
+          <p><span className="text-emerald-400">sudo admin</span> - Launch authenticated admin panel</p>
+          <p><span className="text-emerald-400">clear</span> - Clear terminal screen</p>
+        </div>
+      )
+    } else if (lower === "clear") {
+      setHistory([])
+      setInputVal("")
+      return
+    } else if (lower === "aws --version") {
+      output = "aws-cli/2.17.40 Python/3.11.8 Linux/6.6.137 botocore/2.4.40 (us-east-1)"
+    } else if (lower === "team") {
+      output = (
+        <div className="space-y-0.5 text-xs text-neutral-300">
+          <p className="text-[#c084fc] font-bold">AWS SBG NMIET Leadership:</p>
+          <p>• Chapter Lead: Omkar Rane (AWS Community Builder)</p>
+          <p>• Cloud Architecture Lead: Pranav Joshi</p>
+          <p>• AI / ML Domain Lead: Sneha Deshmukh</p>
+          <p>• Serverless & Web Lead: Aditya Sharma</p>
+          <p>• DevOps Lead: Rohit Verma</p>
+        </div>
+      )
+    } else if (lower === "events") {
+      output = "Next workshop: AWS GenAI & Bedrock Bootcamp (Sep 28, 2026, 2:00 PM IST). Type 'open calendar' to view."
+    } else if (lower === "projects") {
+      output = "Active Repos: Campus Serverless Portal, Cloud Resume Challenge, Bedrock AI Assistant, Rekognition Attendance."
+    } else if (lower === "certs") {
+      output = "Active Study Tracks: CLF-C02 (Cloud Practitioner), SAA-C03 (Solutions Architect Associate)."
+    } else if (lower === "neofetch") {
+      output = (
+        <div className="font-mono text-xs text-neutral-300 space-y-1">
+          <p className="text-[#c084fc] font-bold">AWS SBG NMIET Chapter</p>
+          <p>----------------------------</p>
+          <p><span className="text-[#c084fc]">OS:</span> AWS Cloud OS / macOS Ventura Hybrid</p>
+          <p><span className="text-[#c084fc]">Host:</span> Amazon Web Services (us-east-1)</p>
+          <p><span className="text-[#c084fc]">Kernel:</span> Next.js 16.2 · React 19.2</p>
+          <p><span className="text-[#c084fc]">Uptime:</span> 99.99% Serverless Uptime</p>
+          <p><span className="text-amber-300">Shell:</span> sbg-bash 5.2</p>
+          <p><span className="text-amber-300">Auth:</span> Amazon Cognito User Pool</p>
+          <p><span className="text-amber-300">Database:</span> Amazon DynamoDB On-Demand</p>
+        </div>
+      )
+    } else if (lower === "sudo admin" || lower === "admin") {
+      windowActions.open("admin")
+      output = "Launching AWS Cloud Club Admin Panel..."
+    } else if (lower === "theme dark") {
+      systemActions.setAppearance("dark")
+      output = "Appearance switched to Dark mode."
+    } else if (lower === "theme light") {
+      systemActions.setAppearance("light")
+      output = "Appearance switched to Light mode."
+    } else if (lower.startsWith("open ")) {
+      const app = lower.replace("open ", "") as any
+      windowActions.open(app)
+      output = `Launching ${app}...`
+    } else {
+      output = `Command not recognized: ${trimmed}. Type 'help' for a list of commands.`
     }
+
+    setHistory(prev => [...prev, { command: trimmed, output }])
+    setInputVal("")
   }
 
   return (
     <div
-      className={`flex h-full flex-col rounded-lg font-mono text-sm transition-all duration-200 ${
-        isHacking ? "bg-red-950/90 text-white animate-pulse" : "bg-[#110d2a]"
-      }`}
       onClick={() => inputRef.current?.focus()}
+      className="h-full w-full bg-[#121216] p-4 font-mono text-xs text-neutral-100 overflow-y-auto cursor-text select-text"
     >
-      {/* Terminal Header */}
-      <div className="flex items-center gap-2 border-b border-purple-900/50 px-4 py-2">
-        <div className="h-2 w-2 rounded-full bg-[#7C6FFF]/60" />
-        <span className="text-xs text-purple-300/60">aws-sbg-nmiet — bash</span>
-      </div>
-
-      {/* Terminal Content */}
-      <div ref={containerRef} className="custom-scrollbar flex-1 overflow-auto p-4">
-        {lines.map((line, idx) => (
-          <div
-            key={idx}
-            className={`whitespace-pre-wrap leading-relaxed ${
-              line.type === "input"
-                ? "text-[#a78bfa]"
-                : line.type === "error"
-                ? "text-red-400"
-                : "text-gray-300"
-            }`}
-          >
-            {line.content}
+      <div className="space-y-3">
+        {history.map((item, idx) => (
+          <div key={idx} className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="text-emerald-400">sbg@aws-cloud-club:~$</span>
+              <span className="text-white">{item.command}</span>
+            </div>
+            <div className="text-neutral-300 pl-2">{item.output}</div>
           </div>
         ))}
       </div>
 
-      {/* Input */}
-      <form onSubmit={handleSubmit} className="flex items-center gap-2 border-t border-purple-900/50 p-3">
-        <span className="text-[#a78bfa]">$</span>
+      <form onSubmit={handleCommand} className="mt-3 flex items-center gap-2">
+        <span className="text-emerald-400 shrink-0">sbg@aws-cloud-club:~$</span>
         <input
           ref={inputRef}
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          className="flex-1 bg-transparent text-gray-200 outline-none placeholder:text-purple-800"
-          placeholder="Type a command..."
           autoFocus
+          value={inputVal}
+          onChange={e => setInputVal(e.target.value)}
+          className="flex-1 bg-transparent text-white outline-none font-mono text-xs"
         />
       </form>
+      <div ref={bottomRef} />
     </div>
   )
 }

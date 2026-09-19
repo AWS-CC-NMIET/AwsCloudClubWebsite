@@ -1,25 +1,35 @@
+// components/mobile/mobile-os.tsx
+// Mobile operating system host with lockscreen and iOS-style SpringBoard
+
 "use client"
 
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { MobileLockscreen } from "./mobile-lockscreen"
-import { MobileHome }       from "./mobile-home"
+import { SpringBoard } from "./aws-springboard"
+import { AppDispatcher } from "@/components/apps/app-dispatcher"
 import {
-  isSessionValid, refreshSession,
-  getAccessToken, parseJwtPayload,
+  isSessionValid,
+  refreshSession,
+  getAccessToken,
+  parseJwtPayload,
 } from "@/lib/auth-client"
 
 type MobileStage = "checking" | "lockscreen" | "home"
 
 export function MobileOS() {
-  const [stage,   setStage]   = useState<MobileStage>("checking")
+  const [stage, setStage] = useState<MobileStage>("checking")
   const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
     async function check() {
       let valid = isSessionValid()
       if (!valid) {
-        try { valid = await refreshSession() } catch { /* fall through */ }
+        try {
+          valid = await refreshSession()
+        } catch {
+          /* fall through */
+        }
       }
       if (valid) refreshAdmin()
       setStage("lockscreen")
@@ -31,11 +41,11 @@ export function MobileOS() {
     const token = getAccessToken()
     if (!token) return
     const payload = parseJwtPayload(token)
-    const groups  = (payload["cognito:groups"] as string[]) || []
+    const groups = (payload["cognito:groups"] as string[]) || []
     setIsAdmin(groups.includes("admins"))
   }
 
-  // Swipe-up always goes straight to home — no login gate on mobile
+  // Swipe-up on lockscreen opens the iOS-style SpringBoard
   const handleUnlock = () => setStage("home")
 
   const handleLogout = () => {
@@ -50,7 +60,6 @@ export function MobileOS() {
   return (
     <div className="fixed inset-0 overflow-hidden" style={{ background: "#050310" }}>
       <AnimatePresence mode="wait">
-
         {stage === "lockscreen" && (
           <motion.div
             key="lockscreen"
@@ -70,14 +79,13 @@ export function MobileOS() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.32, ease: "easeOut" }}
           >
-            <MobileHome
-              onLogout={handleLogout}
-              onRequireSignIn={() => {/* auth gate modal handles this */}}
-              isAdmin={isAdmin}
+            <SpringBoard
+              renderAppContent={appId => (
+                <AppDispatcher appId={appId} onLogout={handleLogout} />
+              )}
             />
           </motion.div>
         )}
-
       </AnimatePresence>
     </div>
   )

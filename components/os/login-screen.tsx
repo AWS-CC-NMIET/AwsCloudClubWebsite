@@ -238,21 +238,28 @@ export function LoginScreen({ onLogin, initialPhase = "lock" }: { onLogin: () =>
 
   const clrErr = () => setError("")
 
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!email || !password) { setError("Please enter email and password"); return }
+    const cleanEmail = email.trim().toLowerCase()
+    if (!cleanEmail || !password) { setError("Please enter email and password"); return }
+    if (!EMAIL_RE.test(cleanEmail)) { setError("Please enter a valid email address"); return }
     setError(""); setLoading(true)
-    try { await signIn(email.trim().toLowerCase(), password); onLogin() }
+    try { await signIn(cleanEmail, password); onLogin() }
     catch (err) { setError(CognitoError(err)) } finally { setLoading(false) }
   }
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name || !email || !password) { setError("Please fill all fields"); return }
+    const cleanName = name.trim()
+    const cleanEmail = email.trim().toLowerCase()
+    if (!cleanName || !cleanEmail || !password) { setError("Please fill all fields"); return }
+    if (!EMAIL_RE.test(cleanEmail)) { setError("Please enter a valid email address"); return }
     if (password !== confirmPw) { setError("Passwords do not match"); return }
     if (password.length < 8) { setError("Password must be at least 8 characters"); return }
     setError(""); setLoading(true)
-    try { await signUp(email.trim().toLowerCase(), password, name.trim()); setPendingEmail(email.trim().toLowerCase()); setPhase("verify") }
+    try { await signUp(cleanEmail, password, cleanName); setPendingEmail(cleanEmail); setPhase("verify") }
     catch (err) { setError(CognitoError(err)) } finally { setLoading(false) }
   }
 
@@ -260,7 +267,17 @@ export function LoginScreen({ onLogin, initialPhase = "lock" }: { onLogin: () =>
     e.preventDefault()
     if (!verifyCode) { setError("Enter the verification code"); return }
     setError(""); setLoading(true)
-    try { await confirmSignUp(pendingEmail, verifyCode.trim()); await signIn(pendingEmail, password); onLogin() }
+    try {
+      await confirmSignUp(pendingEmail, verifyCode.trim())
+      if (password) {
+        await signIn(pendingEmail, password)
+        onLogin()
+      } else {
+        setPhase("signin")
+        setEmail(pendingEmail)
+        setError("✓ Email verified! Please enter your password to sign in.")
+      }
+    }
     catch (err) { setError(CognitoError(err)) } finally { setLoading(false) }
   }
 
@@ -272,15 +289,18 @@ export function LoginScreen({ onLogin, initialPhase = "lock" }: { onLogin: () =>
 
   const handleForgot = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!forgotEmail) { setError("Please enter your email"); return }
+    const cleanEmail = forgotEmail.trim().toLowerCase()
+    if (!cleanEmail) { setError("Please enter your email"); return }
+    if (!EMAIL_RE.test(cleanEmail)) { setError("Please enter a valid email address"); return }
     setError(""); setLoading(true)
-    try { await forgotPassword(forgotEmail.trim().toLowerCase()); setPendingEmail(forgotEmail.trim().toLowerCase()); setPhase("reset") }
+    try { await forgotPassword(cleanEmail); setPendingEmail(cleanEmail); setPhase("reset") }
     catch (err) { setError(CognitoError(err)) } finally { setLoading(false) }
   }
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!resetCode || !newPw) { setError("Please fill all fields"); return }
+    if (newPw.length < 8) { setError("Password must be at least 8 characters"); return }
     setError(""); setLoading(true)
     try {
       await resetPassword(pendingEmail, resetCode.trim(), newPw)

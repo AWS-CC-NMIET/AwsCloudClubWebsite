@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from "react"
 import { AnimatePresence, motion } from "framer-motion"
-import { BootScreen }  from "@/components/os/boot-screen"
+import { BootScreen } from "@/components/os/boot-screen"
 import { LoginScreen } from "@/components/os/login-screen"
-import { Desktop }     from "@/components/os/desktop"
-import { MobileOS }    from "@/components/mobile/mobile-os"
+import { DesktopContainer } from "@/components/os/desktop-container"
+import { MobileOS } from "@/components/mobile/mobile-os"
 import { isSessionValid, refreshSession } from "@/lib/auth-client"
 
 type Stage = "checking" | "boot" | "login" | "desktop"
@@ -14,7 +14,7 @@ type LoginEntry = "lock" | "signin"
 export default function CloudOS() {
   // null = device type not yet detected (avoids hydration mismatch)
   const [isMobile, setIsMobile] = useState<boolean | null>(null)
-  const [stage, setStage]       = useState<Stage>("checking")
+  const [stage, setStage] = useState<Stage>("checking")
   const [loginEntry, setLoginEntry] = useState<LoginEntry>("lock")
 
   useEffect(() => {
@@ -32,39 +32,45 @@ export default function CloudOS() {
           
       Student Builder Group
           
-%cHey curious builder 👀 — you'd fit right in. DM us on Instagram.`,
+%cHey curious builder 👀 — you'd fit right in. Welcome to AWS Cloud Club AWS Cloud OS.`,
       "color: #FF9900; font-weight: bold; font-family: monospace; font-size: 12px; line-height: 1.2;",
-      "color: #6B4FE8; font-weight: bold; font-family: sans-serif; font-size: 12px; margin-top: 8px; display: block;"
-    );
+      "color: #FF9900; font-weight: bold; font-family: sans-serif; font-size: 12px; margin-top: 8px; display: block;"
+    )
 
     // matchMedia is more reliable than innerWidth in DevTools responsive mode
-    const mq     = window.matchMedia("(max-width: 767px)")
+    const mq = window.matchMedia("(max-width: 767px)")
     const mobile = mq.matches
     setIsMobile(mobile)
 
     if (!mobile) {
-      // Desktop-only: restore session and decide which stage to show
       async function restoreSession() {
-        if (isSessionValid()) { setStage("desktop"); return }
+        if (isSessionValid()) {
+          setStage("desktop")
+          return
+        }
         try {
           const ok = await refreshSession()
-          if (ok) { setStage("desktop"); return }
-        } catch { /* fall through */ }
+          if (ok) {
+            setStage("desktop")
+            return
+          }
+        } catch {
+          /* fall through */
+        }
+        // First boot experience
         setStage("boot")
       }
       restoreSession()
     }
-    // Mobile: MobileOS manages its own session-check internally
 
-    // Re-detect on orientation change / resize (handles DevTools toggle)
     const onChange = (e: MediaQueryListEvent) => setIsMobile(e.matches)
     mq.addEventListener("change", onChange)
     return () => mq.removeEventListener("change", onChange)
   }, [])
 
-  // Blank screen while detecting device type (avoids flash)
+  // Blank screen while detecting device type
   if (isMobile === null) {
-    return <main className="h-screen w-screen" style={{ background: "#0a0a0f" }} />
+    return <main className="wallpaper h-screen w-screen" />
   }
 
   // ── Mobile ──────────────────────────────────────────────────────────────────
@@ -74,13 +80,12 @@ export default function CloudOS() {
 
   // ── Desktop ─────────────────────────────────────────────────────────────────
   if (stage === "checking") {
-    return <main className="h-screen w-screen" style={{ background: "#0a0a0f" }} />
+    return <main className="wallpaper h-screen w-screen" />
   }
 
   return (
-    <main className="h-screen w-screen overflow-hidden" style={{ background: "#0a0a0f" }}>
+    <main className="h-screen w-screen overflow-hidden">
       <AnimatePresence mode="wait">
-
         {stage === "boot" && (
           <motion.div
             key="boot"
@@ -89,7 +94,7 @@ export default function CloudOS() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <BootScreen onComplete={() => setStage("login")} />
+            <BootScreen onComplete={() => setStage("desktop")} />
           </motion.div>
         )}
 
@@ -110,17 +115,22 @@ export default function CloudOS() {
           <motion.div
             key="desktop"
             className="absolute inset-0"
-            initial={{ opacity: 0, scale: 0.97 }}
+            initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
           >
-            <Desktop
-              onLogout={() => { setLoginEntry("lock"); setStage("login") }}
-              onRequireSignIn={() => { setLoginEntry("signin"); setStage("login") }}
+            <DesktopContainer
+              onLogout={() => {
+                setLoginEntry("lock")
+                setStage("login")
+              }}
+              onRequireSignIn={() => {
+                setLoginEntry("signin")
+                setStage("login")
+              }}
             />
           </motion.div>
         )}
-
       </AnimatePresence>
     </main>
   )

@@ -8,6 +8,7 @@ import {
 } from "lucide-react"
 import { api, uploadFileToS3 } from "@/lib/api-client"
 import { signOut, getStoredUsername } from "@/lib/auth-client"
+import { sanitizeUrl } from "@/lib/utils"
 
 const INPUT_STYLE: React.CSSProperties = {
   background: "rgba(183,168,250,0.65)",
@@ -53,9 +54,11 @@ export function ProfileApp({ onLogout }: { onLogout: () => void }) {
   const [editGithub, setEditGithub]     = useState("")
 
   useEffect(() => {
+    let active = true
     const load = async () => {
       try {
         const { profile: p } = await api.profile.get() as { profile: Profile | null }
+        if (!active) return
         if (p) {
           setProfile(p)
         } else {
@@ -63,16 +66,20 @@ export function ProfileApp({ onLogout }: { onLogout: () => void }) {
           const { profile: created } = await api.profile.create({
             displayName: username.split("@")[0] || "Cloud User",
           }) as { profile: Profile }
-          setProfile(created)
+          if (active) setProfile(created)
         }
       } catch {
+        if (!active) return
         const username = getStoredUsername() || ""
         setProfile({ displayName: username.split("@")[0] || "Cloud User", email: username })
       } finally {
-        setLoading(false)
+        if (active) setLoading(false)
       }
     }
     load()
+    return () => {
+      active = false
+    }
   }, [])
 
   const openEdit = () => {
@@ -312,7 +319,7 @@ export function ProfileApp({ onLogout }: { onLogout: () => void }) {
           <p className="text-[10px] font-bold uppercase tracking-wider mb-3" style={{ color: "#9B8FC8" }}>Links</p>
           <div className="flex flex-wrap gap-2">
             {profile?.linkedinUrl && (
-              <motion.a href={profile.linkedinUrl} target="_blank" rel="noopener noreferrer"
+              <motion.a href={sanitizeUrl(profile.linkedinUrl)} target="_blank" rel="noopener noreferrer"
                 className="flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold"
                 style={{ background: "rgba(0,119,181,0.08)", color: "#0077B5", border: "1px solid rgba(0,119,181,0.18)" }}
                 whileHover={{ y: -2 }}>
@@ -320,7 +327,7 @@ export function ProfileApp({ onLogout }: { onLogout: () => void }) {
               </motion.a>
             )}
             {profile?.githubUrl && (
-              <motion.a href={profile.githubUrl} target="_blank" rel="noopener noreferrer"
+              <motion.a href={sanitizeUrl(profile.githubUrl)} target="_blank" rel="noopener noreferrer"
                 className="flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold"
                 style={{ background: "rgba(30,16,96,0.07)", color: "#1E1060", border: "1px solid rgba(30,16,96,0.14)" }}
                 whileHover={{ y: -2 }}>
