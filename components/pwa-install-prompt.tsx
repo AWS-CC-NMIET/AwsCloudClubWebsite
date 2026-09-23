@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Download, X } from "lucide-react"
 import Image from "next/image"
+import { safeStorage } from "@/lib/utils"
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>
@@ -19,7 +20,7 @@ export function PWAInstallPrompt() {
 
   useEffect(() => {
     // Don't show if already dismissed
-    if (localStorage.getItem(DISMISSED_KEY)) return
+    if (safeStorage.getItem(DISMISSED_KEY)) return
 
     // Detect iOS (no beforeinstallprompt support)
     const ios = /iphone|ipad|ipod/i.test(navigator.userAgent)
@@ -44,7 +45,7 @@ export function PWAInstallPrompt() {
 
   const dismiss = () => {
     setShow(false)
-    localStorage.setItem(DISMISSED_KEY, "1")
+    safeStorage.setItem(DISMISSED_KEY, "1")
   }
 
   const install = async () => {

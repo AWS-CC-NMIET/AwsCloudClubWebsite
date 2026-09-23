@@ -44,15 +44,15 @@ export class AppErrorBoundary extends React.Component<Props, State> {
             <AlertTriangle className="h-8 w-8" style={{ color: "#E85580" }} />
           </motion.div>
 
-          <div className="text-center">
-            <h3 className="text-base font-bold mb-1" style={{ color: "#1E1060" }}>
-              This app crashed
+          <div className="text-center max-w-md">
+            <h3 className="text-base font-bold mb-1 text-neutral-900 dark:text-neutral-100">
+              This app encountered a problem
             </h3>
-            <p className="text-sm mb-1" style={{ color: "#7B6FC0" }}>
-              An unexpected error occurred in this window.
+            <p className="text-xs mb-3 text-neutral-500 dark:text-neutral-400">
+              An unexpected error occurred in this window. The rest of Cloud OS is running normally.
             </p>
             {this.state.error && (
-              <p className="text-xs font-mono px-3 py-2 rounded-lg" style={{ color: "#9B8FC8", background: "rgba(107,79,232,0.06)" }}>
+              <p className="text-xs font-mono px-3 py-2 rounded-lg break-all text-neutral-600 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-800/80 border border-neutral-200 dark:border-neutral-700">
                 {this.state.error.message}
               </p>
             )}

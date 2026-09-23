@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { motion, useMotionValue, useTransform, animate, type PanInfo } from "framer-motion"
 import { ChevronUp } from "lucide-react"
 import Image from "next/image"
-import { InteractiveCanvas } from "@/components/os/interactive-canvas"
+import { useSystemStore, WALLPAPER_STYLES } from "@/lib/aws-store"
 
 interface Props {
   onUnlock: () => void
@@ -13,6 +13,10 @@ interface Props {
 export function MobileLockscreen({ onUnlock }: Props) {
   const [time, setTime]    = useState("")
   const [dateStr, setDate] = useState("")
+  const appearance = useSystemStore(s => s.appearance)
+  const wallpaper = useSystemStore(s => s.wallpaper)
+  const activeGradient =
+    WALLPAPER_STYLES[wallpaper]?.[appearance] || WALLPAPER_STYLES.dynamic.dark
 
   useEffect(() => {
     const upd = () => {
@@ -40,8 +44,14 @@ export function MobileLockscreen({ onUnlock }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 overflow-hidden select-none" style={{ background: "#050310" }}>
-      <InteractiveCanvas theme="dark" particleCountOverride={35} />
+    <div
+      className="wallpaper fixed inset-0 overflow-hidden select-none"
+      data-wallpaper={wallpaper}
+      style={{
+        background: activeGradient,
+        transition: "background 0.5s cubic-bezier(0.16, 1, 0.3, 1)",
+      }}
+    >
 
       {/* Gradient overlay — bottom fade so swipe hint pops */}
       <div
