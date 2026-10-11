@@ -299,7 +299,7 @@ function ImportRosterBanner({ reload }: { reload: () => Promise<void> }) {
   return (
     <div className="m-3 space-y-2 rounded-lg border border-(--accent)/30 bg-(--accent)/8 p-3 text-[12px] leading-relaxed">
       <p>
-        The website is showing the built-in 27-member roster. Import it once so you can edit, reorder and remove
+        The website is showing the built-in team roster. Import it once so you can edit, reorder and remove
         anyone here — after that, this list is exactly what the site shows.
       </p>
       <MacButton variant="primary" onClick={importRoster} disabled={busy} className="px-2.5 py-1.5">

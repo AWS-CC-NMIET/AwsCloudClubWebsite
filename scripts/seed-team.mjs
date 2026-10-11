@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // scripts/seed-team.mjs
-// One-off: copy the 27-member roster from lib/club-content.ts into the DynamoDB
+// One-off: copy the team roster from lib/club-content.ts into the DynamoDB
 // team table, so the Admin panel becomes the single source of truth.
 //
 // Idempotent — members whose email (or name) already exists are skipped.
@@ -25,8 +25,10 @@ const table = process.env.DYNAMODB_TEAM_TABLE || "acc-nmiet-team"
 
 // Pull TEAM_MEMBERS out of the TypeScript source without a TS toolchain.
 const source = readFileSync(new URL("../lib/club-content.ts", import.meta.url), "utf8")
-const block = source.slice(source.indexOf("export const TEAM_MEMBERS"), source.indexOf("// ── Events"))
-const members = [...block.matchAll(/\{ id: "m-[^}]+\}/g)].map(m => Function(`"use strict"; return (${m[0]})`)())
+const block = source.slice(source.indexOf("const ROSTER"), source.indexOf("export const TEAM_MEMBERS"))
+const gh = handle => `https://github.com/${handle}`
+const li = handle => `https://www.linkedin.com/in/${handle}`
+const members = [...block.matchAll(/\{ id: "m-[^}]+\}/g)].map(m => Function("gh", "li", `"use strict"; return (${m[0]})`)(gh, li))
 if (members.length === 0) throw new Error("Could not read TEAM_MEMBERS from lib/club-content.ts")
 
 const db = DynamoDBDocumentClient.from(new DynamoDBClient({ region }), { marshallOptions: { removeUndefinedValues: true } })

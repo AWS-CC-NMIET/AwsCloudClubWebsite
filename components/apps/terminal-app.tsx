@@ -6,7 +6,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react"
 import { windowActions, systemActions } from "@/lib/aws-store"
 import { APPS_META, type AppId } from "@/lib/aws-apps"
-import { AWS_FACTS, CLUB, TEAM_MEMBERS, teamGroupOf } from "@/lib/club-content"
+import { AWS_FACTS, CLUB, TEAM_MEMBERS, isLeadRole } from "@/lib/club-content"
 import { useClubFacts, useEvents } from "@/lib/club-data"
 import { cn } from "@/lib/utils"
 
@@ -60,7 +60,7 @@ export function TerminalApp() {
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const commands = useMemo<Record<string, string>>(() => {
-    const leads = TEAM_MEMBERS.filter(m => teamGroupOf(m.role) === "Leadership")
+    const leads = TEAM_MEMBERS.filter(m => isLeadRole(m.role))
     const pad = Math.max(...leads.map(m => m.name.length)) + 2
     return {
       help: `Available commands:

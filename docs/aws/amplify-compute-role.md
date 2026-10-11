@@ -96,7 +96,7 @@ report `"ok": true`. Anonymous visitors only see `{ "ok": true }`.
 
 ## 5. Import the team roster (once)
 
-Sign in as an admin → **Admin → Team → Import roster**. This copies the 27-member
+Sign in as an admin → **Admin → Team → Import roster**. This copies the built-in
 roster into DynamoDB using the site's own role (no local keys needed). From then
 on the Admin panel is the single source of truth for the team.
 

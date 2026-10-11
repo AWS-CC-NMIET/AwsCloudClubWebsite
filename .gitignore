@@ -49,3 +49,8 @@ __v0_jsx-dev-runtime.ts
 .snowflake/
 .v0-trash/
 next.user-config.*
+
+# Private: form exports and the Drive photo map (members' personal data)
+*.xlsx
+*(Responses)*.pdf
+scripts/team-photos.source.json
