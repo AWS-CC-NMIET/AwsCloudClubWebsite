@@ -84,8 +84,20 @@ const NOTES_DOCS: NoteDoc[] = [
       sections: [
         {
           title: "Why Amazon Bedrock for Student Builders?",
-          body: "Amazon Bedrock provides a single API to access leading foundation models (Claude 3.5 Sonnet, Titan, Llama 3) without managing underlying GPU clusters.",
-          code: `import boto3\nimport json\n\nbedrock = boto3.client('bedrock-runtime', region_name='us-east-1')\nresponse = bedrock.invoke_model(\n    modelId='anthropic.claude-3-5-sonnet-20240620-v1:0',\n    body=json.dumps({\n        'anthropic_version': 'bedrock-2023-05-31',\n        'max_tokens': 1000,\n        'messages': [{'role': 'user', 'content': 'Explain AWS Lambda to a beginner'}]\n    })\n)`,
+          body: "Amazon Bedrock gives you one API for leading foundation models from Anthropic, Amazon, Meta and others, without managing any GPU infrastructure. The Converse API works the same way for every model, so switching models is a one-line change.",
+          code: `import boto3
+
+bedrock = boto3.client('bedrock-runtime', region_name='us-east-1')
+
+# Pick any model you have enabled in the Bedrock console
+MODEL_ID = '<model id from the Bedrock console>'
+
+response = bedrock.converse(
+    modelId=MODEL_ID,
+    messages=[{'role': 'user', 'content': [{'text': 'Explain AWS Lambda to a beginner'}]}],
+    inferenceConfig={'maxTokens': 500},
+)
+print(response['output']['message']['content'][0]['text'])`,
         },
       ],
     },

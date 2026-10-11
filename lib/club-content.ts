@@ -302,17 +302,18 @@ export const DEAD_LINKS = ["discord.gg/BydTcjm8g"]
 
 // ── Terminal ──────────────────────────────────────────────────────────────────
 
+/** Each fact checked against AWS's own pages (Oct 2026). Dated numbers say "as of". */
 export const AWS_FACTS = [
-  "AWS has over 200 fully featured services from data centers globally.",
-  "The first AWS service was S3, launched in March 2006.",
-  "AWS operates in 33 geographic regions with 105 Availability Zones.",
-  "Lambda was the first mainstream FaaS (serverless compute) service, launched in 2014.",
-  "EC2 stands for Elastic Compute Cloud — it launched in August 2006.",
-  "AWS accounts for roughly 31% of the global cloud market share.",
-  "Amazon S3 stores over 100 trillion objects worldwide.",
-  "AWS CloudFront has over 600 Points of Presence worldwide.",
-  "Amazon DynamoDB can handle over 10 trillion requests per day.",
+  "AWS offers over 200 fully featured services from data centers around the world.",
+  "Amazon S3 launched on 14 March 2006 — one of the very first AWS services.",
+  "As of 2026, AWS runs 39 Regions with 123 Availability Zones, with more announced.",
+  "AWS Lambda launched in November 2014 and made serverless computing mainstream.",
+  "Amazon EC2 (Elastic Compute Cloud) launched in August 2006.",
+  "Amazon S3 is designed for 99.999999999% (11 nines) of data durability.",
+  "Amazon S3 passed 100 trillion stored objects back in 2021.",
+  "Amazon CloudFront serves content from 750+ points of presence worldwide.",
+  "Amazon DynamoDB handles more than 10 trillion requests per day.",
   "Amazon EKS, AWS's managed Kubernetes service, became generally available in June 2018.",
-  "Amazon Route 53 performs over 100 billion DNS queries daily.",
-  "AWS re:Invent 2023 had over 52,000 in-person attendees in Las Vegas.",
+  "A single AWS Lambda invocation can run for up to 15 minutes.",
+  "DynamoDB delivers single-digit millisecond performance at any scale.",
 ]
