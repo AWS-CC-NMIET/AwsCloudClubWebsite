@@ -370,7 +370,9 @@ function Livery({ team }: { team: TeamGroup }) {
   const livery = TEAM_LIVERY[team]
   return (
     <>
-      <div className="absolute inset-0" style={{ background: `linear-gradient(160deg, ${livery.color} 0%, ${livery.deep} 58%, #09090d 100%)` }} />
+      <div className="absolute inset-0" style={{ background: `linear-gradient(160deg, ${livery.color} 0%, ${livery.deep} 46%, #060609 100%)` }} />
+      {/* Darken towards the bottom-right so names and portraits pop */}
+      <div className="absolute inset-0 bg-gradient-to-br from-black/5 via-black/25 to-black/55" />
       <div
         className="absolute inset-0 opacity-25 mix-blend-overlay"
         style={{
@@ -417,6 +419,13 @@ function Portrait({ member, team, large = false }: { member: TeamMember; team: T
     const mask = kind === "cutout" ? FADE_BOTTOM : VIGNETTE
     return (
       <>
+        {kind === "cutout" && (
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute left-1/2 top-[22%] aspect-square w-[78%] -translate-x-1/2 rounded-full opacity-70 blur-3xl"
+            style={{ background: `radial-gradient(circle, ${TEAM_LIVERY[team].color}, transparent 70%)` }}
+          />
+        )}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           ref={onImage}
@@ -428,7 +437,9 @@ function Portrait({ member, team, large = false }: { member: TeamMember; team: T
           onError={() => setKind("photo")}
           className={cn(
             "absolute inset-x-0 bottom-0 w-full object-cover object-top transition-[transform,opacity] duration-500 group-hover:scale-[1.04]",
-            kind === "cutout" ? "h-[94%] drop-shadow-[0_12px_28px_rgba(0,0,0,0.45)]" : "h-[90%]",
+            kind === "cutout"
+              ? "h-[94%] [filter:drop-shadow(0_0_1px_rgba(255,255,255,0.35))_drop-shadow(0_14px_30px_rgba(0,0,0,0.55))]"
+              : "h-[90%]",
             kind === "loading" ? "opacity-0" : "opacity-100"
           )}
           style={{ maskImage: mask, WebkitMaskImage: mask, transformOrigin: "50% 100%" }}
@@ -440,9 +451,7 @@ function Portrait({ member, team, large = false }: { member: TeamMember; team: T
             style={{ background: `linear-gradient(165deg, ${TEAM_LIVERY[team].color}aa, transparent 55%)` }}
           />
         )}
-        {kind === "cutout" && large && (
-          <span aria-hidden="true" className="pointer-events-none absolute inset-x-[15%] bottom-[8%] h-1/3 rounded-full bg-white/20 blur-3xl" />
-        )}
+
       </>
     )
   }
@@ -490,7 +499,7 @@ function DriverCard({ driver, hero = false, tagline, onOpen }: { driver: Driver;
           {carNumber(member)}
         </span>
 
-        <div className={cn("absolute inset-0", hero && "@xl:left-auto @xl:w-[48%]")}>
+        <div className={cn("absolute inset-0", hero && "@xl:left-auto @xl:w-[54%]")}>
           <Portrait member={member} team={team} large={hero} />
         </div>
 

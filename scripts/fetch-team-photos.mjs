@@ -8,9 +8,11 @@
 //   node scripts/fetch-team-photos.mjs [--force]
 //
 // From a local file (e.g. a photo sent directly):
-//   node scripts/fetch-team-photos.mjs --local <memberId> <image-file> [--focus x,y]
+//   node scripts/fetch-team-photos.mjs --local <memberId> <image-file> [--focus x,y] [--enhance]
 // --focus is where the face is in the source, as fractions (e.g. 0.42,0.44);
 // the crop then frames the face in the upper third instead of guessing.
+// --enhance lifts brightness/contrast a touch and sharpens (phone photos in dim rooms).
+// Transparent (cut-out) PNGs keep their transparency.
 //
 // Re-runnable: already-processed Drive photos are skipped unless --force is passed.
 
@@ -27,15 +29,20 @@ const args = process.argv.slice(2)
 
 mkdirSync(outDir, { recursive: true })
 
+const OUT_W = 720
+const OUT_H = 900
+
 /** Crop to a 4:5 portrait (around `focus` if given, else the most salient area) and save as WebP. */
-async function savePortrait(input, memberId, focus) {
+async function savePortrait(input, memberId, { focus, enhance = false } = {}) {
   // Bake in EXIF rotation first so the focus point refers to the upright image.
   const upright = await sharp(input).rotate().toBuffer()
   let image = sharp(upright)
   if (focus) {
     const { width, height } = await image.metadata()
-    // Largest 4:5 window, zoomed in slightly, with the face at 50% / 30%.
-    const w = Math.round(Math.min(width, (height * 4) / 5) * 0.9)
+    // Largest 4:5 window, zoomed in a little only when that doesn't mean
+    // upscaling, with the face at 50% / 30%.
+    const max = Math.min(width, (height * 4) / 5)
+    const w = Math.round(Math.max(Math.min(max, OUT_W), max * 0.9))
     const h = Math.round((w * 5) / 4)
     const clamp = (v, max) => Math.max(0, Math.min(max, Math.round(v)))
     image = image.extract({
@@ -45,10 +52,25 @@ async function savePortrait(input, memberId, focus) {
       height: h,
     })
   }
-  await image
-    .resize(720, 900, { fit: "cover", position: sharp.strategy.attention })
-    .webp({ quality: 80 })
-    .toFile(fileURLToPath(new URL(`${memberId}.webp`, outDir)))
+  const sized = await image
+    .resize(OUT_W, OUT_H, { fit: "cover", position: sharp.strategy.attention })
+    .png()
+    .toBuffer()
+
+  let out = sharp(sized)
+  if (enhance) {
+    // Adjust colour only — the alpha channel (cut-outs) is split off and re-attached.
+    const { hasAlpha } = await sharp(sized).metadata()
+    const rgb = await sharp(sized)
+      .removeAlpha()
+      .modulate({ brightness: 1.06, saturation: 1.1 })
+      .linear(1.1, -10)
+      .sharpen({ sigma: 0.8 })
+      .png()
+      .toBuffer()
+    out = hasAlpha ? sharp(rgb).joinChannel(await sharp(sized).extractChannel(3).png().toBuffer()) : sharp(rgb)
+  }
+  await out.webp({ quality: 86, alphaQuality: 100 }).toFile(fileURLToPath(new URL(`${memberId}.webp`, outDir)))
 }
 
 /** Manifest of every photo that exists on disk. */
@@ -76,10 +98,10 @@ if (args[0] === "--local") {
   const [fx, fy] = args.includes("--focus") ? (focusArg ?? "").split(",").map(Number) : []
   const focus = fx >= 0 && fx <= 1 && fy >= 0 && fy <= 1 ? { x: fx, y: fy } : undefined
   if (!memberId?.startsWith("m-") || !file || !existsSync(file) || (args.includes("--focus") && !focus)) {
-    console.error("Usage: node scripts/fetch-team-photos.mjs --local <memberId e.g. m-neha> <image-file> [--focus x,y]")
+    console.error("Usage: node scripts/fetch-team-photos.mjs --local <memberId e.g. m-neha> <image-file> [--focus x,y] [--enhance]")
     process.exit(1)
   }
-  await savePortrait(file, memberId, focus)
+  await savePortrait(file, memberId, { focus, enhance: args.includes("--enhance") })
   console.log(`✓ ${memberId}  (${writeManifest()} photos in the manifest)`)
   process.exit(0)
 }
