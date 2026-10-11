@@ -8,7 +8,6 @@ import {
   useWidgetStore,
   widgetActions,
   widgetPxSize,
-  colsForWidth,
   resolveDropPosition,
   type WidgetId,
   type WidgetSize,
@@ -66,19 +65,12 @@ export function DesktopWidgets() {
         const el = containerRef.current
         if (!el) return
         const rect = el.getBoundingClientRect()
-        const cols = colsForWidth(rect.width)
         for (const w of useWidgetStore.getState().widgets) {
           const { w: pw, h: ph } = widgetPxSize(w.size)
           if (w.x + pw > rect.width || w.y + ph > rect.height) {
             const cx = Math.max(0, Math.min(w.x, rect.width - pw))
             const cy = Math.max(0, Math.min(w.y, rect.height - ph))
-            const pos = resolveDropPosition(
-              useWidgetStore.getState().widgets,
-              w.id,
-              cx,
-              cy,
-              cols
-            )
+            const pos = resolveDropPosition(useWidgetStore.getState().widgets, w.id, cx, cy)
             widgetActions.setPosition(w.id, pos.x, pos.y)
           }
         }
@@ -175,21 +167,24 @@ export function DesktopWidgets() {
 
 // ── Drag hook ────────────────────────────────────────────────────────────────
 
+/** A mutable number with change listeners — updating it never re-renders. Created once. */
 function useMotionValue(initial: number) {
-  const ref = useRef(initial)
-  const listeners = useRef(new Set<() => void>())
-  const mv = useRef({
-    get: () => ref.current,
-    set: (v: number) => {
-      ref.current = v
-      listeners.current.forEach(fn => fn())
-    },
-    on: (_event: string, cb: () => void) => {
-      listeners.current.add(cb)
-      return () => listeners.current.delete(cb)
-    },
+  const [mv] = useState(() => {
+    let value = initial
+    const listeners = new Set<() => void>()
+    return {
+      get: () => value,
+      set: (v: number) => {
+        value = v
+        listeners.forEach(fn => fn())
+      },
+      on: (_event: string, cb: () => void) => {
+        listeners.add(cb)
+        return () => listeners.delete(cb)
+      },
+    }
   })
-  return mv.current
+  return mv
 }
 
 interface DragOpts {
@@ -310,10 +305,8 @@ function DraggableWidget({
       }
     },
     onDrop: (dropX, dropY) => {
-      const rect = containerRef.current?.getBoundingClientRect()
-      const cols = rect ? colsForWidth(rect.width) : undefined
       const widgets = useWidgetStore.getState().widgets
-      const pos = resolveDropPosition(widgets, id, dropX, dropY, cols)
+      const pos = resolveDropPosition(widgets, id, dropX, dropY)
       widgetActions.setPosition(id, pos.x, pos.y)
     },
   })
@@ -353,19 +346,19 @@ function DraggableWidget({
         onContextMenu(id, e.clientX, e.clientY)
       }}
     >
-      <WidgetContent id={id} size={size} />
+      <WidgetContent id={id} />
     </div>
   )
 }
 
-function WidgetContent({ id, size }: { id: WidgetId; size: WidgetSize }) {
+function WidgetContent({ id }: { id: WidgetId }) {
   switch (id) {
     case "next-event":
       return <NextEventWidget />
     case "club-stats":
       return <ClubStatsWidget />
     case "clock-cities":
-      return <ClockCitiesWidget size={size} />
+      return <ClockCitiesWidget />
     case "calendar":
       return <CalendarWidget />
     case "now-playing":
@@ -451,7 +444,7 @@ function cityTime(now: Date, timeZone: string) {
   }
 }
 
-function ClockCitiesWidget({ size }: { size: WidgetSize }) {
+function ClockCitiesWidget() {
   const [time, setTime] = useState<{ pune: ReturnType<typeof cityTime>; seattle: ReturnType<typeof cityTime> } | null>(null)
 
   useEffect(() => {
@@ -505,16 +498,14 @@ function ClockCitiesWidget({ size }: { size: WidgetSize }) {
 function CalendarWidget() {
   const events = useEvents()
   const next = events.data.find(e => !e.isPast)
-  const [dateInfo, setDateInfo] = useState({ weekday: "", day: 1, month: "" })
-
-  useEffect(() => {
+  const [dateInfo] = useState(() => {
     const now = new Date()
-    setDateInfo({
+    return {
       weekday: now.toLocaleDateString("en-US", { weekday: "short" }).toUpperCase(),
       day: now.getDate(),
       month: now.toLocaleDateString("en-US", { month: "short" }),
-    })
-  }, [])
+    }
+  })
 
   return (
     <div

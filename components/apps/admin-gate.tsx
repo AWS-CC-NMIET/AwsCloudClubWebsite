@@ -13,16 +13,19 @@ import { AppShell, LoadingState, MacButton } from "./shared/mac-ui"
 
 export function AdminGate({ children }: { children: React.ReactNode }) {
   const session = useSession()
-  const [state, setState] = useState<"checking" | "allowed" | "denied">("checking")
+  // Re-checked whenever the signed-in user changes; "checking" until the answer for this user arrives.
+  const sessionKey = `${session.signedIn}:${session.username ?? ""}`
+  const [result, setResult] = useState<{ sessionKey: string; ok: boolean } | null>(null)
 
   useEffect(() => {
     let active = true
-    setState("checking")
-    confirmAdmin().then(ok => active && setState(ok ? "allowed" : "denied"))
+    confirmAdmin().then(ok => active && setResult({ sessionKey, ok }))
     return () => {
       active = false
     }
-  }, [session.username, session.signedIn])
+  }, [sessionKey])
+
+  const state = result?.sessionKey !== sessionKey ? "checking" : result.ok ? "allowed" : "denied"
 
   if (state === "checking") {
     return (

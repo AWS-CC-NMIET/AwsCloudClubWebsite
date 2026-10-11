@@ -4,7 +4,7 @@
 
 "use client"
 
-import React, { useCallback, useEffect, useState } from "react"
+import React, { useState } from "react"
 import {
   AlertTriangle,
   CalendarDays,
@@ -26,6 +26,7 @@ import { api, type HealthReport } from "@/lib/api-client"
 import { getAccessToken } from "@/lib/auth-client"
 import { systemActions } from "@/lib/aws-store"
 import { cn } from "@/lib/utils"
+import { useLoad } from "@/lib/use-load"
 import { BackButton, EmptyState, LoadingState, MacButton, Toolbar } from "../shared/mac-ui"
 import type { Row } from "./collection"
 
@@ -33,19 +34,10 @@ export type SectionId = string
 
 // ── Overview ─────────────────────────────────────────────────────────────────
 
+const fetchStats = () => api.admin.stats().then(r => r.stats as Record<string, number | null>)
+
 export function OverviewSection({ go }: { go: (section: SectionId) => void }) {
-  const [stats, setStats] = useState<Record<string, number | null> | null>(null)
-  const [error, setError] = useState("")
-
-  const load = useCallback(() => {
-    setError("")
-    api.admin
-      .stats()
-      .then(r => setStats(r.stats as Record<string, number | null>))
-      .catch(err => setError((err as Error).message))
-  }, [])
-
-  useEffect(load, [load])
+  const { data: stats, error, reload } = useLoad(fetchStats)
 
   const cards: { label: string; value: number | null | undefined; sub?: string; icon: LucideIcon; color: string; section: SectionId }[] = [
     { label: "Events", value: stats?.totalEvents, sub: stats ? `${stats.upcomingEvents ?? 0} upcoming` : undefined, icon: CalendarDays, color: "#e8590c", section: "events" },
@@ -62,7 +54,7 @@ export function OverviewSection({ go }: { go: (section: SectionId) => void }) {
         title="Overview"
         subtitle="Everything on the website at a glance"
         right={
-          <button onClick={load} aria-label="Refresh" className="rounded-md p-1.5 text-(--os-text-dim) hover:bg-black/5 dark:hover:bg-white/10">
+          <button onClick={() => reload()} aria-label="Refresh" className="rounded-md p-1.5 text-(--os-text-dim) hover:bg-black/5 dark:hover:bg-white/10">
             <RotateCw className="size-4" />
           </button>
         }
@@ -99,24 +91,14 @@ export function OverviewSection({ go }: { go: (section: SectionId) => void }) {
 
 // ── Messages (contact form inbox) ────────────────────────────────────────────
 
+const fetchMessages = () => api.contact.list().then(r => r.submissions as Row[])
+
 export function MessagesSection() {
-  const [messages, setMessages] = useState<Row[]>([])
-  const [status, setStatus] = useState<"loading" | "ready" | "error">("loading")
+  const { data, error, reload, mutate } = useLoad(fetchMessages)
+  const messages = data ?? []
+  const status = data ? "ready" : error ? "error" : "loading"
+  const setMessages = (update: (list: Row[]) => Row[]) => mutate(list => update(list ?? []))
   const [selectedId, setSelectedId] = useState<string | null>(null)
-
-  const load = useCallback(async () => {
-    try {
-      const { submissions } = await api.contact.list()
-      setMessages(submissions as Row[])
-      setStatus("ready")
-    } catch {
-      setStatus("error")
-    }
-  }, [])
-
-  useEffect(() => {
-    load()
-  }, [load])
 
   const selected = messages.find(m => m.id === selectedId)
 
@@ -154,7 +136,7 @@ export function MessagesSection() {
           title="Inbox"
           subtitle={`${messages.length} messages${unread ? ` · ${unread} unread` : ""}`}
           right={
-            <button onClick={load} aria-label="Refresh" className="rounded-md p-1.5 text-(--os-text-dim) hover:bg-black/5 dark:hover:bg-white/10">
+            <button onClick={() => reload()} aria-label="Refresh" className="rounded-md p-1.5 text-(--os-text-dim) hover:bg-black/5 dark:hover:bg-white/10">
               <RotateCw className="size-4" />
             </button>
           }
@@ -163,7 +145,7 @@ export function MessagesSection() {
           {status === "loading" ? (
             <LoadingState />
           ) : status === "error" ? (
-            <EmptyState icon={AlertTriangle} title="Couldn't load messages" action={<MacButton onClick={load}>Try Again</MacButton>} />
+            <EmptyState icon={AlertTriangle} title="Couldn't load messages" action={<MacButton onClick={() => reload()}>Try Again</MacButton>} />
           ) : messages.length === 0 ? (
             <EmptyState icon={Inbox} title="No messages yet" message="Messages sent from the Contact app appear here." />
           ) : (
@@ -259,25 +241,18 @@ interface UserRow {
   isYou?: boolean
 }
 
+const fetchUsers = () =>
+  api.admin.users
+    .list()
+    .then(r => (r.users as UserRow[]).sort((a, b) => Number(b.isAdmin) - Number(a.isAdmin) || (a.email ?? "").localeCompare(b.email ?? "")))
+
 export function UsersSection() {
-  const [users, setUsers] = useState<UserRow[]>([])
-  const [status, setStatus] = useState<"loading" | "ready" | "error">("loading")
   const [busy, setBusy] = useState<string | null>(null)
   const [query, setQuery] = useState("")
 
-  const load = useCallback(async () => {
-    try {
-      const { users } = await api.admin.users.list()
-      setUsers((users as UserRow[]).sort((a, b) => Number(b.isAdmin) - Number(a.isAdmin) || (a.email ?? "").localeCompare(b.email ?? "")))
-      setStatus("ready")
-    } catch {
-      setStatus("error")
-    }
-  }, [])
-
-  useEffect(() => {
-    load()
-  }, [load])
+  const { data, error, reload } = useLoad(fetchUsers)
+  const users = data ?? []
+  const status = data ? "ready" : error ? "error" : "loading"
 
   const toggleAdmin = async (u: UserRow) => {
     setBusy(u.username)
@@ -285,7 +260,7 @@ export function UsersSection() {
       if (u.isAdmin) await api.admin.users.demote(u.username)
       else await api.admin.users.promote(u.username)
       systemActions.showToast(u.isAdmin ? `${u.email ?? u.username} is no longer an admin` : `${u.email ?? u.username} is now an admin`)
-      await load()
+      await reload()
     } catch (err) {
       systemActions.showToast((err as Error).message)
     } finally {
@@ -318,7 +293,7 @@ export function UsersSection() {
         {status === "loading" ? (
           <LoadingState />
         ) : status === "error" ? (
-          <EmptyState icon={AlertTriangle} title="Couldn't load members" message="Check System → Health." action={<MacButton onClick={load}>Try Again</MacButton>} />
+          <EmptyState icon={AlertTriangle} title="Couldn't load members" message="Check System → Health." action={<MacButton onClick={() => reload()}>Try Again</MacButton>} />
         ) : (
           visible.map(u => (
             <div key={u.username} className="flex items-center gap-3 border-b border-(--win-divider) px-5 py-2.5">
@@ -356,29 +331,22 @@ export function UsersSection() {
 
 // ── Health ───────────────────────────────────────────────────────────────────
 
+async function fetchHealth(): Promise<HealthReport> {
+  try {
+    const res = await fetch("/api/health", { headers: { Authorization: `Bearer ${getAccessToken() ?? ""}` }, cache: "no-store" })
+    return (await res.json()) as HealthReport
+  } catch {
+    return { ok: false }
+  }
+}
+
 export function HealthSection() {
-  const [report, setReport] = useState<HealthReport | null>(null)
-  const [loading, setLoading] = useState(true)
 
-  const load = useCallback(async () => {
-    setLoading(true)
-    try {
-      const res = await fetch("/api/health", { headers: { Authorization: `Bearer ${getAccessToken() ?? ""}` }, cache: "no-store" })
-      setReport((await res.json()) as HealthReport)
-    } catch {
-      setReport({ ok: false })
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    load()
-  }, [load])
+  const { data: report, loading, reload } = useLoad(fetchHealth)
 
   const rows: { name: string; ok: boolean; detail?: string }[] = report?.services
     ? [
-        ...Object.entries(report.services.dynamodb).map(([name, t]) => ({ name: `DynamoDB · ${t.table}`, ok: t.ok, detail: t.detail })),
+        ...Object.values(report.services.dynamodb).map(t => ({ name: `DynamoDB · ${t.table}`, ok: t.ok, detail: t.detail })),
         { name: `S3 · ${report.services.s3.bucket}`, ok: report.services.s3.ok, detail: report.services.s3.detail },
         { name: "SES · contact email", ok: report.services.ses.ok, detail: report.services.ses.detail },
         { name: "Cognito · admin user management", ok: report.services.cognitoAdminApi.ok, detail: report.services.cognitoAdminApi.detail },
@@ -391,7 +359,7 @@ export function HealthSection() {
         title="Health"
         subtitle="Live checks of every AWS service the website uses"
         right={
-          <button onClick={load} aria-label="Run checks again" className="rounded-md p-1.5 text-(--os-text-dim) hover:bg-black/5 dark:hover:bg-white/10">
+          <button onClick={() => reload()} aria-label="Run checks again" className="rounded-md p-1.5 text-(--os-text-dim) hover:bg-black/5 dark:hover:bg-white/10">
             <RotateCw className={cn("size-4", loading && "animate-spin")} />
           </button>
         }

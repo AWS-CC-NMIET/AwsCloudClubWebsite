@@ -10,8 +10,14 @@ import { AwsFlagshipApp } from "./aws-flagship-app"
 import { LoadingState } from "./shared/mac-ui"
 import { AdminGate } from "./admin-gate"
 
-const named = <T extends string>(loader: () => Promise<Record<T, React.ComponentType<any>>>, name: T) =>
+const named = <T extends string, P extends object>(loader: () => Promise<Record<T, React.ComponentType<P>>>, name: T) =>
   lazy(() => loader().then(m => ({ default: m[name] })))
+
+/** What apps can be opened with (Spotlight results, desktop menus). */
+interface AppPayload {
+  focusId?: string
+  pane?: string
+}
 
 const AboutApp = named(() => import("./about-app"), "AboutApp")
 const TeamApp = named(() => import("./team-app"), "TeamApp")
@@ -32,7 +38,7 @@ const AboutModal = named(() => import("./about-modal"), "AboutModal")
 const ProfileApp = named(() => import("./profile-app"), "ProfileApp")
 const AdminApp = named(() => import("./admin-app"), "AdminApp")
 
-function renderApp(appId: AppId, payload: any, onLogout: () => void) {
+function renderApp(appId: AppId, payload: AppPayload | undefined, onLogout: () => void) {
   switch (appId) {
     case "about":
       return <AboutApp />
@@ -86,12 +92,12 @@ export function AppDispatcher({
   onLogout,
 }: {
   appId: AppId
-  payload?: any
+  payload?: unknown
   onLogout?: () => void
 }) {
   return (
     <Suspense fallback={<LoadingState label="Opening…" />}>
-      {renderApp(appId, payload, onLogout ?? (() => {}))}
+      {renderApp(appId, payload as AppPayload | undefined, onLogout ?? (() => {}))}
     </Suspense>
   )
 }

@@ -1,12 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-
   // ── Image optimization ──────────────────────────────────────────────────────
-  // Re-enabled: Next.js auto-converts PNG → WebP/AVIF, serves correct sizes.
-  // logo-full.png (2MB) → ~150KB WebP automatically.
+  // Next.js converts PNG → WebP/AVIF and serves the right size.
   images: {
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 86400, // 24 hours
@@ -40,17 +35,19 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-              "font-src 'self' https://fonts.gstatic.com",
+              "script-src 'self' 'unsafe-inline'",
+              "style-src 'self' 'unsafe-inline'",
+              "font-src 'self'",
+              // Event banners come from Meetup; uploads and presigned reads from S3.
               "img-src 'self' data: blob: https://*.amazonaws.com https://secure.meetupstatic.com",
-              "connect-src 'self' https://*.amazonaws.com https://api.meetup.com https://nominatim.openstreetmap.org https://api.open-meteo.com https://ipapi.co",
+              // Admin uploads PUT straight to S3 with a presigned URL; everything else is same-origin.
+              "connect-src 'self' https://*.amazonaws.com",
               "frame-ancestors 'none'",
               "base-uri 'self'",
               "form-action 'self'",
             ].join('; '),
           },
-          // HSTS (enable once HTTPS confirmed on production)
+          // HSTS
           {
             key: 'Strict-Transport-Security',
             value: 'max-age=63072000; includeSubDomains; preload',

@@ -70,25 +70,25 @@ export function CountUp({ value, className }: { value: string; className?: strin
   const inView = useInView(ref, { once: true })
   const reduce = useReducedMotion()
   const match = value.match(/^(\D*)([\d,]+)(.*)$/)
-  const target = match ? Number(match[2].replace(/,/g, "")) : NaN
-  const [display, setDisplay] = useState(Number.isFinite(target) && !reduce ? `${match![1]}0${match![3]}` : value)
+  const [prefix, digits, suffix] = match ? [match[1], match[2], match[3]] : ["", "", ""]
+  const target = match ? Number(digits.replace(/,/g, "")) : NaN
+  const animatable = Number.isFinite(target) && !reduce
+  const [animated, setAnimated] = useState(`${prefix}0${suffix}`)
 
   useEffect(() => {
-    if (!match || !Number.isFinite(target) || !inView || reduce) {
-      setDisplay(value)
-      return
-    }
+    if (!animatable || !inView) return
     const controls = animate(0, target, {
       duration: Math.min(1.6, 0.6 + target / 1500),
       ease: [0.16, 1, 0.3, 1],
       onUpdate: v => {
         const n = Math.round(v)
-        setDisplay(`${match[1]}${match[2].includes(",") ? n.toLocaleString("en-IN") : n}${match[3]}`)
+        setAnimated(`${prefix}${digits.includes(",") ? n.toLocaleString("en-IN") : n}${suffix}`)
       },
     })
     return () => controls.stop()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value, inView, reduce])
+  }, [animatable, inView, target, prefix, digits, suffix])
+
+  const display = animatable ? animated : value
 
   return (
     <span ref={ref} className={cn("tabular-nums", className)}>

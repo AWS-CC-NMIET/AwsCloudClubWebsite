@@ -75,8 +75,6 @@ export function Spotlight() {
     return [...apps.slice(0, 5), ...people, ...evts, ...projs]
   }, [query, team.data, events.data, projects.data, isAdmin])
 
-  useEffect(() => setActive(0), [query])
-
   useEffect(() => {
     listRef.current?.querySelector<HTMLElement>(`[data-index="${active}"]`)?.scrollIntoView({ block: "nearest" })
   }, [active])
@@ -121,7 +119,10 @@ export function Spotlight() {
           <input
             autoFocus
             value={query}
-            onChange={e => setQuery(e.target.value)}
+            onChange={e => {
+              setQuery(e.target.value)
+              setActive(0)
+            }}
             onKeyDown={onKeyDown}
             placeholder="Search apps, team, events, projects…"
             aria-label="Spotlight search"

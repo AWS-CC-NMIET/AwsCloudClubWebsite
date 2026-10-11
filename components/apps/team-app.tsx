@@ -162,13 +162,13 @@ export function TeamApp({ payload }: { payload?: { focusId?: string } }) {
   const open = openIndex >= 0 ? ordered[openIndex] : drivers.find(d => d.member.id === openId)
 
   // Opened from Spotlight with a specific person.
-  useEffect(() => {
-    if (payload?.focusId) {
-      setFilter("All")
-      setQuery("")
-      setOpenId(payload.focusId)
-    }
-  }, [payload?.focusId])
+  const [focusedId, setFocusedId] = useState<string | undefined>()
+  if (payload?.focusId && payload.focusId !== focusedId) {
+    setFocusedId(payload.focusId)
+    setFilter("All")
+    setQuery("")
+    setOpenId(payload.focusId)
+  }
 
   const step = (dir: 1 | -1) => {
     if (!ordered.length) return

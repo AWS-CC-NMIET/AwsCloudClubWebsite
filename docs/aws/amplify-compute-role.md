@@ -100,8 +100,6 @@ Sign in as an admin → **Admin → Team → Import roster**. This copies the bu
 roster into DynamoDB using the site's own role (no local keys needed). From then
 on the Admin panel is the single source of truth for the team.
 
-(Alternative for developers with AWS credentials: `node scripts/seed-team.mjs --apply`.)
-
 ## Local development
 
 Put a **personal** IAM user's keys in `.env.local` as `AWS_ACCESS_KEY_ID` /

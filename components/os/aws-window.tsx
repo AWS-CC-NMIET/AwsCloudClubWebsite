@@ -105,7 +105,7 @@ export function AppWindow({ id, zIndex, focused, children }: AppWindowProps) {
     handle.setPointerCapture(e.pointerId)
     const startX = e.clientX
     const startY = e.clientY
-    let next: WindowBounds = { ...bounds }
+    const next: WindowBounds = { ...bounds }
 
     const onMove = (ev: PointerEvent) => {
       const maxW = window.innerWidth - bounds.x - 4

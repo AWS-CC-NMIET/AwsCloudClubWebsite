@@ -125,7 +125,7 @@ Steps to become a member:
   2. Attend our next workshop or event
   3. Connect with us on social media
   4. Create an account on this portal → choose
-     "Create account" on the lock screen
+     "Create a member account" on the lock screen
 
 📧 Email: ${CLUB.email}
 
@@ -186,7 +186,7 @@ Type 'about' for more info.`,
 
   Or type 'open contact' to send us a message!`,
     }
-  }, [members, firstEventRsvps, events.data])
+  }, [members, firstEventRsvps, events])
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight

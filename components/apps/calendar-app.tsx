@@ -3,7 +3,7 @@
 
 "use client"
 
-import React, { useEffect, useMemo, useState } from "react"
+import React, { useMemo, useState } from "react"
 import {
   CalendarDays,
   ChevronLeft,
@@ -77,13 +77,13 @@ export function CalendarApp({ payload }: { payload?: { focusId?: string } }) {
   const selected = events.data.find(e => e.id === selectedId) ?? upcoming[0] ?? events.data[0] ?? null
 
   // Jump the mini calendar to the selected event's month.
-  const selectedMonthKey = selected ? parseEventDate(selected)?.toISOString().slice(0, 7) : undefined
-  useEffect(() => {
-    if (!selected) return
-    const d = parseEventDate(selected)
-    if (d) setMonth(new Date(d.getFullYear(), d.getMonth(), 1))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedMonthKey])
+  const selectedDate = selected ? parseEventDate(selected) : null
+  const selectedMonthKey = selectedDate?.toISOString().slice(0, 7)
+  const [shownMonthKey, setShownMonthKey] = useState<string | undefined>()
+  if (selectedMonthKey !== shownMonthKey) {
+    setShownMonthKey(selectedMonthKey)
+    if (selectedDate) setMonth(new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1))
+  }
 
   const eventsByDay = useMemo(() => {
     const map = new Map<string, ClubEvent[]>()
@@ -102,12 +102,12 @@ export function CalendarApp({ payload }: { payload?: { focusId?: string } }) {
   }
 
   // Opened from Spotlight with a specific event.
-  useEffect(() => {
-    if (payload?.focusId) {
-      setFilter("all")
-      select(payload.focusId)
-    }
-  }, [payload?.focusId])
+  const [focusedId, setFocusedId] = useState<string | undefined>()
+  if (payload?.focusId && payload.focusId !== focusedId) {
+    setFocusedId(payload.focusId)
+    setFilter("all")
+    select(payload.focusId)
+  }
 
   const filterOptions = [
     { id: "all" as Filter, label: "All Events", count: events.data.length },

@@ -16,18 +16,15 @@ const DISMISSED_KEY = "pwa_install_dismissed"
 export function PWAInstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [show, setShow] = useState(false)
-  const [isIOS, setIsIOS] = useState(false)
+  const [isIOS] = useState(() => typeof navigator !== "undefined" && /iphone|ipad|ipod/i.test(navigator.userAgent))
 
   useEffect(() => {
     // Don't show if already dismissed
     if (safeStorage.getItem(DISMISSED_KEY)) return
 
     // Detect iOS (no beforeinstallprompt support)
-    const ios = /iphone|ipad|ipod/i.test(navigator.userAgent)
     const standalone = (navigator as unknown as Record<string, unknown>).standalone === true
-    setIsIOS(ios)
-
-    if (ios && !standalone) {
+    if (isIOS && !standalone) {
       // Show iOS instructions after 5s
       const t = setTimeout(() => setShow(true), 5000)
       return () => clearTimeout(t)
@@ -41,7 +38,7 @@ export function PWAInstallPrompt() {
     }
     window.addEventListener("beforeinstallprompt", handler)
     return () => window.removeEventListener("beforeinstallprompt", handler)
-  }, [])
+  }, [isIOS])
 
   const dismiss = () => {
     setShow(false)

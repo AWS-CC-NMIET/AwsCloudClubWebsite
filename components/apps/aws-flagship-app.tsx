@@ -3,7 +3,7 @@
 
 "use client"
 
-import React, { useMemo, useRef, useState } from "react"
+import React, { useRef, useState } from "react"
 import Image from "next/image"
 import { AnimatePresence, motion } from "framer-motion"
 import { ArrowRight, Calendar, Cloud, MapPin, Rocket, Sparkles, Star, Users, Zap } from "lucide-react"
@@ -52,14 +52,14 @@ export function AwsFlagshipApp() {
 
   // ── Easter egg: click the logo 5 times quickly ─────────────────────────────
   const clicks = useRef({ count: 0, last: 0 })
-  const [confettiKey, setConfettiKey] = useState(0)
+  const [confetti, setConfetti] = useState<{ id: number; pieces: ConfettiPiece[] } | null>(null)
   const handleLogoClick = () => {
     const now = Date.now()
     clicks.current.count = now - clicks.current.last < 1000 ? clicks.current.count + 1 : 1
     clicks.current.last = now
     if (clicks.current.count >= 5) {
       clicks.current.count = 0
-      setConfettiKey(k => k + 1)
+      setConfetti({ id: now, pieces: makeConfetti() })
       systemActions.showToast("You found us! True builders are always curious 🚀")
     }
   }
@@ -248,7 +248,7 @@ export function AwsFlagshipApp() {
         </Reveal>
       </div>
 
-      <AnimatePresence>{confettiKey > 0 && <Confetti key={confettiKey} onDone={() => setConfettiKey(0)} />}</AnimatePresence>
+      <AnimatePresence>{confetti && <Confetti key={confetti.id} pieces={confetti.pieces} onDone={() => setConfetti(null)} />}</AnimatePresence>
     </div>
   )
 }
@@ -264,24 +264,31 @@ function SectionTitle({ eyebrow, title, icon: Icon }: { eyebrow: string; title: 
   )
 }
 
-function Confetti({ onDone }: { onDone: () => void }) {
-  const pieces = useMemo(
-    () =>
-      Array.from({ length: 80 }, (_, i) => {
-        const angle = Math.random() * Math.PI * 2
-        const distance = 80 + Math.random() * 250
-        return {
-          color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
-          x: Math.cos(angle) * distance,
-          y: Math.sin(angle) * distance + 100,
-          rotate: Math.random() * 360,
-          scale: 0.4 + Math.random() * 0.8,
-          duration: 1.5 + Math.random() * 1.5,
-        }
-      }),
-    []
-  )
+interface ConfettiPiece {
+  color: string
+  x: number
+  y: number
+  rotate: number
+  scale: number
+  duration: number
+}
 
+function makeConfetti(): ConfettiPiece[] {
+  return Array.from({ length: 80 }, (_, i) => {
+    const angle = Math.random() * Math.PI * 2
+    const distance = 80 + Math.random() * 250
+    return {
+      color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+      x: Math.cos(angle) * distance,
+      y: Math.sin(angle) * distance + 100,
+      rotate: Math.random() * 360,
+      scale: 0.4 + Math.random() * 0.8,
+      duration: 1.5 + Math.random() * 1.5,
+    }
+  })
+}
+
+function Confetti({ pieces, onDone }: { pieces: ConfettiPiece[]; onDone: () => void }) {
   return (
     <div className="pointer-events-none fixed inset-0 z-[9999] overflow-hidden">
       {pieces.map((p, i) => (

@@ -3,7 +3,7 @@
 
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState } from "react"
 import Image from "next/image"
 import {
   Palette,
@@ -137,13 +137,14 @@ export function SettingsApp({ payload }: { payload?: { pane?: string } }) {
   const brightness = useSystemStore(s => s.brightness)
   const { isAdmin } = useSession()
 
-  useEffect(() => {
-    if (payload?.pane) {
-      if (payload.pane === "wallpaper" || payload.pane === "background") setActiveTab("wallpaper")
-      else if (payload.pane === "appearance") setActiveTab("appearance")
-      else if (payload.pane === "about") setActiveTab("about")
-    }
-  }, [payload?.pane])
+  // Opened at a specific pane (e.g. "Change Wallpaper…" on the desktop).
+  const [shownPane, setShownPane] = useState<string | undefined>()
+  if (payload?.pane && payload.pane !== shownPane) {
+    setShownPane(payload.pane)
+    if (payload.pane === "wallpaper" || payload.pane === "background") setActiveTab("wallpaper")
+    else if (payload.pane === "appearance") setActiveTab("appearance")
+    else if (payload.pane === "about") setActiveTab("about")
+  }
 
   const filteredPanes = PANES.filter(pane =>
     pane.label.toLowerCase().includes(searchQuery.toLowerCase())

@@ -37,7 +37,7 @@ export function LoginScreen({ onLogin, initialPhase = "lock" }: { onLogin: () =>
   const background = WALLPAPER_STYLES[wallpaper]?.dark ?? WALLPAPER_STYLES.dynamic.dark
 
   const [phase, setPhase] = useState<Phase>(initialPhase)
-  const [now, setNow] = useState<Date | null>(null)
+  const [now, setNow] = useState<Date | null>(() => new Date())
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -51,7 +51,6 @@ export function LoginScreen({ onLogin, initialPhase = "lock" }: { onLogin: () =>
   const [notice, setNotice] = useState("")
 
   useEffect(() => {
-    setNow(new Date())
     const id = setInterval(() => setNow(new Date()), 10_000)
     return () => clearInterval(id)
   }, [])
