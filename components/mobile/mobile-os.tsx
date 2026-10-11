@@ -12,7 +12,8 @@ import { SpringBoard } from "./aws-springboard"
 import { AppDispatcher } from "@/components/apps/app-dispatcher"
 import { LoginScreen } from "@/components/os/login-screen"
 import { setOpenGuard, windowActions } from "@/lib/aws-store"
-import { APPS_META, type AppId } from "@/lib/aws-apps"
+import type { AppId } from "@/lib/aws-apps"
+import { createOpenGuard } from "@/lib/open-guard"
 import { isSessionValid, refreshSession } from "@/lib/auth-client"
 
 type MobileStage = "checking" | "lockscreen" | "home"
@@ -34,16 +35,8 @@ export function MobileOS() {
     })()
   }, [])
 
-  // Sign-in-only apps open the sign-in sheet for guests.
-  useEffect(
-    () =>
-      setOpenGuard(appId => {
-        if (!APPS_META[appId]?.requiresAuth || isSessionValid()) return true
-        setSignInFor(appId)
-        return false
-      }),
-    []
-  )
+  // Profile needs an account (sign-in sheet for guests); Admin needs the admins group.
+  useEffect(() => setOpenGuard(createOpenGuard(setSignInFor)), [])
 
   const handleLogout = useCallback(() => {
     windowActions.closeAll()

@@ -13,6 +13,21 @@ const KEYS = {
   username: "cc_username",
 }
 
+// ── Change notifications (session store subscribes to these) ──
+const authListeners = new Set<() => void>()
+
+/** Subscribe to sign-in / sign-out / token refresh. Returns an unsubscribe fn. */
+export function onAuthChange(listener: () => void) {
+  authListeners.add(listener)
+  return () => {
+    authListeners.delete(listener)
+  }
+}
+
+function notifyAuthChange() {
+  authListeners.forEach(fn => fn())
+}
+
 // ── Internal fetch helper ────────────────────────────────────
 async function authPost(action: string, data: Record<string, string>) {
   const res = await fetch("/api/auth", {
@@ -37,6 +52,7 @@ function saveTokens(data: {
   if (data.refreshToken) safeStorage.setItem(KEYS.refresh, data.refreshToken)
   if (data.expiresIn)    safeStorage.setItem(KEYS.expiry,  String(Date.now() + data.expiresIn * 1000))
   if (username)          safeStorage.setItem(KEYS.username, username)
+  notifyAuthChange()
 }
 
 export function getAccessToken(): string | null {
@@ -49,6 +65,7 @@ export function getStoredUsername(): string | null {
 
 export function clearTokens() {
   Object.values(KEYS).forEach((k) => safeStorage.removeItem(k))
+  notifyAuthChange()
 }
 
 // ── Parse JWT payload without verification ───────────────────

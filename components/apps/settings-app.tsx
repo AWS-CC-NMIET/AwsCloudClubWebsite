@@ -22,6 +22,7 @@ import {
   WALLPAPER_STYLES,
 } from "@/lib/aws-store"
 import { CLUB } from "@/lib/club-content"
+import { useSession } from "@/lib/session"
 
 interface WallpaperOption {
   id: WallpaperId
@@ -134,6 +135,7 @@ export function SettingsApp({ payload }: { payload?: { pane?: string } }) {
   const appearance = useSystemStore(s => s.appearance)
   const currentWallpaper = useSystemStore(s => s.wallpaper)
   const brightness = useSystemStore(s => s.brightness)
+  const { isAdmin } = useSession()
 
   useEffect(() => {
     if (payload?.pane) {
@@ -446,12 +448,14 @@ export function SettingsApp({ payload }: { payload?: { pane?: string } }) {
               >
                 Open Home
               </button>
-              <button
-                onClick={() => windowActions.open("admin")}
-                className="rounded-lg border border-(--win-divider) bg-black/5 dark:bg-white/5 px-4 py-1.5 text-xs font-semibold text-(--os-text) hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
-              >
-                Admin Panel
-              </button>
+              {isAdmin && (
+                <button
+                  onClick={() => windowActions.open("admin")}
+                  className="rounded-lg border border-(--win-divider) bg-black/5 dark:bg-white/5 px-4 py-1.5 text-xs font-semibold text-(--os-text) hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+                >
+                  Admin Panel
+                </button>
+              )}
             </div>
           </div>
         )}

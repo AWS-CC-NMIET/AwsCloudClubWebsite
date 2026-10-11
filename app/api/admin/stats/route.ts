@@ -1,45 +1,49 @@
-// app/api/admin/stats/route.ts
-// Dashboard stats for admin panel
+// app/api/admin/stats/route.ts — dashboard numbers (admin only)
 
 import { NextResponse } from "next/server"
-import { validateAdminAuth } from "@/lib/auth"
+import { listAllUsers, requireAdmin } from "@/lib/auth"
 import { scanTable, TABLES } from "@/lib/dynamodb"
-import { listAllUsers } from "@/lib/auth"
+import { NO_STORE } from "@/lib/http"
 
 export async function GET(request: Request) {
-  const admin = await validateAdminAuth(request)
-  if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const admin = await requireAdmin(request)
+  if (admin instanceof NextResponse) return admin
 
-  try {
-    const [events, team, projects, contacts, achievements, resources, users] = await Promise.all([
-      scanTable(TABLES.EVENTS),
-      scanTable(TABLES.TEAM),
-      scanTable(TABLES.PROJECTS),
-      scanTable(TABLES.CONTACTS),
-      scanTable(TABLES.ACHIEVEMENTS),
-      scanTable(TABLES.RESOURCES),
-      listAllUsers(),
-    ])
-
-    const unreadContacts = contacts.filter((c: Record<string, unknown>) => !c.isRead).length
-
-    return NextResponse.json({
-      stats: {
-        totalEvents: events.length,
-        pastEvents: events.filter((e: Record<string, unknown>) => e.isPast).length,
-        upcomingEvents: events.filter((e: Record<string, unknown>) => !e.isPast).length,
-        teamMembers: team.length,
-        activeMembers: team.filter((t: Record<string, unknown>) => t.status === "running").length,
-        totalProjects: projects.length,
-        totalAchievements: achievements.length,
-        totalResources: resources.length,
-        totalContacts: contacts.length,
-        unreadContacts,
-        registeredUsers: users.length,
-      },
-    })
-  } catch (err) {
-    console.error("Stats error:", err)
-    return NextResponse.json({ error: "Failed to fetch stats" }, { status: 500 })
+  // One failing source shouldn't blank the whole dashboard.
+  const settle = async <T,>(p: Promise<T[]>) => {
+    try {
+      return await p
+    } catch (err) {
+      console.error("[api] admin stats source failed:", err)
+      return null
+    }
   }
+
+  const [events, team, projects, contacts, achievements, resources, users] = await Promise.all([
+    settle(scanTable(TABLES.EVENTS)),
+    settle(scanTable(TABLES.TEAM)),
+    settle(scanTable(TABLES.PROJECTS)),
+    settle(scanTable(TABLES.CONTACTS)),
+    settle(scanTable(TABLES.ACHIEVEMENTS)),
+    settle(scanTable(TABLES.RESOURCES)),
+    settle(listAllUsers()),
+  ])
+
+  return NextResponse.json(
+    {
+      stats: {
+        totalEvents: events?.length ?? null,
+        pastEvents: events ? events.filter(e => e.isPast === true || e.isPast === "true").length : null,
+        upcomingEvents: events ? events.filter(e => !(e.isPast === true || e.isPast === "true")).length : null,
+        teamMembers: team?.length ?? null,
+        totalProjects: projects?.length ?? null,
+        totalContacts: contacts?.length ?? null,
+        unreadContacts: contacts ? contacts.filter(c => !c.isRead).length : null,
+        achievements: achievements?.length ?? null,
+        resources: resources?.length ?? null,
+        totalUsers: users?.length ?? null,
+      },
+    },
+    { headers: NO_STORE }
+  )
 }

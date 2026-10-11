@@ -12,6 +12,8 @@ import { AppIcon } from "@/components/os/app-icon"
 import { SystemToast } from "@/components/os/system-toast"
 import { AppErrorBoundary } from "@/components/app-error-boundary"
 import { AppSheet } from "./aws-sheet"
+import { useSession } from "@/lib/session"
+import { isAppVisible } from "@/lib/open-guard"
 
 const ALL_APPS = [...SPRINGBOARD_DOCK, ...SPRINGBOARD_GRID]
 
@@ -26,6 +28,7 @@ export function SpringBoard({ renderAppContent }: { renderAppContent: (appId: Ap
   const appearance = useSystemStore(s => s.appearance)
   const wallpaper = useSystemStore(s => s.wallpaper)
   const background = WALLPAPER_STYLES[wallpaper]?.[appearance] ?? WALLPAPER_STYLES.dynamic.dark
+  const { isAdmin } = useSession()
 
   useEffect(() => {
     const update = () => setCurrentTime(new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }))
@@ -40,7 +43,7 @@ export function SpringBoard({ renderAppContent }: { renderAppContent: (appId: Ap
   }
 
   const q = query.trim().toLowerCase()
-  const grid = q
+  const grid = (q
     ? ALL_APPS.filter(id => {
         const meta = APPS_META[id]
         return (
@@ -50,6 +53,7 @@ export function SpringBoard({ renderAppContent }: { renderAppContent: (appId: Ap
         )
       })
     : SPRINGBOARD_GRID
+  ).filter(id => isAppVisible(id, isAdmin))
 
   return (
     <div

@@ -1,19 +1,36 @@
-// app/api/contact/[id]/route.ts — Mark contact submission as read/unread
-import { NextResponse } from "next/server"
-import { updateItem, deleteItem, TABLES } from "@/lib/dynamodb"
-import { validateAdminAuth } from "@/lib/auth"
+// app/api/contact/[id]/route.ts — admin: mark read/unread, delete
 
-export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
+import { NextResponse } from "next/server"
+import { updateItem, deleteItem, ItemNotFoundError, TABLES } from "@/lib/dynamodb"
+import { requireAdmin } from "@/lib/auth"
+import { jsonError, NO_STORE, parseBody, serverError } from "@/lib/http"
+import { contactUpdateSchema } from "@/lib/validation"
+
+type IdContext = { params: Promise<{ id: string }> }
+
+export async function PUT(request: Request, { params }: IdContext) {
   const { id } = await params
-  if (!await validateAdminAuth(request)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  const updates = await request.json()
-  const submission = await updateItem(TABLES.CONTACTS, id, updates)
-  return NextResponse.json({ submission })
+  const admin = await requireAdmin(request)
+  if (admin instanceof NextResponse) return admin
+  const parsed = await parseBody(request, contactUpdateSchema)
+  if (parsed.error) return parsed.error
+  try {
+    const submission = await updateItem(TABLES.CONTACTS, id, parsed.data)
+    return NextResponse.json({ submission }, { headers: NO_STORE })
+  } catch (err) {
+    if (err instanceof ItemNotFoundError) return jsonError("Not found", 404)
+    return serverError("PUT contact", err, "Failed to update submission")
+  }
 }
 
-export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: Request, { params }: IdContext) {
   const { id } = await params
-  if (!await validateAdminAuth(request)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  await deleteItem(TABLES.CONTACTS, id)
-  return NextResponse.json({ success: true })
+  const admin = await requireAdmin(request)
+  if (admin instanceof NextResponse) return admin
+  try {
+    await deleteItem(TABLES.CONTACTS, id)
+    return NextResponse.json({ success: true }, { headers: NO_STORE })
+  } catch (err) {
+    return serverError("DELETE contact", err, "Failed to delete submission")
+  }
 }

@@ -12,15 +12,10 @@ import {
   QueryCommand,
 } from "@aws-sdk/lib-dynamodb"
 import { v4 as uuidv4 } from "uuid"
+import { awsClientConfig } from "@/lib/aws-clients"
 
 // ── Client Setup ─────────────────────────────────────────────
-const client = new DynamoDBClient({
-  region: process.env.APP_REGION || process.env.AWS_REGION || "ap-south-1",
-  credentials: {
-    accessKeyId:     (process.env.APP_ACCESS_KEY_ID    || process.env.AWS_ACCESS_KEY_ID)!,
-    secretAccessKey: (process.env.APP_SECRET_ACCESS_KEY || process.env.AWS_SECRET_ACCESS_KEY)!,
-  },
-})
+const client = new DynamoDBClient(awsClientConfig())
 
 export const db = DynamoDBDocumentClient.from(client, {
   marshallOptions: { removeUndefinedValues: true },
@@ -168,44 +163,70 @@ export async function getItem(tableName: string, id: string) {
   return result.Item || null
 }
 
+/** Every item in a table (follows pagination past DynamoDB's 1 MB page limit). */
 export async function scanTable(tableName: string) {
-  const result = await db.send(new ScanCommand({ TableName: tableName }))
-  return result.Items || []
+  const items: Record<string, unknown>[] = []
+  let ExclusiveStartKey: Record<string, unknown> | undefined
+  do {
+    const result = await db.send(new ScanCommand({ TableName: tableName, ExclusiveStartKey }))
+    items.push(...((result.Items as Record<string, unknown>[]) ?? []))
+    ExclusiveStartKey = result.LastEvaluatedKey
+  } while (ExclusiveStartKey)
+  return items
 }
 
 export async function deleteItem(tableName: string, id: string) {
   await db.send(new DeleteCommand({ TableName: tableName, Key: { id } }))
 }
 
+/** Thrown when updating an id that does not exist. */
+export class ItemNotFoundError extends Error {
+  constructor() {
+    super("Item not found")
+    this.name = "ItemNotFoundError"
+  }
+}
+
+const SAFE_ATTRIBUTE = /^[A-Za-z][A-Za-z0-9_]{0,63}$/
+const PROTECTED_ATTRIBUTES = new Set(["id", "createdAt", "updatedAt"])
+
+/** Update an existing item. Never creates items and never touches id/createdAt. */
 export async function updateItem(
   tableName: string,
   id: string,
   updates: Record<string, unknown>
 ) {
-  const now = new Date().toISOString()
-  const updateData: Record<string, unknown> = { ...updates, updatedAt: now }
-  delete updateData.id // Can't update the key
+  const updateData: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(updates)) {
+    if (value !== undefined && SAFE_ATTRIBUTE.test(key) && !PROTECTED_ATTRIBUTES.has(key)) updateData[key] = value
+  }
+  updateData.updatedAt = new Date().toISOString()
 
   const keys = Object.keys(updateData)
-  const expr = keys.map((k) => `#${k} = :${k}`).join(", ")
-  const names: Record<string, string> = {}
+  const names: Record<string, string> = { "#id": "id" }
   const values: Record<string, unknown> = {}
-  keys.forEach((k) => {
+  keys.forEach(k => {
     names[`#${k}`] = k
     values[`:${k}`] = updateData[k]
   })
 
-  const result = await db.send(
-    new UpdateCommand({
-      TableName: tableName,
-      Key: { id },
-      UpdateExpression: `SET ${expr}`,
-      ExpressionAttributeNames: names,
-      ExpressionAttributeValues: values,
-      ReturnValues: "ALL_NEW",
-    })
-  )
-  return result.Attributes
+  try {
+    const result = await db.send(
+      new UpdateCommand({
+        TableName: tableName,
+        Key: { id },
+        UpdateExpression: `SET ${keys.map(k => `#${k} = :${k}`).join(", ")}`,
+        ConditionExpression: "attribute_exists(#id)",
+        ExpressionAttributeNames: names,
+        ExpressionAttributeValues: values,
+        ReturnValues: "ALL_NEW",
+      })
+    )
+    return result.Attributes
+  } catch (err) {
+    if ((err as { name?: string })?.name === "ConditionalCheckFailedException") throw new ItemNotFoundError()
+    throw err
+  }
 }
 
 // ── SiteConfig helpers ────────────────────────────────────────

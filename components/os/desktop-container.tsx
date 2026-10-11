@@ -6,8 +6,8 @@
 import React, { useEffect } from "react"
 import { AnimatePresence } from "framer-motion"
 import { useWindowStore, windowActions, selectFocusedApp, setOpenGuard } from "@/lib/aws-store"
-import { APPS_META, type AppId } from "@/lib/aws-apps"
-import { isSessionValid } from "@/lib/auth-client"
+import type { AppId } from "@/lib/aws-apps"
+import { createOpenGuard } from "@/lib/open-guard"
 import { AwsMenuBar } from "./aws-menubar"
 import { AwsDock } from "./aws-dock"
 import { AwsDesktop } from "./aws-desktop"
@@ -29,16 +29,8 @@ export function DesktopContainer({
   const zOrder = useWindowStore(s => s.zOrder)
   const focusedAppId = selectFocusedApp({ windows, zOrder })
 
-  // Sign-in-only apps (Profile, Admin) route guests to the sign-in screen.
-  useEffect(
-    () =>
-      setOpenGuard(appId => {
-        if (!APPS_META[appId]?.requiresAuth || isSessionValid()) return true
-        onRequireSignIn?.(appId)
-        return false
-      }),
-    [onRequireSignIn]
-  )
+  // Profile needs an account; Admin needs the admins group.
+  useEffect(() => setOpenGuard(createOpenGuard(appId => onRequireSignIn?.(appId))), [onRequireSignIn])
 
   // Open the requested app, or the Home window on first arrival.
   useEffect(() => {

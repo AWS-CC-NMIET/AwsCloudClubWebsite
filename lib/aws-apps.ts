@@ -47,6 +47,8 @@ export interface AppMeta {
   springboardLabel?: string
   /** Opening this app requires a signed-in session. */
   requiresAuth?: boolean
+  /** Opening this app requires the Cognito "admins" group (also hidden from everyone else). */
+  requiresAdmin?: boolean
   spotlight: {
     keywords: string[]
     description: string
@@ -362,6 +364,7 @@ export const APPS_META: Record<AppId, AppMeta> = {
     minSize: { w: 560, h: 440 },
     springboardLabel: "Admin",
     requiresAuth: true,
+    requiresAdmin: true,
     spotlight: {
       keywords: ["admin", "manage", "dashboard", "panel"],
       description: "Manage events, team, projects and more (admins only)",

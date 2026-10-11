@@ -10,6 +10,8 @@ import { systemActions, windowActions } from "@/lib/aws-store"
 import { APPS_META, windowTitleOf, type AppId } from "@/lib/aws-apps"
 import { useEvents, useProjects, useTeam } from "@/lib/club-data"
 import { AppIcon } from "./app-icon"
+import { useSession } from "@/lib/session"
+import { isAppVisible } from "@/lib/open-guard"
 
 interface Result {
   key: string
@@ -30,11 +32,12 @@ export function Spotlight() {
   const team = useTeam()
   const events = useEvents()
   const projects = useProjects()
+  const { isAdmin } = useSession()
 
   const results = useMemo<Result[]>(() => {
     const q = query.trim().toLowerCase()
     const apps: Result[] = (Object.values(APPS_META) as (typeof APPS_META)[AppId][])
-      .filter(m => !HIDDEN_FROM_SEARCH.includes(m.id))
+      .filter(m => !HIDDEN_FROM_SEARCH.includes(m.id) && isAppVisible(m.id, isAdmin))
       .filter(
         m =>
           !q ||
@@ -70,7 +73,7 @@ export function Spotlight() {
       .map(p => ({ key: `project-${p.id}`, title: p.title, subtitle: `by ${p.author}`, kind: "Project", appId: "finder", icon: <FileText className="size-5 text-red-500" /> }))
 
     return [...apps.slice(0, 5), ...people, ...evts, ...projs]
-  }, [query, team.data, events.data, projects.data])
+  }, [query, team.data, events.data, projects.data, isAdmin])
 
   useEffect(() => setActive(0), [query])
 

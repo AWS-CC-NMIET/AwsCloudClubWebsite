@@ -1,26 +1,25 @@
 // app/api/contact/route.ts
-// Saves contact submission to DynamoDB and sends SES email
+// Public: submit a message (saved to DynamoDB + emailed via SES).
+// Admin: list submissions.
 
 import { NextResponse } from "next/server"
-import { putItem, TABLES } from "@/lib/dynamodb"
+import { putItem, scanTable, TABLES } from "@/lib/dynamodb"
 import { sendContactEmail } from "@/lib/ses"
+import { requireAdmin } from "@/lib/auth"
 import { rateLimit, getRequestKey, rateLimitResponse } from "@/lib/rate-limit"
+import { NO_STORE, parseBody, serverError } from "@/lib/http"
+import { byNewest } from "@/lib/crud"
+import { contactSchema } from "@/lib/validation"
 
 export async function GET(request: Request) {
-  // Admin-only: list all contact submissions
-  const { validateAdminAuth } = await import("@/lib/auth")
-  const admin = await validateAdminAuth(request)
-  if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-
-  const { scanTable } = await import("@/lib/dynamodb")
+  const admin = await requireAdmin(request)
+  if (admin instanceof NextResponse) return admin
   try {
     const submissions = await scanTable(TABLES.CONTACTS)
-    submissions.sort((a: Record<string, unknown>, b: Record<string, unknown>) =>
-      new Date(b.submittedAt as string).getTime() - new Date(a.submittedAt as string).getTime()
-    )
-    return NextResponse.json({ submissions })
-  } catch {
-    return NextResponse.json({ error: "Failed to fetch submissions" }, { status: 500 })
+    submissions.sort(byNewest("submittedAt"))
+    return NextResponse.json({ submissions }, { headers: NO_STORE })
+  } catch (err) {
+    return serverError("GET contact", err, "Failed to fetch submissions")
   }
 }
 
@@ -28,45 +27,22 @@ export async function POST(request: Request) {
   const rl = rateLimit(getRequestKey(request, "contact"), { limit: 3, windowMs: 60_000 })
   if (!rl.success) return rateLimitResponse(rl.resetAt)
 
+  const parsed = await parseBody(request, contactSchema)
+  if (parsed.error) return parsed.error
+  const { website, ...message } = parsed.data
+
+  // Bots fill every field, including the hidden honeypot. Pretend it worked.
+  if (website) return NextResponse.json({ success: true }, { status: 201, headers: NO_STORE })
+
   try {
-    const { name, email, subject, message } = await request.json()
-
-    // Validate all fields
-    if (!name?.trim() || !email?.trim() || !subject?.trim() || !message?.trim()) {
-      return NextResponse.json({ error: "All fields are required" }, { status: 400 })
-    }
-
-    // Basic email format validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
-      return NextResponse.json({ error: "Invalid email address" }, { status: 400 })
-    }
-
-    // Rate limit: max 500 chars for message
-    if (message.length > 2000) {
-      return NextResponse.json({ error: "Message too long (max 2000 chars)" }, { status: 400 })
-    }
-
-    // Save to DynamoDB
-    const submission = await putItem(TABLES.CONTACTS, {
-      name: name.trim(),
-      email: email.trim().toLowerCase(),
-      subject: subject.trim(),
-      message: message.trim(),
-      submittedAt: new Date().toISOString(),
-      isRead: false,
-    })
-
-    // Send email via SES (non-blocking: don't fail if email fails)
+    const submission = await putItem(TABLES.CONTACTS, { ...message, submittedAt: new Date().toISOString(), isRead: false })
     try {
-      await sendContactEmail({ name: name.trim(), email: email.trim(), subject: subject.trim(), message: message.trim() })
+      await sendContactEmail(message)
     } catch (emailErr) {
-      console.error("SES email failed (submission still saved):", emailErr)
+      console.error("[api] SES email failed (submission still saved):", emailErr)
     }
-
-    return NextResponse.json({ success: true, id: submission.id }, { status: 201 })
+    return NextResponse.json({ success: true, id: submission.id }, { status: 201, headers: NO_STORE })
   } catch (err) {
-    console.error("POST /api/contact error:", err)
-    return NextResponse.json({ error: "Failed to submit message" }, { status: 500 })
+    return serverError("POST contact", err, "Failed to submit message")
   }
 }

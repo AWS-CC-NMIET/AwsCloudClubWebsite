@@ -8,6 +8,7 @@ import React, { lazy, Suspense } from "react"
 import type { AppId } from "@/lib/aws-apps"
 import { AwsFlagshipApp } from "./aws-flagship-app"
 import { LoadingState } from "./shared/mac-ui"
+import { AdminGate } from "./admin-gate"
 
 const named = <T extends string>(loader: () => Promise<Record<T, React.ComponentType<any>>>, name: T) =>
   lazy(() => loader().then(m => ({ default: m[name] })))
@@ -68,7 +69,11 @@ function renderApp(appId: AppId, payload: any, onLogout: () => void) {
     case "profile":
       return <ProfileApp onLogout={onLogout} />
     case "admin":
-      return <AdminApp />
+      return (
+        <AdminGate>
+          <AdminApp />
+        </AdminGate>
+      )
     case "aws":
     default:
       return <AwsFlagshipApp />
