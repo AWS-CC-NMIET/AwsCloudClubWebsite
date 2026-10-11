@@ -45,6 +45,7 @@ export const api = {
     create: (data: unknown) => apiFetch<{ member: unknown }>("/api/team", { method: "POST", body: JSON.stringify(data) }),
     update: (id: string, data: unknown) => apiFetch<{ member: unknown }>(`/api/team/${id}`, { method: "PUT", body: JSON.stringify(data) }),
     delete: (id: string)  => apiFetch<{ success: boolean }>(`/api/team/${id}`, { method: "DELETE" }),
+    importRoster: ()      => apiFetch<{ added: number; alreadyPresent: number }>("/api/team/seed", { method: "POST" }),
   },
   projects: {
     list: ()              => apiFetch<{ projects: unknown[] }>("/api/projects"),

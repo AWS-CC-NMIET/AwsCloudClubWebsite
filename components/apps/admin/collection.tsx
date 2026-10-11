@@ -30,6 +30,8 @@ export interface CollectionConfig {
   filter?: (item: Row) => boolean
   /** Extra values merged into every create/update (e.g. tags for gallery albums). */
   fixedValues?: Row
+  /** Optional notice above the list (e.g. "import the roster"). */
+  banner?: (items: Row[], reload: () => Promise<void>) => React.ReactNode
 }
 
 export function CollectionManager({ config }: { config: CollectionConfig }) {
@@ -147,6 +149,7 @@ export function CollectionManager({ config }: { config: CollectionConfig }) {
           </MacButton>
         </div>
 
+        {status === "ready" && config.banner?.(items, load)}
         <div className="flex-1 overflow-y-auto p-1.5">
           {status === "loading" && items.length === 0 ? (
             <LoadingState />

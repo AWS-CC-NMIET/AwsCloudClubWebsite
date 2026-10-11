@@ -94,16 +94,13 @@ Redeploy the branch, sign in as an admin and open
 Admin → Health view (or call it with your access token). Every service should
 report `"ok": true`. Anonymous visitors only see `{ "ok": true }`.
 
-## 5. Seed the team roster (once)
+## 5. Import the team roster (once)
 
-With working local credentials (`aws configure` / SSO — no keys in the repo):
+Sign in as an admin → **Admin → Team → Import roster**. This copies the 27-member
+roster into DynamoDB using the site's own role (no local keys needed). From then
+on the Admin panel is the single source of truth for the team.
 
-```bash
-node scripts/seed-team.mjs           # dry run
-node scripts/seed-team.mjs --apply   # copies the 27-member roster into DynamoDB
-```
-
-From then on the Admin panel is the single source of truth for the team.
+(Alternative for developers with AWS credentials: `node scripts/seed-team.mjs --apply`.)
 
 ## Local development
 

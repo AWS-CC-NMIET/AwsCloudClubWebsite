@@ -20,6 +20,8 @@ import {
   type LucideIcon,
 } from "lucide-react"
 import { api } from "@/lib/api-client"
+import { systemActions } from "@/lib/aws-store"
+import { MacButton } from "./shared/mac-ui"
 import { useSession } from "@/lib/session"
 import { cn } from "@/lib/utils"
 import { AppShell, BackButton, Sidebar, SidebarItem, SidebarSection } from "./shared/mac-ui"
@@ -95,6 +97,8 @@ const COLLECTIONS: Record<string, CollectionConfig> = {
     primary: m => String(m.name ?? ""),
     secondary: m => String(m.role ?? ""),
     thumbnail: m => (m.photoUrl as string) || undefined,
+    banner: (items, reload) =>
+      items.some(m => m.source === "roster-seed") ? null : <ImportRosterBanner reload={reload} />,
     fields: [
       { key: "name", label: "Full name", type: "text", required: true },
       { key: "role", label: "Role", type: "text", required: true, placeholder: "Tech Team Member" },
@@ -274,5 +278,33 @@ export function AdminApp() {
         <div className="flex min-h-0 flex-1">{content}</div>
       </div>
     </AppShell>
+  )
+}
+
+/** Shown until the built-in roster has been copied into DynamoDB. */
+function ImportRosterBanner({ reload }: { reload: () => Promise<void> }) {
+  const [busy, setBusy] = useState(false)
+  const importRoster = async () => {
+    setBusy(true)
+    try {
+      const { added } = await api.team.importRoster()
+      systemActions.showToast(added ? `Imported ${added} team members` : "Everyone is already here")
+      await reload()
+    } catch (err) {
+      systemActions.showToast((err as Error).message || "Import failed")
+    } finally {
+      setBusy(false)
+    }
+  }
+  return (
+    <div className="m-3 space-y-2 rounded-lg border border-(--accent)/30 bg-(--accent)/8 p-3 text-[12px] leading-relaxed">
+      <p>
+        The website is showing the built-in 27-member roster. Import it once so you can edit, reorder and remove
+        anyone here — after that, this list is exactly what the site shows.
+      </p>
+      <MacButton variant="primary" onClick={importRoster} disabled={busy} className="px-2.5 py-1.5">
+        {busy ? "Importing…" : "Import roster"}
+      </MacButton>
+    </div>
   )
 }
