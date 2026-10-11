@@ -9,12 +9,12 @@ import React from "react"
 import { useSystemStore, type WallpaperId } from "@/lib/aws-store"
 
 const PALETTES: Record<WallpaperId, { dark: [string, string, string]; light: [string, string, string] }> = {
-  dynamic: { dark: ["#f3350c", "#7940ea", "#1c4fbf"], light: ["#ff8a5c", "#c3a6ff", "#8fb4ff"] },
-  ember: { dark: ["#f3350c", "#b91c1c", "#d97706"], light: ["#ff9b73", "#fdba74", "#fca5a5"] },
-  violet: { dark: ["#7c3aed", "#9333ea", "#2563eb"], light: ["#c4b5fd", "#e9d5ff", "#a5b4fc"] },
-  slate: { dark: ["#64748b", "#475569", "#334155"], light: ["#cbd5e1", "#e2e8f0", "#c7d2fe"] },
-  dawn: { dark: ["#f97316", "#ec4899", "#f59e0b"], light: ["#fdba74", "#f9a8d4", "#fde68a"] },
-  midnight: { dark: ["#2563eb", "#7c3aed", "#06b6d4"], light: ["#93c5fd", "#c4b5fd", "#a5f3fc"] },
+  dynamic: { dark: ["#c2410c", "#6d28d9", "#1e40af"], light: ["#fdba74", "#c4b5fd", "#93c5fd"] },
+  ember: { dark: ["#c2410c", "#7f1d1d", "#92400e"], light: ["#fdba74", "#fca5a5", "#fde68a"] },
+  violet: { dark: ["#6d28d9", "#7e22ce", "#1e40af"], light: ["#c4b5fd", "#e9d5ff", "#a5b4fc"] },
+  slate: { dark: ["#475569", "#334155", "#1e293b"], light: ["#cbd5e1", "#e2e8f0", "#c7d2fe"] },
+  dawn: { dark: ["#c2410c", "#9d174d", "#a16207"], light: ["#fdba74", "#f9a8d4", "#fde68a"] },
+  midnight: { dark: ["#1d4ed8", "#5b21b6", "#0e7490"], light: ["#93c5fd", "#c4b5fd", "#a5f3fc"] },
 }
 
 export function LiveWallpaper({ forceDark = false }: { forceDark?: boolean }) {

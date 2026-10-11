@@ -4,18 +4,17 @@
 "use client"
 
 import React, { useEffect, useState } from "react"
-import Image from "next/image"
 import { AnimatePresence } from "framer-motion"
 import { useSystemStore, windowActions, systemActions, WALLPAPER_STYLES } from "@/lib/aws-store"
 import { windowTitleOf, type AppId } from "@/lib/aws-apps"
 import { widgetActions } from "@/lib/aws-widgets"
-import { CLUB } from "@/lib/club-content"
 import { DesktopWidgets } from "./desktop-widgets"
 import { WidgetEditorModal } from "./widget-editor-modal"
 import { AppIcon } from "./app-icon"
 import { Spotlight } from "./spotlight"
 import { SystemToast } from "./system-toast"
 import { LiveWallpaper } from "./live-wallpaper"
+import { WallpaperEmblem } from "./wallpaper-emblem"
 
 const DESKTOP_ICONS: AppId[] = ["about", "team", "calendar", "finder"]
 
@@ -99,14 +98,7 @@ export function AwsDesktop({ children }: { children?: React.ReactNode }) {
     >
       <LiveWallpaper />
 
-      {/* ── Watermark ────────────────────────────────────────────────────── */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute bottom-[115px] left-1/2 flex -translate-x-1/2 select-none flex-col items-center gap-3 opacity-[0.09] dark:opacity-[0.14]"
-      >
-        <Image src="/logo-full.png" alt="" width={160} height={160} className="size-28 object-contain" unoptimized />
-        <span className="font-mono text-xs font-semibold uppercase tracking-[0.3em] text-(--os-text)">{CLUB.shortName}</span>
-      </div>
+      <WallpaperEmblem />
 
       <DesktopWidgets />
 

@@ -145,9 +145,9 @@
   border-color: var(--win-divider);
 }
 
-/* ── Wallpaper System ──────────────────────────────────────────────────────── */
-
-/* ── Authentic AWS Cloud Club Wallpapers ────────────────────────────────── */
+/* ── Wallpaper ──────────────────────────────────────────────────────────────
+   Colours live in WALLPAPER_STYLES (lib/aws-store.ts); this is the Dynamic
+   default for the moment before the page hydrates. */
 
 .wallpaper {
   position: fixed !important;
@@ -156,18 +156,20 @@
   height: 100vh !important;
   z-index: 0;
   overflow: hidden;
-  background: radial-gradient(90rem 60rem at 110% -10%, #f3350c52, transparent 60%),
-              radial-gradient(80rem 50rem at -20% 30%, #ffa88a6b, transparent 55%),
-              radial-gradient(70rem 60rem at 50% 120%, #5e3a8c38, transparent 60%),
-              linear-gradient(160deg, #f3f0ee 0%, #e3dcd7 100%);
+  background: radial-gradient(ellipse 120% 90% at 50% 45%, transparent 60%, rgba(40, 30, 70, 0.10) 100%),
+              radial-gradient(70rem 50rem at 90% -10%, rgba(255, 138, 76, 0.40), transparent 62%),
+              radial-gradient(65rem 50rem at -5% 40%, rgba(146, 104, 240, 0.36), transparent 60%),
+              radial-gradient(60rem 45rem at 55% 118%, rgba(86, 128, 230, 0.30), transparent 62%),
+              linear-gradient(160deg, #ebe6f1 0%, #ded7ea 100%);
   transition: background 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .dark .wallpaper {
-  background: radial-gradient(90rem 60rem at 110% -10%, #f3350c8c, transparent 60%),
-              radial-gradient(70rem 50rem at -10% 40%, #7940ea80, transparent 55%),
-              radial-gradient(60rem 50rem at 50% 125%, #1c387280, transparent 65%),
-              linear-gradient(160deg, #101014 0%, #17141f 100%);
+  background: radial-gradient(ellipse 120% 90% at 50% 45%, transparent 55%, rgba(0, 0, 0, 0.45) 100%),
+              radial-gradient(70rem 50rem at 88% -8%, rgba(255, 122, 48, 0.30), transparent 62%),
+              radial-gradient(65rem 50rem at -5% 45%, rgba(121, 64, 234, 0.36), transparent 60%),
+              radial-gradient(60rem 45rem at 55% 118%, rgba(37, 78, 180, 0.32), transparent 62%),
+              linear-gradient(160deg, #0e0c16 0%, #121020 55%, #09090f 100%);
 }
 
 .wallpaper::after {
@@ -178,79 +180,6 @@
   position: absolute;
   inset: 0;
   z-index: 1;
-}
-
-/* Ember: Signature fire & embers */
-.wallpaper[data-wallpaper="ember"],
-.wallpaper[data-wallpaper=ember] {
-  background: radial-gradient(90rem 60rem at 110% -10%, rgba(243, 53, 12, 0.45), transparent 60%),
-              radial-gradient(70rem 50rem at -10% 40%, rgba(251, 146, 60, 0.5), transparent 55%),
-              linear-gradient(160deg, #fdf1ea 0%, #f4dcd2 100%);
-}
-.dark .wallpaper[data-wallpaper="ember"],
-.dark .wallpaper[data-wallpaper=ember] {
-  background: radial-gradient(90rem 60rem at 110% -10%, rgba(243, 53, 12, 0.65), transparent 60%),
-              radial-gradient(70rem 50rem at -10% 40%, rgba(153, 27, 27, 0.6), transparent 55%),
-              radial-gradient(60rem 50rem at 50% 120%, rgba(217, 119, 6, 0.5), transparent 60%),
-              linear-gradient(160deg, #2a0f08 0%, #120a08 100%);
-}
-
-/* Violet: Cosmic ultraviolet / AWS purple */
-.wallpaper[data-wallpaper="violet"],
-.wallpaper[data-wallpaper=violet] {
-  background: radial-gradient(90rem 60rem at 110% -10%, rgba(121, 64, 234, 0.4), transparent 60%),
-              radial-gradient(70rem 50rem at -10% 40%, rgba(192, 132, 252, 0.5), transparent 55%),
-              linear-gradient(160deg, #f8f2fd 0%, #ece0f8 100%);
-}
-.dark .wallpaper[data-wallpaper="violet"],
-.dark .wallpaper[data-wallpaper=violet] {
-  background: radial-gradient(90rem 60rem at 110% -10%, rgba(121, 64, 234, 0.7), transparent 60%),
-              radial-gradient(70rem 50rem at -10% 40%, rgba(147, 51, 234, 0.7), transparent 55%),
-              radial-gradient(60rem 50rem at 50% 125%, rgba(37, 99, 235, 0.7), transparent 65%),
-              linear-gradient(160deg, #181126 0%, #0d0a18 100%);
-}
-
-/* Slate: Studio slate metallic */
-.wallpaper[data-wallpaper="slate"],
-.wallpaper[data-wallpaper=slate] {
-  background: radial-gradient(80rem 60rem at 80% 0%, rgba(190, 200, 220, 0.5), transparent 60%),
-              linear-gradient(160deg, #f2f3f7 0%, #dcdfe8 100%);
-}
-.dark .wallpaper[data-wallpaper="slate"],
-.dark .wallpaper[data-wallpaper=slate] {
-  background: radial-gradient(80rem 60rem at 80% 0%, rgba(120, 122, 130, 0.4), transparent 60%),
-              radial-gradient(60rem 50rem at 20% 60%, rgba(75, 85, 99, 0.35), transparent 55%),
-              linear-gradient(160deg, #2c2c33 0%, #0d0d0f 100%);
-}
-
-/* Dawn: Warm morning peach apricot */
-.wallpaper[data-wallpaper="dawn"],
-.wallpaper[data-wallpaper=dawn] {
-  background: radial-gradient(90rem 60rem at 110% -10%, rgba(243, 53, 12, 0.22), transparent 60%),
-              radial-gradient(80rem 50rem at -10% 30%, rgba(255, 184, 138, 0.45), transparent 55%),
-              linear-gradient(160deg, #fbf4ef 0%, #f0dccf 100%);
-}
-.dark .wallpaper[data-wallpaper="dawn"],
-.dark .wallpaper[data-wallpaper=dawn] {
-  background: radial-gradient(90rem 60rem at 110% -10%, rgba(249, 115, 22, 0.55), transparent 60%),
-              radial-gradient(80rem 50rem at -10% 30%, rgba(236, 72, 153, 0.5), transparent 55%),
-              radial-gradient(60rem 50rem at 50% 110%, rgba(251, 191, 36, 0.45), transparent 60%),
-              linear-gradient(160deg, #26131c 0%, #130a0f 100%);
-}
-
-/* Midnight: Deep oceanic sapphire */
-.wallpaper[data-wallpaper="midnight"],
-.wallpaper[data-wallpaper=midnight] {
-  background: radial-gradient(80rem 60rem at 100% -10%, rgba(40, 80, 160, 0.4), transparent 60%),
-              radial-gradient(60rem 50rem at 30% 120%, rgba(86, 38, 118, 0.4), transparent 60%),
-              linear-gradient(160deg, #f0f4ff 0%, #dde5fc 100%);
-}
-.dark .wallpaper[data-wallpaper="midnight"],
-.dark .wallpaper[data-wallpaper=midnight] {
-  background: radial-gradient(80rem 60rem at 100% -10%, rgba(37, 99, 235, 0.7), transparent 60%),
-              radial-gradient(60rem 50rem at 30% 120%, rgba(121, 64, 234, 0.7), transparent 60%),
-              radial-gradient(50rem 40rem at 60% 30%, rgba(6, 182, 212, 0.5), transparent 60%),
-              linear-gradient(160deg, #0a0c16 0%, #06070e 100%);
 }
 
 /* ── Boot Progress Bar ─────────────────────────────────────────────────────── */
@@ -405,8 +334,11 @@
   width: 55vmax;
   height: 55vmax;
   border-radius: 50%;
-  opacity: 0.5;
+  opacity: 0.4;
   will-change: transform;
+}
+.dark .live-wallpaper span {
+  opacity: 0.22;
 }
 .live-wallpaper span:nth-child(1) { top: -10%; right: 0%; animation: blob-drift-a 38s ease-in-out infinite alternate; }
 .live-wallpaper span:nth-child(2) { top: 25%; left: -5%; animation: blob-drift-b 46s ease-in-out infinite alternate; }

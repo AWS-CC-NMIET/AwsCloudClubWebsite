@@ -25,45 +25,56 @@ export interface WindowInstance {
 
 export type WallpaperId = "dynamic" | "ember" | "violet" | "slate" | "dawn" | "midnight"
 
+/**
+ * Wallpapers: a deep (dark) or softly tinted (light) base, a few restrained
+ * colour fields and a vignette, so glass stays the brightest thing on screen.
+ * `accent` tints the logo emblem's halo.
+ */
 export const WALLPAPER_STYLES: Record<
   WallpaperId,
-  { dark: string; light: string; name: string; emoji: string }
+  { dark: string; light: string; name: string; emoji: string; accent: string }
 > = {
   dynamic: {
     name: "Dynamic",
     emoji: "🟠",
-    dark: "radial-gradient(90rem 60rem at 110% -10%, rgba(243, 53, 12, 0.55), transparent 60%), radial-gradient(70rem 50rem at -10% 40%, rgba(121, 64, 234, 0.52), transparent 55%), radial-gradient(60rem 50rem at 50% 125%, rgba(28, 56, 114, 0.5), transparent 65%), linear-gradient(160deg, #101014 0%, #17141f 100%)",
-    light: "radial-gradient(90rem 60rem at 110% -10%, rgba(243, 53, 12, 0.35), transparent 60%), radial-gradient(80rem 50rem at -20% 30%, rgba(255, 168, 138, 0.45), transparent 55%), radial-gradient(70rem 60rem at 50% 120%, rgba(94, 58, 140, 0.25), transparent 60%), linear-gradient(160deg, #f3f0ee 0%, #e3dcd7 100%)",
+    accent: "#a855f7",
+    dark: "radial-gradient(ellipse 120% 90% at 50% 45%, transparent 55%, rgba(0, 0, 0, 0.45) 100%), radial-gradient(70rem 50rem at 88% -8%, rgba(255, 122, 48, 0.30), transparent 62%), radial-gradient(65rem 50rem at -5% 45%, rgba(121, 64, 234, 0.36), transparent 60%), radial-gradient(60rem 45rem at 55% 118%, rgba(37, 78, 180, 0.32), transparent 62%), linear-gradient(160deg, #0e0c16 0%, #121020 55%, #09090f 100%)",
+    light: "radial-gradient(ellipse 120% 90% at 50% 45%, transparent 60%, rgba(40, 30, 70, 0.10) 100%), radial-gradient(70rem 50rem at 90% -10%, rgba(255, 138, 76, 0.40), transparent 62%), radial-gradient(65rem 50rem at -5% 40%, rgba(146, 104, 240, 0.36), transparent 60%), radial-gradient(60rem 45rem at 55% 118%, rgba(86, 128, 230, 0.30), transparent 62%), linear-gradient(160deg, #ebe6f1 0%, #ded7ea 100%)",
   },
   ember: {
     name: "Ember",
     emoji: "🔥",
-    dark: "radial-gradient(90rem 60rem at 110% -10%, rgba(243, 53, 12, 0.65), transparent 60%), radial-gradient(70rem 50rem at -10% 40%, rgba(153, 27, 27, 0.6), transparent 55%), radial-gradient(60rem 50rem at 50% 120%, rgba(217, 119, 6, 0.5), transparent 60%), linear-gradient(160deg, #2a0f08 0%, #120a08 100%)",
-    light: "radial-gradient(90rem 60rem at 110% -10%, rgba(243, 53, 12, 0.45), transparent 60%), radial-gradient(70rem 50rem at -10% 40%, rgba(251, 146, 60, 0.5), transparent 55%), linear-gradient(160deg, #fdf1ea 0%, #f4dcd2 100%)",
+    accent: "#f97316",
+    dark: "radial-gradient(ellipse 120% 90% at 50% 45%, transparent 55%, rgba(0, 0, 0, 0.45) 100%), radial-gradient(70rem 50rem at 90% -10%, rgba(234, 88, 12, 0.30), transparent 62%), radial-gradient(65rem 50rem at -5% 50%, rgba(153, 27, 27, 0.40), transparent 60%), radial-gradient(55rem 40rem at 50% 118%, rgba(180, 83, 9, 0.22), transparent 62%), linear-gradient(160deg, #160c0a 0%, #120a09 55%, #0a0606 100%)",
+    light: "radial-gradient(ellipse 120% 90% at 50% 45%, transparent 60%, rgba(40, 30, 70, 0.10) 100%), radial-gradient(70rem 50rem at 90% -10%, rgba(249, 115, 22, 0.36), transparent 62%), radial-gradient(65rem 50rem at -5% 45%, rgba(239, 68, 68, 0.22), transparent 60%), radial-gradient(55rem 40rem at 50% 118%, rgba(251, 191, 36, 0.26), transparent 62%), linear-gradient(160deg, #f1e6df 0%, #e6d5ca 100%)",
   },
   violet: {
     name: "Violet",
     emoji: "🟣",
-    dark: "radial-gradient(90rem 60rem at 110% -10%, rgba(121, 64, 234, 0.7), transparent 60%), radial-gradient(70rem 50rem at -10% 40%, rgba(147, 51, 234, 0.7), transparent 55%), radial-gradient(60rem 50rem at 50% 125%, rgba(37, 99, 235, 0.7), transparent 65%), linear-gradient(160deg, #181126 0%, #0d0a18 100%)",
-    light: "radial-gradient(90rem 60rem at 110% -10%, rgba(121, 64, 234, 0.4), transparent 60%), radial-gradient(70rem 50rem at -10% 40%, rgba(192, 132, 252, 0.5), transparent 55%), linear-gradient(160deg, #f8f2fd 0%, #ece0f8 100%)",
+    accent: "#8b5cf6",
+    dark: "radial-gradient(ellipse 120% 90% at 50% 45%, transparent 55%, rgba(0, 0, 0, 0.45) 100%), radial-gradient(70rem 50rem at 88% -8%, rgba(124, 58, 237, 0.40), transparent 62%), radial-gradient(65rem 50rem at -5% 45%, rgba(168, 85, 247, 0.26), transparent 60%), radial-gradient(60rem 45rem at 55% 118%, rgba(37, 99, 235, 0.28), transparent 62%), linear-gradient(160deg, #110c1f 0%, #0d0a18 55%, #07060e 100%)",
+    light: "radial-gradient(ellipse 120% 90% at 50% 45%, transparent 60%, rgba(40, 30, 70, 0.10) 100%), radial-gradient(70rem 50rem at 88% -10%, rgba(139, 92, 246, 0.38), transparent 62%), radial-gradient(65rem 50rem at -5% 45%, rgba(192, 132, 252, 0.32), transparent 60%), radial-gradient(60rem 45rem at 55% 118%, rgba(99, 102, 241, 0.24), transparent 62%), linear-gradient(160deg, #ebe5f6 0%, #dfd5ef 100%)",
   },
   slate: {
     name: "Slate",
     emoji: "🔘",
-    dark: "radial-gradient(80rem 60rem at 80% 0%, rgba(120, 122, 130, 0.4), transparent 60%), radial-gradient(60rem 50rem at 20% 60%, rgba(75, 85, 99, 0.35), transparent 55%), linear-gradient(160deg, #2c2c33 0%, #0d0d0f 100%)",
-    light: "radial-gradient(80rem 60rem at 80% 0%, rgba(190, 200, 220, 0.5), transparent 60%), linear-gradient(160deg, #f2f3f7 0%, #dcdfe8 100%)",
+    accent: "#94a3b8",
+    dark: "radial-gradient(ellipse 120% 90% at 50% 45%, transparent 55%, rgba(0, 0, 0, 0.45) 100%), radial-gradient(70rem 50rem at 85% -10%, rgba(148, 163, 184, 0.20), transparent 62%), radial-gradient(65rem 50rem at -5% 55%, rgba(71, 85, 105, 0.30), transparent 60%), linear-gradient(160deg, #1b1d23 0%, #14161b 55%, #0b0c0f 100%)",
+    light: "radial-gradient(ellipse 120% 90% at 50% 45%, transparent 60%, rgba(40, 30, 70, 0.10) 100%), radial-gradient(70rem 50rem at 85% -10%, rgba(148, 163, 184, 0.38), transparent 62%), radial-gradient(65rem 50rem at -5% 55%, rgba(203, 213, 225, 0.55), transparent 60%), linear-gradient(160deg, #e6e8ee 0%, #d6dae3 100%)",
   },
   dawn: {
     name: "Dawn",
     emoji: "🌅",
-    dark: "radial-gradient(90rem 60rem at 110% -10%, rgba(249, 115, 22, 0.55), transparent 60%), radial-gradient(80rem 50rem at -10% 30%, rgba(236, 72, 153, 0.5), transparent 55%), radial-gradient(60rem 50rem at 50% 110%, rgba(251, 191, 36, 0.45), transparent 60%), linear-gradient(160deg, #26131c 0%, #130a0f 100%)",
-    light: "radial-gradient(90rem 60rem at 110% -10%, rgba(243, 53, 12, 0.22), transparent 60%), radial-gradient(80rem 50rem at -10% 30%, rgba(255, 184, 138, 0.45), transparent 55%), linear-gradient(160deg, #fbf4ef 0%, #f0dccf 100%)",
+    accent: "#f472b6",
+    dark: "radial-gradient(ellipse 120% 90% at 50% 45%, transparent 55%, rgba(0, 0, 0, 0.45) 100%), radial-gradient(70rem 50rem at 90% -10%, rgba(249, 115, 22, 0.26), transparent 62%), radial-gradient(65rem 50rem at -5% 40%, rgba(219, 39, 119, 0.30), transparent 60%), radial-gradient(55rem 40rem at 50% 118%, rgba(245, 158, 11, 0.18), transparent 62%), linear-gradient(160deg, #1a0f17 0%, #140b12 55%, #0c070b 100%)",
+    light: "radial-gradient(ellipse 120% 90% at 50% 45%, transparent 60%, rgba(40, 30, 70, 0.10) 100%), radial-gradient(70rem 50rem at 90% -10%, rgba(251, 146, 60, 0.34), transparent 62%), radial-gradient(65rem 50rem at -5% 40%, rgba(244, 114, 182, 0.32), transparent 60%), radial-gradient(55rem 40rem at 50% 118%, rgba(253, 186, 116, 0.26), transparent 62%), linear-gradient(160deg, #f2e8e6 0%, #e8d7d6 100%)",
   },
   midnight: {
     name: "Midnight",
     emoji: "🌌",
-    dark: "radial-gradient(80rem 60rem at 100% -10%, rgba(37, 99, 235, 0.7), transparent 60%), radial-gradient(60rem 50rem at 30% 120%, rgba(121, 64, 234, 0.7), transparent 60%), radial-gradient(50rem 40rem at 60% 30%, rgba(6, 182, 212, 0.5), transparent 60%), linear-gradient(160deg, #0a0c16 0%, #06070e 100%)",
-    light: "radial-gradient(80rem 60rem at 100% -10%, rgba(40, 80, 160, 0.4), transparent 60%), radial-gradient(60rem 50rem at 30% 120%, rgba(86, 38, 118, 0.4), transparent 60%), linear-gradient(160deg, #f0f4ff 0%, #dde5fc 100%)",
+    accent: "#3b82f6",
+    dark: "radial-gradient(ellipse 120% 90% at 50% 45%, transparent 55%, rgba(0, 0, 0, 0.45) 100%), radial-gradient(70rem 50rem at 92% -10%, rgba(37, 99, 235, 0.36), transparent 62%), radial-gradient(60rem 45rem at 20% 118%, rgba(109, 40, 217, 0.30), transparent 62%), radial-gradient(45rem 35rem at 60% 35%, rgba(6, 182, 212, 0.12), transparent 62%), linear-gradient(160deg, #080b16 0%, #070912 55%, #04050a 100%)",
+    light: "radial-gradient(ellipse 120% 90% at 50% 45%, transparent 60%, rgba(40, 30, 70, 0.10) 100%), radial-gradient(70rem 50rem at 92% -10%, rgba(59, 130, 246, 0.34), transparent 62%), radial-gradient(60rem 45rem at 20% 118%, rgba(139, 92, 246, 0.26), transparent 62%), radial-gradient(45rem 35rem at 60% 35%, rgba(34, 211, 238, 0.18), transparent 62%), linear-gradient(160deg, #e5ebf6 0%, #d6dff0 100%)",
   },
 }
 
