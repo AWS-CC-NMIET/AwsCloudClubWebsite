@@ -54,3 +54,4 @@ next.user-config.*
 *.xlsx
 *(Responses)*.pdf
 scripts/team-photos.source.json
+*.zip
