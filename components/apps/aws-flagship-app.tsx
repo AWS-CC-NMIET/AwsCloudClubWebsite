@@ -10,7 +10,7 @@ import { ArrowRight, Calendar, Cloud, MapPin, Rocket, Sparkles, Star, Users, Zap
 import { windowActions, systemActions } from "@/lib/aws-store"
 import { APPS_META, type AppId } from "@/lib/aws-apps"
 import { CLUB, HIGHLIGHTS, WHAT_WE_DO, type PillarIcon } from "@/lib/club-content"
-import { useEvents, useMemberCount, useProjects, useTeam } from "@/lib/club-data"
+import { fillFacts, useClubFacts, useEvents, useMemberCount, useProjects, useTeam } from "@/lib/club-data"
 import { AppIcon } from "@/components/os/app-icon"
 import { MacButton } from "./shared/mac-ui"
 
@@ -25,6 +25,7 @@ export function AwsFlagshipApp() {
   const events = useEvents()
   const projects = useProjects()
   const team = useTeam()
+  const facts = useClubFacts()
 
   const nextEvent = events.data.find(e => !e.isPast)
 
@@ -169,7 +170,7 @@ export function AwsFlagshipApp() {
         <section className="space-y-4">
           <SectionTitle eyebrow="Highlights" title="Where we are so far" icon={Star} />
           <div className="grid gap-2 @2xl:grid-cols-2">
-            {HIGHLIGHTS.map(h => (
+            {HIGHLIGHTS.map(template => fillFacts(template, facts)).map(h => (
               <div
                 key={h}
                 className="flex items-center gap-3 rounded-xl border border-black/[0.07] bg-white px-4 py-3 dark:border-white/10 dark:bg-[#222228]"

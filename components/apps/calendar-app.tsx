@@ -255,6 +255,15 @@ function EventDetail({ event }: { event: ClubEvent }) {
   return (
     <div className="flex-1 overflow-y-auto">
       <div className="mx-auto max-w-2xl space-y-6 p-6 @2xl:p-8">
+        {event.imageUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={event.imageUrl}
+            alt=""
+            loading="lazy"
+            className="aspect-[2/1] w-full rounded-xl border border-(--win-divider) object-cover shadow-sm"
+          />
+        )}
         <div className="space-y-3">
           <span
             className={cn(

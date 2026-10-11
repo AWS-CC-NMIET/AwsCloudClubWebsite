@@ -12,7 +12,9 @@ import { useEffect, useMemo, useSyncExternalStore } from "react"
 import { api } from "@/lib/api-client"
 import {
   CLUB,
+  DEAD_LINKS,
   FALLBACK_EVENTS,
+  FIRST_EVENT_RSVPS,
   FALLBACK_RESOURCES,
   FALLBACK_SOCIAL_LINKS,
   TEAM_MEMBERS,
@@ -116,6 +118,9 @@ export interface ClubEvent {
   description: string
   eventUrl: string
   isPast: boolean
+  /** Event banner (from Meetup), if any */
+  imageUrl: string | null
+  /** Photos uploaded by admins */
   imageUrls: string[]
   source: "meetup" | "db" | "fallback"
 }
@@ -162,6 +167,7 @@ interface RawMeetupEvent {
   attendees: number
   description?: string
   eventUrl: string
+  imageUrl?: string | null
   isPast: boolean
 }
 
@@ -288,6 +294,7 @@ export function useEvents(): Resource<ClubEvent[]> {
       description: e.description || "",
       eventUrl: e.eventUrl || CLUB.meetupUrl,
       isPast: Boolean(e.isPast),
+      imageUrl: e.imageUrl ?? null,
       imageUrls: [],
       source: "meetup",
     }))
@@ -314,6 +321,7 @@ export function useEvents(): Resource<ClubEvent[]> {
         description: e.description || "",
         eventUrl: CLUB.meetupUrl,
         isPast,
+        imageUrl: null,
         imageUrls,
         source: "db",
       })
@@ -324,7 +332,7 @@ export function useEvents(): Resource<ClubEvent[]> {
 
     if (merged.length === 0 && status !== "loading") {
       return {
-        data: FALLBACK_EVENTS.map(e => ({ ...e, source: "fallback" as const })),
+        data: FALLBACK_EVENTS.map(e => ({ ...e, description: "", imageUrls: [], source: "fallback" as const })),
         status,
         fromFallback: true,
       }
@@ -333,30 +341,41 @@ export function useEvents(): Resource<ClubEvent[]> {
   }, [meetup, db])
 }
 
-/** Static roster merged with any extra members added through the admin panel. */
+/**
+ * Team roster. Once scripts/seed-team.mjs has copied the roster into DynamoDB,
+ * the database is the single source of truth (admins add, edit and remove
+ * members). Until then — or if the API is unreachable — the built-in roster is
+ * shown, with any database edits applied on top (matched by email or name).
+ */
 export function useTeam(): Resource<TeamMember[]> {
   const db = teamResource.use()
 
   return useMemo(() => {
-    const combined = [...TEAM_MEMBERS]
-    for (const member of db.data) {
-      const name = member.name?.trim().toLowerCase()
-      const email = member.email?.trim().toLowerCase()
-      const duplicate =
-        name === "neha sharma" ||
-        combined.some(m => (email && m.email?.trim().toLowerCase() === email) || m.name.trim().toLowerCase() === name)
-      if (!duplicate) {
-        combined.push({
-          ...member,
-          skills: Array.isArray(member.skills) ? member.skills : [],
-          awsService: member.awsService || "AWS Cloud",
-          status: member.status || "running",
-          order: Number(member.order) || 99,
-        })
-      }
+    const clean = (m: TeamMember): TeamMember => ({
+      ...m,
+      skills: Array.isArray(m.skills) ? m.skills : [],
+      awsService: m.awsService || "AWS Cloud",
+      status: m.status || "running",
+      order: Number(m.order) || 99,
+    })
+    const byOrder = (a: TeamMember, b: TeamMember) => (a.order ?? 99) - (b.order ?? 99)
+
+    if (db.data.some(m => m.source === "roster-seed")) {
+      return { data: db.data.map(clean).sort(byOrder), status: db.status, fromFallback: false }
     }
-    combined.sort((a, b) => (a.order ?? 99) - (b.order ?? 99))
-    return { data: combined, status: db.status === "loading" ? "loading" : "ready", fromFallback: db.fromFallback }
+
+    const key = (m: TeamMember) => (m.email?.trim().toLowerCase() || m.name.trim().toLowerCase())
+    const merged = new Map(TEAM_MEMBERS.map(m => [key(m), m]))
+    for (const m of db.data) {
+      const existing = merged.get(key(m)) ?? [...merged.values()].find(s => s.name.trim().toLowerCase() === m.name?.trim().toLowerCase())
+      if (existing) merged.set(key(existing), { ...existing, ...clean(m), id: existing.id })
+      else merged.set(key(m), clean(m))
+    }
+    return {
+      data: [...merged.values()].sort(byOrder),
+      status: db.status === "loading" ? "loading" : "ready",
+      fromFallback: db.fromFallback,
+    }
   }, [db])
 }
 
@@ -386,7 +405,9 @@ export function useResources(): Resource<LearningResource[]> {
   }, [res])
 }
 
-/** Social links with the canonical YouTube/Discord URLs enforced. */
+const isDeadLink = (url: string) => DEAD_LINKS.some(dead => url.includes(dead))
+
+/** Social links from the admin panel (dead links dropped, YouTube URL canonicalised). */
 export function useSocialLinks(): Resource<SocialLink[]> {
   const res = socialResource.use()
   return useMemo(() => {
@@ -394,12 +415,8 @@ export function useSocialLinks(): Resource<SocialLink[]> {
       return { data: FALLBACK_SOCIAL_LINKS, status: res.status, fromFallback: true }
     }
     const links = res.data
-      .map(link => {
-        const key = `${link.platform} ${link.name}`.toLowerCase()
-        if (key.includes("youtube")) return { ...link, url: CLUB.youtubeUrl }
-        if (key.includes("discord")) return { ...link, url: CLUB.discordUrl }
-        return link
-      })
+      .map(link => (`${link.platform} ${link.name}`.toLowerCase().includes("youtube") ? { ...link, url: CLUB.youtubeUrl } : link))
+      .filter(link => link.url && !isDeadLink(link.url))
       // The Meetup card is always shown separately.
       .filter(link => !`${link.platform} ${link.name}`.toLowerCase().includes("meetup"))
     return { ...res, data: links }
@@ -421,4 +438,20 @@ export function useGallery(): Resource<Album[]> {
       }))
     return { data: albums, status: events.status, fromFallback: events.fromFallback }
   }, [events])
+}
+
+/** Live numbers for copy like "{members} Members on Meetup". */
+export function useClubFacts() {
+  const { display: members } = useMemberCount()
+  const events = useEvents()
+  return useMemo(() => {
+    const firstMeetup = events.data
+      .filter(e => e.isPast && e.source === "meetup")
+      .sort((a, b) => new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime())[0]
+    return { members, firstEventRsvps: String(firstMeetup?.attendees ?? FIRST_EVENT_RSVPS) }
+  }, [members, events.data])
+}
+
+export function fillFacts(template: string, facts: { members: string; firstEventRsvps: string }) {
+  return template.replace("{members}", facts.members).replace("{firstEventRsvps}", facts.firstEventRsvps)
 }

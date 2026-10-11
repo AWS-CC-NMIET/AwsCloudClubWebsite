@@ -7,7 +7,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react"
 import { windowActions, systemActions } from "@/lib/aws-store"
 import { APPS_META, type AppId } from "@/lib/aws-apps"
 import { AWS_FACTS, CLUB, TEAM_MEMBERS, teamGroupOf } from "@/lib/club-content"
-import { useMemberCount } from "@/lib/club-data"
+import { useClubFacts, useEvents } from "@/lib/club-data"
 import { cn } from "@/lib/utils"
 
 interface Line {
@@ -49,7 +49,8 @@ const OPEN_ALIASES: Record<string, AppId> = {
 }
 
 export function TerminalApp() {
-  const { display: members } = useMemberCount()
+  const { members, firstEventRsvps } = useClubFacts()
+  const events = useEvents()
   const [lines, setLines] = useState<Line[]>(BANNER)
   const [input, setInput] = useState("")
   const [history, setHistory] = useState<string[]>([])
@@ -130,20 +131,20 @@ Steps to become a member:
 
 Type 'events' to see upcoming activities!`,
 
-      events: `
-📅 Events:
+      events: (() => {
+        const upcoming = events.data.filter(e => !e.isPast)
+        const past = events.data.filter(e => e.isPast).slice(0, 6)
+        const line = (e: (typeof events.data)[number]) =>
+          `  ${e.isPast ? "✔" : "★"} ${e.date.padEnd(18)} ${e.title}${e.attendees ? `  (${e.attendees} RSVPs)` : ""}`
+        return `
+📅 Events (live from Meetup):
 
-  ┌─────────────────────────────────────────────┐
-  │ 🚀 AWS Student Builder Group Intro Event    │
-  │    📅 April 8, 2026  10:00 AM – 12:00 PM    │
-  │    📍 In-person at NMIET, Pune              │
-  │    👥 236 RSVPs  (Open to all!)             │
-  │    Covers: AWS fundamentals, career paths,  │
-  │    upcoming workshops & hands-on projects.  │
-  └─────────────────────────────────────────────┘
+${upcoming.length ? `Upcoming:\n${upcoming.map(line).join("\n")}` : "No upcoming events announced yet."}
 
-More events coming! Type 'open events' or
-visit meetup.com/aws-sbg-at-nutan-… to RSVP.`,
+${past.length ? `Recent:\n${past.map(line).join("\n")}` : ""}
+
+Type 'open events' or visit meetup.com/aws-sbg-at-nutan-… to RSVP.`
+      })(),
 
       team: `
 👥 Core Team — AWS Student Builder Group NMIET:
@@ -157,24 +158,20 @@ ${leads.map(m => `  ${m.name.padEnd(pad)}[${m.role}]  🟢 Running`).join("\n")}
   or type 'open team' for the full roster.`,
 
       skills: `
-☁️  Technologies & AWS Services we work with:
+☁️  What we learn and build with:
 
-  AWS Core        ████████████████░░░░  80%
-  Serverless      ███████████████░░░░░  75%
-  DevOps / CI-CD  ██████████████░░░░░░  70%
-  Cloud Security  ███████████████░░░░░  75%
-  Machine Learning████████████░░░░░░░░  60%
-  IaC (CDK/CFN)   ████████████░░░░░░░░  60%
-
-  Key services: EC2, S3, Lambda, DynamoDB,
-  API Gateway, Cognito, CloudFront, SES, IAM`,
+  • AWS core      — EC2, S3, IAM, VPC
+  • Serverless    — Lambda, API Gateway, DynamoDB
+  • DevOps        — Git, containers, CI/CD, deploying on AWS
+  • Security      — IAM policies, least privilege
+  • This website  — Next.js on AWS Amplify, Cognito, DynamoDB, S3, SES`,
 
       achievements: `
 🏆 Group Highlights:
 
   ★ Official AWS Student Builder Group (est. Feb 2026)
   ★ ${members} Members on Meetup & Growing Fast
-  ★ 236+ RSVPs for Our Very First Event
+  ★ ${firstEventRsvps} RSVPs for Our Very First Event
   ★ Part of AWS Student Builder Groups Global Network
   ★ Open Community — Anyone Can Join!
 
@@ -189,7 +186,7 @@ Type 'about' for more info.`,
 
   Or type 'open contact' to send us a message!`,
     }
-  }, [members])
+  }, [members, firstEventRsvps, events.data])
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight
@@ -211,7 +208,7 @@ Type 'about' for more info.`,
 
     // Easter eggs (checked before `aws` so "aws free tier" wins)
     if (lower === "whoami") return print({ type: "output", content: "a curious builder 👀" })
-    if (lower === "sudo join") return print({ type: "output", content: "Permission granted. DM us on Instagram 😄" })
+    if (lower === "sudo join") return print({ type: "output", content: "Permission granted. Your seat is waiting on Meetup 😄 — type 'join'" })
     if (lower === "aws free tier") return print({ type: "output", content: "Free Tier fan detected 🫡" })
     if (lower === "hack") {
       setIsHacking(true)

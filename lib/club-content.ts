@@ -18,10 +18,9 @@ export const CLUB = {
     "Empowering the next generation of cloud innovators through hands-on learning, real-world projects, and a thriving community.",
   meetupUrl: "https://www.meetup.com/aws-sbg-at-nutan-maharashtra-inst-of-engineering-and-tech/",
   youtubeUrl: "https://www.youtube.com/@AWSStudentBuildersGroupNMIET",
-  discordUrl: "https://discord.gg/BydTcjm8g",
   region: "ap-south-1 (Mumbai)",
-  /** Shown until the live Meetup count loads (or if Meetup is unreachable). */
-  fallbackMemberCount: 299,
+  /** Last verified Meetup member count (1,252 on 2026-10-11) — shown only until the live count loads. */
+  fallbackMemberCount: 1250,
 } as const
 
 export type PillarIcon = "cloud" | "rocket" | "sparkles"
@@ -47,12 +46,16 @@ export const WHAT_WE_DO: { title: string; description: string; color: string; ic
   },
 ]
 
+/** `{members}` and `{firstEventRsvps}` are filled in from live Meetup data. */
 export const HIGHLIGHTS = [
   "Official AWS Student Builder Group — est. February 2026",
-  "299+ Members on Meetup & Growing",
+  "{members} Members on Meetup & Growing",
   "Part of AWS Student Builder Groups Global Network",
-  "236+ RSVPs for Our Very First Event",
+  "{firstEventRsvps} RSVPs for Our Very First Event",
 ]
+
+/** RSVPs for the introductory event on 8 April 2026, per Meetup. */
+export const FIRST_EVENT_RSVPS = 433
 
 export const ABOUT = {
   introTitle: "AWS Student Builder Group at NMIET",
@@ -103,6 +106,8 @@ export interface TeamMember {
   awsService?: string
   status: "running" | "stopped"
   order: number
+  /** "roster-seed" on members copied in by scripts/seed-team.mjs */
+  source?: string
 }
 
 const LEADERSHIP_ROLES = /\b(leader|lead|head)\b/i
@@ -131,7 +136,7 @@ export const TEAM_MEMBERS: TeamMember[] = [
   { id: "m-prathamesh", name: "PRATHAMESH PATIL", role: "Tech Team Member", skills: ["System Design", "Backend", "Cloud Deployments"], email: "prathameshpatil.cse@gmail.com", github: "https://github.com/prathamesh-lang", linkedin: "https://www.linkedin.com/in/prathamesh-patil-794441385", awsService: "AWS IAM", status: "running", order: 11 },
   { id: "m-prakhar", name: "Prakhar Raj", role: "Tech Team Member", skills: ["Web Dev", "API Integration", "NodeJS"], email: "rajprakhar2505@gmail.com", github: "https://github.com/rajprakhar07", linkedin: "https://www.linkedin.com/in/prakhar-raj25", awsService: "Amazon SNS", status: "running", order: 12 },
   { id: "m-sarthakk", name: "Sarthak Sanjay Kandhare", role: "Tech Team Member", skills: ["AWS Cloud", "Development", "Git"], email: "sarthakkandhare5@gmail.com", github: "https://github.com/SarthakKandhare03", linkedin: "https://www.linkedin.com/in/sarthak-kandhare-898340312?utm_source=share_via&utm_content=profile&utm_medium=member_ios", awsService: "Amazon SageMaker", status: "running", order: 13 },
-  { id: "m-aayush", name: "Aayush Pawar", role: "Tech Team Member", skills: ["Cloud Fundamentals", "Programming", "AWS"], email: "aayush.pawar54321@gmail.com", github: "https://github.com/Aayush-Techmaster", linkedin: "https://www.linkedin.com/in/aayush-pawar-070387259?utm_source=share_via&utm_content=profile&utm_medium=member_ios", awsService: "AWS CloudTrail", status: "running", order: 14 },
+  { id: "m-aayush", name: "Aayush Pawar", role: "Tech Team Member", skills: ["Cloud Fundamentals", "Programming", "AWS"], email: "aayush.pawar54321@gmail.com", github: "", linkedin: "https://www.linkedin.com/in/aayush-pawar-070387259?utm_source=share_via&utm_content=profile&utm_medium=member_ios", awsService: "AWS CloudTrail", status: "running", order: 14 },
   { id: "m-jay", name: "Jay Ashok Magar", role: "Tech Team Member", skills: ["HTML/CSS", "JavaScript", "AWS Services"], email: "jaymagar310@gmail.com", github: "https://github.com/DevJay067", linkedin: "https://www.linkedin.com/in/jay-magar-5ba92b369?utm_source=share_via&utm_content=profile&utm_medium=member_android", awsService: "AWS CloudFormation", status: "running", order: 15 },
   { id: "m-rutvik", name: "Rutvik Kale", role: "Social Media Team Member", skills: ["Content Creation", "Public Relations", "Graphics"], email: "rutvikkale2006@gmail.com", github: "https://github.com/Ritronn", linkedin: "https://www.linkedin.com/in/rutvik-kale-749775286?utm_source=share_via&utm_content=profile&utm_medium=member_android", awsService: "AWS Cognito", status: "running", order: 16 },
   { id: "m-faisal", name: "Faisal Momin", role: "Social Media Team Member", skills: ["Photography", "Content Marketing", "Design"], email: "faisalmomin657@gmail.com", github: "https://github.com/faisalmomin11-jpg", linkedin: "https://www.linkedin.com/in/faisal-momin-080427385?utm_source=share_via&utm_content=profile&utm_medium=member_android", awsService: "AWS KMS", status: "running", order: 17 },
@@ -149,20 +154,96 @@ export const TEAM_MEMBERS: TeamMember[] = [
 
 // ── Events ────────────────────────────────────────────────────────────────────
 
-/** The group's first event — shown only if both Meetup and the events API are unreachable. */
-export const FALLBACK_EVENTS = [
+export interface FallbackEvent {
+  id: string
+  title: string
+  date: string
+  dateTime: string
+  location: string
+  attendees: number
+  eventUrl: string
+  imageUrl: string | null
+  isPast: boolean
+}
+
+/** Real events from Meetup (snapshot 2026-10-11) — shown only when Meetup is unreachable. */
+export const FALLBACK_EVENTS: FallbackEvent[] = [
   {
-    id: "fallback-intro-2026",
-    title: "AWS Student Builder Group Intro Event",
-    date: "April 8, 2026",
-    dateTime: "2026-04-08T10:00:00+05:30",
-    location: "In-person at NMIET, Pune",
-    attendees: 236,
-    description:
-      "Covers AWS fundamentals, career paths, upcoming workshops & hands-on projects. Open to all!",
-    eventUrl: CLUB.meetupUrl,
+    id: "316840541",
+    title: "Cloud Security with AWS IAM",
+    date: "13 October 2026",
+    dateTime: "2026-10-13T10:30:00+05:30",
+    location: "Nutan Maharashtra Institute of Engineering & Technology",
+    attendees: 143,
+    eventUrl: "https://www.meetup.com/aws-sbg-at-nutan-maharashtra-inst-of-engineering-and-tech/events/316840541/",
+    imageUrl: null,
+    isPast: false,
+  },
+  {
+    id: "314129944",
+    title: "AWS Cloud Club Introductory Event",
+    date: "8 April 2026",
+    dateTime: "2026-04-08T11:00:00+05:30",
+    location: "Online / TBA",
+    attendees: 433,
+    eventUrl: "https://www.meetup.com/aws-sbg-at-nutan-maharashtra-inst-of-engineering-and-tech/events/314129944/",
+    imageUrl: "https://secure.meetupstatic.com/photos/event/7/7/f/1/highres_533550705.jpeg",
     isPast: true,
-    imageUrls: [] as string[],
+  },
+  {
+    id: "314856498",
+    title: "Pay As You Grow: How Cloud Makes Entrepreneurship Affordable",
+    date: "24 May 2026",
+    dateTime: "2026-05-24T11:00:00+05:30",
+    location: "Online event",
+    attendees: 183,
+    eventUrl: "https://www.meetup.com/aws-sbg-at-nutan-maharashtra-inst-of-engineering-and-tech/events/314856498/",
+    imageUrl: "https://secure.meetupstatic.com/photos/event/1/f/7/4/highres_534308052.jpeg",
+    isPast: true,
+  },
+  {
+    id: "315115200",
+    title: "Cooking website with Kiro",
+    date: "5 June 2026",
+    dateTime: "2026-06-05T17:00:00+05:30",
+    location: "Online event",
+    attendees: 38,
+    eventUrl: "https://www.meetup.com/aws-sbg-at-nutan-maharashtra-inst-of-engineering-and-tech/events/315115200/",
+    imageUrl: null,
+    isPast: true,
+  },
+  {
+    id: "315975278",
+    title: "Build Together Saturday",
+    date: "8 August 2026",
+    dateTime: "2026-08-08T11:00:00+05:30",
+    location: "Online event",
+    attendees: 62,
+    eventUrl: "https://www.meetup.com/aws-sbg-at-nutan-maharashtra-inst-of-engineering-and-tech/events/315975278/",
+    imageUrl: "https://secure.meetupstatic.com/photos/event/3/9/6/0/highres_535514688.jpeg",
+    isPast: true,
+  },
+  {
+    id: "315975198",
+    title: "Coffee & Cloud",
+    date: "9 August 2026",
+    dateTime: "2026-08-09T11:00:00+05:30",
+    location: "Online event",
+    attendees: 58,
+    eventUrl: "https://www.meetup.com/aws-sbg-at-nutan-maharashtra-inst-of-engineering-and-tech/events/315975198/",
+    imageUrl: "https://secure.meetupstatic.com/photos/event/3/8/8/b/highres_535514475.jpeg",
+    isPast: true,
+  },
+  {
+    id: "316182060",
+    title: "From Git to Production: Build, Containerize & Deploy on AWS",
+    date: "31 August 2026",
+    dateTime: "2026-08-31T20:00:00+05:30",
+    location: "Online event",
+    attendees: 256,
+    eventUrl: "https://www.meetup.com/aws-sbg-at-nutan-maharashtra-inst-of-engineering-and-tech/events/316182060/",
+    imageUrl: "https://secure.meetupstatic.com/photos/event/1/f/7/4/highres_534308052.jpeg",
+    isPast: true,
   },
 ]
 
@@ -211,11 +292,13 @@ export interface SocialLink {
   color: string
 }
 
-/** Only links we know are real — used when the social-links API is unreachable. */
+/** Only links we have verified — used when the social-links API is unreachable. */
 export const FALLBACK_SOCIAL_LINKS: SocialLink[] = [
   { id: "fb-youtube", name: "YouTube", platform: "YouTube", url: CLUB.youtubeUrl, color: "#FF0000" },
-  { id: "fb-discord", name: "Discord", platform: "Discord", url: CLUB.discordUrl, color: "#5865F2" },
 ]
+
+/** Links verified as dead (expired invites etc.) — never shown, even if still stored in the database. */
+export const DEAD_LINKS = ["discord.gg/BydTcjm8g"]
 
 // ── Terminal ──────────────────────────────────────────────────────────────────
 
