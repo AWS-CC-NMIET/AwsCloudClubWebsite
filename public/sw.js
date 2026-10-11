@@ -12,7 +12,7 @@
 // stuck on an old copy of the site.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const VERSION = "v3-2026-10"
+const VERSION = "v4-2026-10-11"
 const PAGE_CACHE = `cloudos-pages-${VERSION}`
 const STATIC_CACHE = `cloudos-static-${VERSION}`
 const API_CACHE = `cloudos-api-${VERSION}`
