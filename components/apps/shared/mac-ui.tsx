@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils"
 
 export function AppShell({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={cn("@container flex h-full w-full min-h-0 bg-(--win-bg) text-(--os-text)", className)}>
+    <div className={cn("@container flex h-full w-full min-h-0 text-(--os-text)", className)}>
       {children}
     </div>
   )
@@ -32,7 +32,7 @@ export function Sidebar({
   return (
     <aside
       className={cn(
-        "w-full shrink-0 flex-col gap-4 overflow-y-auto border-(--win-divider) bg-black/[0.03] p-3 dark:bg-white/[0.03] @xl:flex @xl:w-56 @xl:border-r",
+        "w-full shrink-0 flex-col gap-4 overflow-y-auto border-(--win-divider) bg-(--win-sidebar) p-3 @xl:flex @xl:w-56 @xl:border-r",
         hideOnNarrow ? "hidden" : "flex",
         className
       )}

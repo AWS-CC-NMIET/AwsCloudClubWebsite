@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
-import { AnimatePresence, motion } from "framer-motion"
+import { useState, useEffect, useCallback, useSyncExternalStore } from "react"
+import { AnimatePresence, MotionConfig, motion } from "framer-motion"
 import { BootScreen } from "@/components/os/boot-screen"
 import { LoginScreen } from "@/components/os/login-screen"
 import { DesktopContainer } from "@/components/os/desktop-container"
@@ -14,6 +14,20 @@ type Stage = "checking" | "boot" | "login" | "desktop"
 type LoginEntry = "lock" | "signin"
 
 const BOOTED_KEY = "sbg-booted"
+
+// matchMedia is more reliable than innerWidth in DevTools responsive mode
+const MOBILE_QUERY = "(max-width: 767px)"
+
+function subscribeToViewport(onChange: () => void) {
+  const mq = window.matchMedia(MOBILE_QUERY)
+  mq.addEventListener("change", onChange)
+  return () => mq.removeEventListener("change", onChange)
+}
+
+/** null on the server and during hydration (avoids a mismatch), then the live answer. */
+function useIsMobile() {
+  return useSyncExternalStore(subscribeToViewport, () => window.matchMedia(MOBILE_QUERY).matches, () => null)
+}
 
 function hasBootedThisSession() {
   try {
@@ -31,9 +45,17 @@ function markBooted() {
   }
 }
 
+// framer-motion honours the OS "reduce motion" setting everywhere.
 export default function CloudOS() {
-  // null = device type not yet detected (avoids hydration mismatch)
-  const [isMobile, setIsMobile] = useState<boolean | null>(null)
+  return (
+    <MotionConfig reducedMotion="user">
+      <CloudOSShell />
+    </MotionConfig>
+  )
+}
+
+function CloudOSShell() {
+  const isMobile = useIsMobile()
   const [stage, setStage] = useState<Stage>("checking")
   const [loginEntry, setLoginEntry] = useState<LoginEntry>("lock")
   /** App the visitor tried to open before being asked to sign in. */
@@ -55,10 +77,7 @@ export default function CloudOS() {
       "color: #FF9900; font-weight: bold; font-family: sans-serif; font-size: 12px; margin-top: 8px; display: block;"
     )
 
-    // matchMedia is more reliable than innerWidth in DevTools responsive mode
-    const mq = window.matchMedia("(max-width: 767px)")
-    setIsMobile(mq.matches)
-
+    const mq = window.matchMedia(MOBILE_QUERY)
     if (!mq.matches) {
       ;(async () => {
         if (isSessionValid() || hasBootedThisSession()) {
@@ -77,8 +96,8 @@ export default function CloudOS() {
       })()
     }
 
+    // Rotating / resizing a phone-sized window up to desktop size: skip the boot.
     const onChange = (e: MediaQueryListEvent) => {
-      setIsMobile(e.matches)
       if (!e.matches) setStage(s => (s === "checking" ? "desktop" : s))
     }
     mq.addEventListener("change", onChange)

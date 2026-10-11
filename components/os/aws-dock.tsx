@@ -37,7 +37,7 @@ export function AwsDock() {
       <motion.div
         onPointerMove={e => e.pointerType === "mouse" && mouseX.set(e.clientX)}
         onPointerLeave={() => mouseX.set(Infinity)}
-        className="pointer-events-auto flex items-end rounded-2xl border border-white/30 bg-white/40 px-2 pb-1.5 pt-1 shadow-[0_16px_50px_rgba(0,0,0,0.4)] backdrop-blur-2xl dark:border-white/15 dark:bg-[#1a1a24]/75"
+        className="pointer-events-auto flex items-end glass rim rounded-[22px] px-2 pb-1.5 pt-1"
         style={{ height: base + 18, gap: GAP }}
       >
         {DOCK_APPS.map(appId => (

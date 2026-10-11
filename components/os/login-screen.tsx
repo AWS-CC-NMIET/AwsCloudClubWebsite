@@ -10,6 +10,7 @@ import { AnimatePresence, motion } from "framer-motion"
 import { ArrowRight, ChevronLeft, Eye, EyeOff, Loader2, User, UserPlus } from "lucide-react"
 import { signIn, signUp, confirmSignUp, resendCode, forgotPassword, resetPassword } from "@/lib/auth-client"
 import { useSystemStore, WALLPAPER_STYLES } from "@/lib/aws-store"
+import { LiveWallpaper } from "./live-wallpaper"
 import { CLUB } from "@/lib/club-content"
 
 type Phase = "lock" | "signin" | "register" | "verify" | "forgot" | "reset"
@@ -36,7 +37,7 @@ export function LoginScreen({ onLogin, initialPhase = "lock" }: { onLogin: () =>
   const background = WALLPAPER_STYLES[wallpaper]?.dark ?? WALLPAPER_STYLES.dynamic.dark
 
   const [phase, setPhase] = useState<Phase>(initialPhase)
-  const [now, setNow] = useState<Date | null>(null)
+  const [now, setNow] = useState<Date | null>(() => new Date())
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -50,7 +51,6 @@ export function LoginScreen({ onLogin, initialPhase = "lock" }: { onLogin: () =>
   const [notice, setNotice] = useState("")
 
   useEffect(() => {
-    setNow(new Date())
     const id = setInterval(() => setNow(new Date()), 10_000)
     return () => clearInterval(id)
   }, [])
@@ -152,6 +152,7 @@ export function LoginScreen({ onLogin, initialPhase = "lock" }: { onLogin: () =>
 
   return (
     <div className="fixed inset-0 select-none overflow-hidden text-white" style={{ background }}>
+      <LiveWallpaper forceDark />
       {/* Frosted overlay like the macOS login window */}
       <div className={`absolute inset-0 backdrop-blur-2xl ${appearance === "dark" ? "bg-black/35" : "bg-black/20"}`} />
 

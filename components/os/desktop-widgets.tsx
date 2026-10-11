@@ -8,7 +8,6 @@ import {
   useWidgetStore,
   widgetActions,
   widgetPxSize,
-  colsForWidth,
   resolveDropPosition,
   type WidgetId,
   type WidgetSize,
@@ -66,19 +65,12 @@ export function DesktopWidgets() {
         const el = containerRef.current
         if (!el) return
         const rect = el.getBoundingClientRect()
-        const cols = colsForWidth(rect.width)
         for (const w of useWidgetStore.getState().widgets) {
           const { w: pw, h: ph } = widgetPxSize(w.size)
           if (w.x + pw > rect.width || w.y + ph > rect.height) {
             const cx = Math.max(0, Math.min(w.x, rect.width - pw))
             const cy = Math.max(0, Math.min(w.y, rect.height - ph))
-            const pos = resolveDropPosition(
-              useWidgetStore.getState().widgets,
-              w.id,
-              cx,
-              cy,
-              cols
-            )
+            const pos = resolveDropPosition(useWidgetStore.getState().widgets, w.id, cx, cy)
             widgetActions.setPosition(w.id, pos.x, pos.y)
           }
         }
@@ -118,7 +110,7 @@ export function DesktopWidgets() {
         <div
           ref={menuRef}
           style={{ position: "fixed", left: contextMenu.x, top: contextMenu.y }}
-          className="z-[999] min-w-[180px] rounded-xl border border-black/10 bg-(--menu-bg) p-1 text-[13px] text-(--os-text) shadow-2xl backdrop-blur-3xl dark:border-white/15 select-none animate-in fade-in zoom-in-95 duration-100"
+          className="z-[999] min-w-[180px] glass-strong rim rounded-xl p-1 text-[13px] text-(--os-text) dark:border-white/15 select-none animate-in fade-in zoom-in-95 duration-100"
         >
           <div className="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-(--os-text-dim)">
             Widget Size
@@ -175,21 +167,24 @@ export function DesktopWidgets() {
 
 // ── Drag hook ────────────────────────────────────────────────────────────────
 
+/** A mutable number with change listeners — updating it never re-renders. Created once. */
 function useMotionValue(initial: number) {
-  const ref = useRef(initial)
-  const listeners = useRef(new Set<() => void>())
-  const mv = useRef({
-    get: () => ref.current,
-    set: (v: number) => {
-      ref.current = v
-      listeners.current.forEach(fn => fn())
-    },
-    on: (_event: string, cb: () => void) => {
-      listeners.current.add(cb)
-      return () => listeners.current.delete(cb)
-    },
+  const [mv] = useState(() => {
+    let value = initial
+    const listeners = new Set<() => void>()
+    return {
+      get: () => value,
+      set: (v: number) => {
+        value = v
+        listeners.forEach(fn => fn())
+      },
+      on: (_event: string, cb: () => void) => {
+        listeners.add(cb)
+        return () => listeners.delete(cb)
+      },
+    }
   })
-  return mv.current
+  return mv
 }
 
 interface DragOpts {
@@ -310,10 +305,8 @@ function DraggableWidget({
       }
     },
     onDrop: (dropX, dropY) => {
-      const rect = containerRef.current?.getBoundingClientRect()
-      const cols = rect ? colsForWidth(rect.width) : undefined
       const widgets = useWidgetStore.getState().widgets
-      const pos = resolveDropPosition(widgets, id, dropX, dropY, cols)
+      const pos = resolveDropPosition(widgets, id, dropX, dropY)
       widgetActions.setPosition(id, pos.x, pos.y)
     },
   })
@@ -345,7 +338,7 @@ function DraggableWidget({
         height: h,
         transition: dragging.current ? "none" : "transform 0.35s cubic-bezier(0.25, 1, 0.5, 1)",
       }}
-      className="pointer-events-auto touch-none select-none overflow-hidden rounded-[18px] border border-black/10 bg-white/60 text-(--os-text) shadow-xl backdrop-blur-2xl hover:shadow-2xl dark:border-white/10 dark:bg-[#202028]/65 cursor-grab active:cursor-grabbing"
+      className="pointer-events-auto touch-none select-none overflow-hidden glass rim rounded-[22px] text-(--os-text) cursor-grab active:cursor-grabbing"
       onPointerDown={onPointerDown}
       onContextMenu={e => {
         e.preventDefault()
@@ -353,19 +346,19 @@ function DraggableWidget({
         onContextMenu(id, e.clientX, e.clientY)
       }}
     >
-      <WidgetContent id={id} size={size} />
+      <WidgetContent id={id} />
     </div>
   )
 }
 
-function WidgetContent({ id, size }: { id: WidgetId; size: WidgetSize }) {
+function WidgetContent({ id }: { id: WidgetId }) {
   switch (id) {
     case "next-event":
       return <NextEventWidget />
     case "club-stats":
       return <ClubStatsWidget />
     case "clock-cities":
-      return <ClockCitiesWidget size={size} />
+      return <ClockCitiesWidget />
     case "calendar":
       return <CalendarWidget />
     case "now-playing":
@@ -439,24 +432,25 @@ function ClubStatsWidget() {
 }
 
 // ── World Clock ─────────────────────────────────────────────────────────────
-function ClockCitiesWidget({ size }: { size: WidgetSize }) {
-  const [time, setTime] = useState({ mumbai: "", seattle: "" })
+/** Local time, zone abbreviation (PDT/PST follows DST) and day/night for a city. */
+function cityTime(now: Date, timeZone: string) {
+  const parts = new Intl.DateTimeFormat("en-US", { timeZone, hour: "numeric", minute: "2-digit", timeZoneName: "short" }).formatToParts(now)
+  const get = (type: string) => parts.find(p => p.type === type)?.value ?? ""
+  const hour24 = Number(new Intl.DateTimeFormat("en-US", { timeZone, hour: "numeric", hourCycle: "h23" }).format(now))
+  return {
+    time: `${get("hour")}:${get("minute")} ${get("dayPeriod")}`.trim(),
+    zone: timeZone === "Asia/Kolkata" ? "IST" : get("timeZoneName"),
+    day: hour24 >= 6 && hour24 < 18,
+  }
+}
+
+function ClockCitiesWidget() {
+  const [time, setTime] = useState<{ pune: ReturnType<typeof cityTime>; seattle: ReturnType<typeof cityTime> } | null>(null)
 
   useEffect(() => {
     const update = () => {
       const now = new Date()
-      setTime({
-        mumbai: now.toLocaleTimeString("en-US", {
-          timeZone: "Asia/Kolkata",
-          hour: "numeric",
-          minute: "2-digit",
-        }),
-        seattle: now.toLocaleTimeString("en-US", {
-          timeZone: "America/Los_Angeles",
-          hour: "numeric",
-          minute: "2-digit",
-        }),
-      })
+      setTime({ pune: cityTime(now, "Asia/Kolkata"), seattle: cityTime(now, "America/Los_Angeles") })
     }
     update()
     const timer = setInterval(update, 1000)
@@ -475,22 +469,22 @@ function ClockCitiesWidget({ size }: { size: WidgetSize }) {
       <div className="grid grid-cols-2 gap-3">
         <div>
           <div className="flex items-center gap-1 text-[11px] font-semibold text-(--os-text)">
-            <Sun className="size-3 text-amber-400" />
-            <span>Pune (IST)</span>
+            {time && !time.pune.day ? <Moon className="size-3 text-indigo-400" /> : <Sun className="size-3 text-amber-400" />}
+            <span>Pune ({time?.pune.zone ?? "IST"})</span>
           </div>
           <p className="text-xl font-bold tracking-tight text-(--os-text) tabular-nums mt-0.5">
-            {time.mumbai || "..."}
+            {time?.pune.time || "..."}
           </p>
           <p className="text-[10px] text-(--os-text-dim)">NMIET Campus</p>
         </div>
 
         <div>
           <div className="flex items-center gap-1 text-[11px] font-semibold text-(--os-text)">
-            <Moon className="size-3 text-indigo-400" />
-            <span>Seattle (PST)</span>
+            {time?.seattle.day ? <Sun className="size-3 text-amber-400" /> : <Moon className="size-3 text-indigo-400" />}
+            <span>Seattle{time ? ` (${time.seattle.zone})` : ""}</span>
           </div>
           <p className="text-xl font-bold tracking-tight text-(--os-text) tabular-nums mt-0.5">
-            {time.seattle || "..."}
+            {time?.seattle.time || "..."}
           </p>
           <p className="text-[10px] text-(--os-text-dim)">AWS Headquarters</p>
         </div>
@@ -504,16 +498,14 @@ function ClockCitiesWidget({ size }: { size: WidgetSize }) {
 function CalendarWidget() {
   const events = useEvents()
   const next = events.data.find(e => !e.isPast)
-  const [dateInfo, setDateInfo] = useState({ weekday: "", day: 1, month: "" })
-
-  useEffect(() => {
+  const [dateInfo] = useState(() => {
     const now = new Date()
-    setDateInfo({
+    return {
       weekday: now.toLocaleDateString("en-US", { weekday: "short" }).toUpperCase(),
       day: now.getDate(),
       month: now.toLocaleDateString("en-US", { month: "short" }),
-    })
-  }, [])
+    }
+  })
 
   return (
     <div

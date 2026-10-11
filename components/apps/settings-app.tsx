@@ -3,7 +3,7 @@
 
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState } from "react"
 import Image from "next/image"
 import {
   Palette,
@@ -29,7 +29,6 @@ interface WallpaperOption {
   name: string
   category: string
   description: string
-  previewStyle: React.CSSProperties
 }
 
 const WALLPAPERS: WallpaperOption[] = [
@@ -38,60 +37,36 @@ const WALLPAPERS: WallpaperOption[] = [
     name: "Dynamic",
     category: "Signature Mesh",
     description: "Signature vermilion flame, purple nebula & deep sapphire",
-    previewStyle: {
-      background:
-        "radial-gradient(circle at 90% 10%, #f3350c 0%, transparent 65%), radial-gradient(circle at 10% 40%, #7940ea 0%, transparent 60%), radial-gradient(circle at 55% 95%, #1c5ad2 0%, transparent 65%), #101018",
-    },
   },
   {
     id: "ember",
     name: "Ember",
     category: "AWS Studio",
     description: "Fiery vermilion embers on espresso obsidian",
-    previewStyle: {
-      background:
-        "radial-gradient(circle at 85% 15%, #f3350c 0%, transparent 65%), radial-gradient(circle at 15% 45%, #dc2626 0%, transparent 60%), radial-gradient(circle at 60% 90%, #d97706 0%, transparent 65%), #240c06",
-    },
   },
   {
     id: "violet",
     name: "Violet",
     category: "AWS Studio",
     description: "Deep space ultraviolet and cosmic indigo",
-    previewStyle: {
-      background:
-        "radial-gradient(circle at 85% 15%, #7940ea 0%, transparent 65%), radial-gradient(circle at 15% 45%, #9333ea 0%, transparent 60%), radial-gradient(circle at 50% 90%, #2563eb 0%, transparent 65%), #130d22",
-    },
   },
   {
     id: "slate",
     name: "Slate",
     category: "AWS Studio",
     description: "Studio graphite metallic and titanium",
-    previewStyle: {
-      background:
-        "radial-gradient(circle at 80% 15%, #b4bed7 0%, transparent 65%), radial-gradient(circle at 20% 60%, #6e7d96 0%, transparent 60%), radial-gradient(circle at 60% 85%, #414b5f 0%, transparent 65%), #1e2028",
-    },
   },
   {
     id: "dawn",
     name: "Dawn",
     category: "AWS Studio",
     description: "Morning peach, apricot and warm daylight",
-    previewStyle: {
-      background:
-        "radial-gradient(circle at 85% 15%, #ff8c3c 0%, transparent 65%), radial-gradient(circle at 15% 40%, #f472b6 0%, transparent 60%), radial-gradient(circle at 60% 85%, #fbbf24 0%, transparent 65%), #221218",
-    },
   },
   {
     id: "midnight",
     name: "Midnight",
     category: "AWS Studio",
     description: "Cosmic deep oceanic sapphire and plum",
-    previewStyle: {
-      background:
-        "radial-gradient(circle at 85% 15%, #2563eb 0%, transparent 65%), radial-gradient(circle at 20% 70%, #7940ea 0%, transparent 60%), radial-gradient(circle at 50% 25%, #0ea5e9 0%, transparent 65%), #060814",
-    },
   },
 ]
 
@@ -137,13 +112,14 @@ export function SettingsApp({ payload }: { payload?: { pane?: string } }) {
   const brightness = useSystemStore(s => s.brightness)
   const { isAdmin } = useSession()
 
-  useEffect(() => {
-    if (payload?.pane) {
-      if (payload.pane === "wallpaper" || payload.pane === "background") setActiveTab("wallpaper")
-      else if (payload.pane === "appearance") setActiveTab("appearance")
-      else if (payload.pane === "about") setActiveTab("about")
-    }
-  }, [payload?.pane])
+  // Opened at a specific pane (e.g. "Change Wallpaper…" on the desktop).
+  const [shownPane, setShownPane] = useState<string | undefined>()
+  if (payload?.pane && payload.pane !== shownPane) {
+    setShownPane(payload.pane)
+    if (payload.pane === "wallpaper" || payload.pane === "background") setActiveTab("wallpaper")
+    else if (payload.pane === "appearance") setActiveTab("appearance")
+    else if (payload.pane === "about") setActiveTab("about")
+  }
 
   const filteredPanes = PANES.filter(pane =>
     pane.label.toLowerCase().includes(searchQuery.toLowerCase())
@@ -167,7 +143,7 @@ export function SettingsApp({ payload }: { payload?: { pane?: string } }) {
             }`}
           >
             <div
-              style={wp.previewStyle}
+              style={{ background: WALLPAPER_STYLES[wp.id][appearance] }}
               className="relative h-20 w-full rounded-lg shadow-md border border-white/15 overflow-hidden flex items-center justify-center transition-transform group-hover:scale-[1.02]"
             >
               {/* Noise texture overlay */}
@@ -197,7 +173,7 @@ export function SettingsApp({ payload }: { payload?: { pane?: string } }) {
   )
 
   return (
-    <div className="flex h-full w-full flex-col md:flex-row bg-(--win-bg) text-(--os-text) select-none">
+    <div className="flex h-full w-full flex-col md:flex-row text-(--os-text) select-none">
       {/* ── Left Sidebar ───────────────────────────────────────────────────────── */}
       <aside className="w-full md:w-64 shrink-0 border-b md:border-b-0 md:border-r border-(--win-divider) bg-black/[0.02] dark:bg-white/[0.02] p-3 flex flex-col gap-3">
         {/* Chapter Profile Card */}

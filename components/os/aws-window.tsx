@@ -105,7 +105,7 @@ export function AppWindow({ id, zIndex, focused, children }: AppWindowProps) {
     handle.setPointerCapture(e.pointerId)
     const startX = e.clientX
     const startY = e.clientY
-    let next: WindowBounds = { ...bounds }
+    const next: WindowBounds = { ...bounds }
 
     const onMove = (ev: PointerEvent) => {
       const maxW = window.innerWidth - bounds.x - 4
@@ -147,19 +147,23 @@ export function AppWindow({ id, zIndex, focused, children }: AppWindowProps) {
       }}
     >
       <motion.div
-        initial={{ scale: 0.94, opacity: 0 }}
+        initial={{ scale: 0.9, opacity: 0, y: 14 }}
         animate={
           minimized
             ? { scale: 0.12, opacity: 0, x: minimizeTarget.x, y: minimizeTarget.y, transitionEnd: { visibility: "hidden" } }
             : { scale: 1, opacity: 1, x: 0, y: 0, visibility: "visible" }
         }
-        exit={{ scale: 0.94, opacity: 0, transition: { duration: 0.15 } }}
-        transition={{ duration: minimized ? 0.32 : 0.2, ease: [0.16, 1, 0.3, 1] }}
-        className="flex h-full w-full flex-col overflow-hidden rounded-[10px] border border-black/15 bg-[#f6f6f8] text-[#1d1d1f] dark:border-white/15 dark:bg-[#1e1e24] dark:text-[#f5f5f7]"
+        exit={{ scale: 0.94, opacity: 0, y: 8, transition: { duration: 0.15 } }}
+        transition={
+          minimized
+            ? { duration: 0.32, ease: [0.16, 1, 0.3, 1] }
+            : { type: "spring", stiffness: 380, damping: 30, mass: 0.8 }
+        }
+        className="window-material rim flex h-full w-full flex-col overflow-hidden rounded-[14px] text-[#1d1d1f] dark:text-[#f5f5f7]"
         style={{
           boxShadow: focused
-            ? "0 22px 70px 4px rgba(0,0,0,0.45), 0 0 1px rgba(0,0,0,0.3)"
-            : "0 10px 30px 2px rgba(0,0,0,0.25), 0 0 1px rgba(0,0,0,0.3)",
+            ? "0 30px 80px -6px rgba(0,0,0,0.5), 0 0 0 0.5px rgba(0,0,0,0.25)"
+            : "0 12px 34px -4px rgba(0,0,0,0.28), 0 0 0 0.5px rgba(0,0,0,0.2)",
         }}
       >
         {/* ── Title bar ─────────────────────────────────────────────────────── */}
@@ -168,7 +172,7 @@ export function AppWindow({ id, zIndex, focused, children }: AppWindowProps) {
           onDoubleClick={e => {
             if (!(e.target as HTMLElement).closest("button")) windowActions.toggleMaximize(id)
           }}
-          className="relative flex h-10 shrink-0 cursor-default select-none items-center justify-between border-b border-black/10 bg-[#eaebee] px-3 touch-none dark:border-white/10 dark:bg-[#28282f]"
+          className="relative flex h-10 shrink-0 cursor-default select-none items-center justify-between border-b border-(--win-divider) bg-(--titlebar-bg) px-3 touch-none"
         >
           <div className="group relative z-10 flex items-center gap-2" data-no-drag>
             <TrafficLight color="#ff5f57" focused={focused} label="Close window" onClick={() => windowActions.close(id)}>
@@ -195,7 +199,7 @@ export function AppWindow({ id, zIndex, focused, children }: AppWindowProps) {
         </div>
 
         {/* ── Content ───────────────────────────────────────────────────────── */}
-        <div className="selectable relative min-h-0 flex-1 overflow-auto bg-white text-neutral-900 dark:bg-[#16161b] dark:text-neutral-100">
+        <div className="selectable relative min-h-0 flex-1 overflow-auto text-neutral-900 dark:text-neutral-100">
           <AppErrorBoundary>{children}</AppErrorBoundary>
         </div>
       </motion.div>

@@ -146,7 +146,7 @@ function Preview({ id }: { id: FileId }) {
     const [first, ...rest] = ABOUT.intro
     const [before, after] = first.split(CLUB.name)
     return (
-      <article className="rounded-xl border border-(--win-divider) bg-white p-6 shadow-sm dark:bg-[#202027]">
+      <article className="glass-card rim p-6">
         <header className="mb-4 border-b border-(--win-divider) pb-4 text-center">
           <h1 className="text-xl font-bold text-(--os-text)">{ABOUT.introTitle}</h1>
           <p className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-(--os-text-dim)">Official Document</p>
@@ -225,7 +225,7 @@ function Preview({ id }: { id: FileId }) {
 
   if (id === "whatwedo") {
     return (
-      <article className="rounded-xl border border-(--win-divider) bg-white p-5 shadow-sm dark:bg-[#202027]">
+      <article className="glass-card rim p-5">
         <header className="mb-4 flex items-center justify-between border-b border-(--win-divider) pb-3">
           <span className="rounded bg-(--accent)/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-(--accent)">Page 1 of 1</span>
           <span className="text-xs font-semibold text-(--os-text)">What We Do</span>
@@ -234,7 +234,7 @@ function Preview({ id }: { id: FileId }) {
           {ABOUT.whatWeDo.map((card, i) => {
             const Icon = WHAT_WE_DO_ICONS[i] ?? Award
             return (
-              <div key={card.title} className="rounded-lg border border-(--win-divider) bg-black/[0.02] p-3.5 dark:bg-white/[0.03]">
+              <div key={card.title} className="glass-card interactive rounded-xl p-3.5">
                 <div className="mb-2 flex size-7 items-center justify-center rounded-lg" style={{ background: `${card.color}1f` }}>
                   <Icon className="size-4" style={{ color: card.color }} />
                 </div>

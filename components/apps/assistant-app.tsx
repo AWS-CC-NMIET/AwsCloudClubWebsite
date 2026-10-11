@@ -78,7 +78,11 @@ function answer(q: string, ctx: { members: string; nextEvent?: ClubEvent }): Cha
     }
   }
   if (has("discord", "youtube", "instagram", "linkedin", "social", "follow")) {
-    return { sender: "bot", text: "Find all our channels in the Social app.", action: { app: "social", label: "Open Social" } }
+    return {
+      sender: "bot",
+      text: "We're on Instagram (@aws.sbg_nmiet), LinkedIn and YouTube — and events are on Meetup. All links are in the Social app.",
+      action: { app: "social", label: "Open Social" },
+    }
   }
   return {
     sender: "bot",
@@ -112,7 +116,7 @@ export function AssistantApp() {
   }
 
   return (
-    <div className="flex h-full w-full flex-col bg-(--win-bg) text-(--os-text)">
+    <div className="flex h-full w-full flex-col text-(--os-text)">
       <div className="flex items-center gap-3 border-b border-(--win-divider) p-4">
         <div className="size-8 shrink-0">
           <AnimatedOrb size={32} />

@@ -5,14 +5,27 @@
 
 :root {
   --os-text: #1d1d1f;
-  --os-text-dim: #00000073;
-  --win-bg: #f5f5f7;
-  --titlebar-bg: #f6f6f6f5;
+  --os-text-dim: #00000080;
+  --win-bg: rgba(250, 250, 252, 0.58);
+  --titlebar-bg: rgba(255, 255, 255, 0.35);
   --win-divider: #00000014;
   --menubar-bg: #f6f6f8a8;
   --menu-bg: #f8f8fad1;
   --tl-dim: #c9c9cd;
   --accent: #7940ea;
+
+  /* ── Liquid glass ── */
+  --glass-bg: rgba(255, 255, 255, 0.52);
+  --glass-bg-strong: rgba(255, 255, 255, 0.74);
+  --glass-card: rgba(255, 255, 255, 0.62);
+  --glass-card-hover: rgba(255, 255, 255, 0.82);
+  --glass-rim-hi: rgba(255, 255, 255, 0.95);
+  --glass-rim-lo: rgba(255, 255, 255, 0.18);
+  --glass-shadow: 0 18px 50px -14px rgba(20, 16, 40, 0.28), 0 2px 8px rgba(20, 16, 40, 0.08);
+  --win-material: rgba(244, 244, 248, 0.66);
+  --win-sidebar: rgba(255, 255, 255, 0.28);
+  --toolbar-bg: rgba(246, 246, 250, 0.84);
+  --sheen: rgba(255, 255, 255, 0.55);
 
   --background: #f5f5f7;
   --foreground: #1d1d1f;
@@ -35,13 +48,25 @@
 .dark {
   --os-text: #f5f5f7;
   --os-text-dim: #a1a1aa;
-  --win-bg: #1e1e24;
-  --titlebar-bg: #282830;
+  --win-bg: rgba(26, 26, 32, 0.55);
+  --titlebar-bg: rgba(255, 255, 255, 0.04);
   --win-divider: rgba(255, 255, 255, 0.12);
   --menubar-bg: rgba(22, 22, 28, 0.92);
   --menu-bg: rgba(32, 32, 40, 0.96);
   --tl-dim: #444448;
   --accent: #7940ea;
+
+  --glass-bg: rgba(36, 36, 46, 0.42);
+  --glass-bg-strong: rgba(30, 30, 38, 0.72);
+  --glass-card: rgba(255, 255, 255, 0.055);
+  --glass-card-hover: rgba(255, 255, 255, 0.09);
+  --glass-rim-hi: rgba(255, 255, 255, 0.38);
+  --glass-rim-lo: rgba(255, 255, 255, 0.04);
+  --glass-shadow: 0 24px 60px -16px rgba(0, 0, 0, 0.7), 0 2px 10px rgba(0, 0, 0, 0.35);
+  --win-material: rgba(22, 22, 28, 0.62);
+  --win-sidebar: rgba(255, 255, 255, 0.035);
+  --toolbar-bg: rgba(22, 22, 28, 0.84);
+  --sheen: rgba(255, 255, 255, 0.16);
 
   --background: #141416;
   --foreground: #f5f5f7;
@@ -120,9 +145,9 @@
   border-color: var(--win-divider);
 }
 
-/* ── Wallpaper System ──────────────────────────────────────────────────────── */
-
-/* ── Authentic AWS Cloud Club Wallpapers ────────────────────────────────── */
+/* ── Wallpaper ──────────────────────────────────────────────────────────────
+   Colours live in WALLPAPER_STYLES (lib/aws-store.ts); this is the Dynamic
+   default for the moment before the page hydrates. */
 
 .wallpaper {
   position: fixed !important;
@@ -131,18 +156,20 @@
   height: 100vh !important;
   z-index: 0;
   overflow: hidden;
-  background: radial-gradient(90rem 60rem at 110% -10%, #f3350c52, transparent 60%),
-              radial-gradient(80rem 50rem at -20% 30%, #ffa88a6b, transparent 55%),
-              radial-gradient(70rem 60rem at 50% 120%, #5e3a8c38, transparent 60%),
-              linear-gradient(160deg, #f3f0ee 0%, #e3dcd7 100%);
+  background: radial-gradient(ellipse 120% 90% at 50% 45%, transparent 60%, rgba(40, 30, 70, 0.10) 100%),
+              radial-gradient(70rem 50rem at 90% -10%, rgba(255, 138, 76, 0.40), transparent 62%),
+              radial-gradient(65rem 50rem at -5% 40%, rgba(146, 104, 240, 0.36), transparent 60%),
+              radial-gradient(60rem 45rem at 55% 118%, rgba(86, 128, 230, 0.30), transparent 62%),
+              linear-gradient(160deg, #ebe6f1 0%, #ded7ea 100%);
   transition: background 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .dark .wallpaper {
-  background: radial-gradient(90rem 60rem at 110% -10%, #f3350c8c, transparent 60%),
-              radial-gradient(70rem 50rem at -10% 40%, #7940ea80, transparent 55%),
-              radial-gradient(60rem 50rem at 50% 125%, #1c387280, transparent 65%),
-              linear-gradient(160deg, #101014 0%, #17141f 100%);
+  background: radial-gradient(ellipse 120% 90% at 50% 45%, transparent 55%, rgba(0, 0, 0, 0.45) 100%),
+              radial-gradient(70rem 50rem at 88% -8%, rgba(255, 122, 48, 0.30), transparent 62%),
+              radial-gradient(65rem 50rem at -5% 45%, rgba(121, 64, 234, 0.36), transparent 60%),
+              radial-gradient(60rem 45rem at 55% 118%, rgba(37, 78, 180, 0.32), transparent 62%),
+              linear-gradient(160deg, #0e0c16 0%, #121020 55%, #09090f 100%);
 }
 
 .wallpaper::after {
@@ -153,79 +180,6 @@
   position: absolute;
   inset: 0;
   z-index: 1;
-}
-
-/* Ember: Signature fire & embers */
-.wallpaper[data-wallpaper="ember"],
-.wallpaper[data-wallpaper=ember] {
-  background: radial-gradient(90rem 60rem at 110% -10%, rgba(243, 53, 12, 0.45), transparent 60%),
-              radial-gradient(70rem 50rem at -10% 40%, rgba(251, 146, 60, 0.5), transparent 55%),
-              linear-gradient(160deg, #fdf1ea 0%, #f4dcd2 100%);
-}
-.dark .wallpaper[data-wallpaper="ember"],
-.dark .wallpaper[data-wallpaper=ember] {
-  background: radial-gradient(90rem 60rem at 110% -10%, rgba(243, 53, 12, 0.65), transparent 60%),
-              radial-gradient(70rem 50rem at -10% 40%, rgba(153, 27, 27, 0.6), transparent 55%),
-              radial-gradient(60rem 50rem at 50% 120%, rgba(217, 119, 6, 0.5), transparent 60%),
-              linear-gradient(160deg, #2a0f08 0%, #120a08 100%);
-}
-
-/* Violet: Cosmic ultraviolet / AWS purple */
-.wallpaper[data-wallpaper="violet"],
-.wallpaper[data-wallpaper=violet] {
-  background: radial-gradient(90rem 60rem at 110% -10%, rgba(121, 64, 234, 0.4), transparent 60%),
-              radial-gradient(70rem 50rem at -10% 40%, rgba(192, 132, 252, 0.5), transparent 55%),
-              linear-gradient(160deg, #f8f2fd 0%, #ece0f8 100%);
-}
-.dark .wallpaper[data-wallpaper="violet"],
-.dark .wallpaper[data-wallpaper=violet] {
-  background: radial-gradient(90rem 60rem at 110% -10%, rgba(121, 64, 234, 0.7), transparent 60%),
-              radial-gradient(70rem 50rem at -10% 40%, rgba(147, 51, 234, 0.7), transparent 55%),
-              radial-gradient(60rem 50rem at 50% 125%, rgba(37, 99, 235, 0.7), transparent 65%),
-              linear-gradient(160deg, #181126 0%, #0d0a18 100%);
-}
-
-/* Slate: Studio slate metallic */
-.wallpaper[data-wallpaper="slate"],
-.wallpaper[data-wallpaper=slate] {
-  background: radial-gradient(80rem 60rem at 80% 0%, rgba(190, 200, 220, 0.5), transparent 60%),
-              linear-gradient(160deg, #f2f3f7 0%, #dcdfe8 100%);
-}
-.dark .wallpaper[data-wallpaper="slate"],
-.dark .wallpaper[data-wallpaper=slate] {
-  background: radial-gradient(80rem 60rem at 80% 0%, rgba(120, 122, 130, 0.4), transparent 60%),
-              radial-gradient(60rem 50rem at 20% 60%, rgba(75, 85, 99, 0.35), transparent 55%),
-              linear-gradient(160deg, #2c2c33 0%, #0d0d0f 100%);
-}
-
-/* Dawn: Warm morning peach apricot */
-.wallpaper[data-wallpaper="dawn"],
-.wallpaper[data-wallpaper=dawn] {
-  background: radial-gradient(90rem 60rem at 110% -10%, rgba(243, 53, 12, 0.22), transparent 60%),
-              radial-gradient(80rem 50rem at -10% 30%, rgba(255, 184, 138, 0.45), transparent 55%),
-              linear-gradient(160deg, #fbf4ef 0%, #f0dccf 100%);
-}
-.dark .wallpaper[data-wallpaper="dawn"],
-.dark .wallpaper[data-wallpaper=dawn] {
-  background: radial-gradient(90rem 60rem at 110% -10%, rgba(249, 115, 22, 0.55), transparent 60%),
-              radial-gradient(80rem 50rem at -10% 30%, rgba(236, 72, 153, 0.5), transparent 55%),
-              radial-gradient(60rem 50rem at 50% 110%, rgba(251, 191, 36, 0.45), transparent 60%),
-              linear-gradient(160deg, #26131c 0%, #130a0f 100%);
-}
-
-/* Midnight: Deep oceanic sapphire */
-.wallpaper[data-wallpaper="midnight"],
-.wallpaper[data-wallpaper=midnight] {
-  background: radial-gradient(80rem 60rem at 100% -10%, rgba(40, 80, 160, 0.4), transparent 60%),
-              radial-gradient(60rem 50rem at 30% 120%, rgba(86, 38, 118, 0.4), transparent 60%),
-              linear-gradient(160deg, #f0f4ff 0%, #dde5fc 100%);
-}
-.dark .wallpaper[data-wallpaper="midnight"],
-.dark .wallpaper[data-wallpaper=midnight] {
-  background: radial-gradient(80rem 60rem at 100% -10%, rgba(37, 99, 235, 0.7), transparent 60%),
-              radial-gradient(60rem 50rem at 30% 120%, rgba(121, 64, 234, 0.7), transparent 60%),
-              radial-gradient(50rem 40rem at 60% 30%, rgba(6, 182, 212, 0.5), transparent 60%),
-              linear-gradient(160deg, #0a0c16 0%, #06070e 100%);
 }
 
 /* ── Boot Progress Bar ─────────────────────────────────────────────────────── */
@@ -277,4 +231,150 @@
 
 .dark ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.38);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Liquid glass
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* In the components layer so Tailwind utilities (absolute, fixed, bg-*, …)
+   can still override these on any element. */
+@layer components {
+/* Frosted material: translucent fill, blurred + saturated backdrop. */
+.glass {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(28px) saturate(185%);
+  backdrop-filter: blur(28px) saturate(185%);
+  box-shadow: var(--glass-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+.glass-strong {
+  background: var(--glass-bg-strong);
+  -webkit-backdrop-filter: blur(36px) saturate(190%);
+  backdrop-filter: blur(36px) saturate(190%);
+  box-shadow: var(--glass-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+/* Window material: what every app window (and mobile sheet) is made of. */
+.window-material {
+  background: var(--win-material);
+  -webkit-backdrop-filter: blur(44px) saturate(180%);
+  backdrop-filter: blur(44px) saturate(180%);
+}
+
+/* Specular rim — a gradient hairline that catches light like Apple's
+   Liquid Glass edges. Works on any element with a border-radius. */
+.rim {
+  position: relative;
+  isolation: isolate;
+}
+.rim::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(155deg, var(--glass-rim-hi), var(--glass-rim-lo) 32%, var(--glass-rim-lo) 68%, var(--glass-rim-hi));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Cards inside windows: translucent (the window already blurs), rim, lift. */
+.glass-card {
+  background: var(--glass-card);
+  border-radius: 1rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  transition: background 0.25s ease, transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease;
+}
+.dark .glass-card {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.glass-card.interactive:hover {
+  background: var(--glass-card-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 34px -14px rgba(20, 16, 40, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+/* Cursor-following sheen (set --mx / --my from pointermove). */
+.sheen {
+  position: relative;
+  overflow: hidden;
+}
+.sheen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), var(--sheen), transparent 42%);
+  z-index: 1;
+}
+.sheen:hover::after {
+  opacity: 1;
+}
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Motion
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Living wallpaper: large soft colour fields drifting slowly. */
+.live-wallpaper {
+  position: absolute;
+  inset: -20%;
+  pointer-events: none;
+  z-index: -1; /* behind content, above the wallpaper's own gradient */
+}
+.live-wallpaper span {
+  position: absolute;
+  width: 55vmax;
+  height: 55vmax;
+  border-radius: 50%;
+  opacity: 0.4;
+  will-change: transform;
+}
+.dark .live-wallpaper span {
+  opacity: 0.22;
+}
+.live-wallpaper span:nth-child(1) { top: -10%; right: 0%; animation: blob-drift-a 38s ease-in-out infinite alternate; }
+.live-wallpaper span:nth-child(2) { top: 25%; left: -5%; animation: blob-drift-b 46s ease-in-out infinite alternate; }
+.live-wallpaper span:nth-child(3) { bottom: -15%; left: 30%; animation: blob-drift-c 54s ease-in-out infinite alternate; }
+
+@keyframes blob-drift-a { 0% { transform: translate3d(0, 0, 0) scale(1); } 100% { transform: translate3d(-18vw, 14vh, 0) scale(1.15); } }
+@keyframes blob-drift-b { 0% { transform: translate3d(0, 0, 0) scale(1.1); } 100% { transform: translate3d(20vw, -10vh, 0) scale(0.9); } }
+@keyframes blob-drift-c { 0% { transform: translate3d(0, 0, 0) scale(0.95); } 100% { transform: translate3d(-12vw, -16vh, 0) scale(1.2); } }
+
+/* Diagonal light sweep (team cards, buttons). */
+@keyframes shine-sweep {
+  0% { transform: translateX(-120%) skewX(-20deg); }
+  100% { transform: translateX(220%) skewX(-20deg); }
+}
+
+/* Racing stripes drifting across a livery. */
+@keyframes livery-drift {
+  0% { background-position: 0 0; }
+  100% { background-position: 120px 0; }
+}
+
+@keyframes float-y {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }

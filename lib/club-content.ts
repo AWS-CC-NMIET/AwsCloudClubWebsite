@@ -2,6 +2,8 @@
 // Real AWS Student Builder Group NMIET content — the single source of truth for
 // everything static on the site (migrated verbatim from commit 4c899fc).
 
+import { TEAM_PHOTOS } from "./team-photos"
+
 export const CLUB = {
   name: "AWS Student Builder Group",
   shortName: "AWS SBG NMIET",
@@ -18,6 +20,8 @@ export const CLUB = {
     "Empowering the next generation of cloud innovators through hands-on learning, real-world projects, and a thriving community.",
   meetupUrl: "https://www.meetup.com/aws-sbg-at-nutan-maharashtra-inst-of-engineering-and-tech/",
   youtubeUrl: "https://www.youtube.com/@AWSStudentBuildersGroupNMIET",
+  instagramUrl: "https://www.instagram.com/aws.sbg_nmiet/",
+  linkedinUrl: "https://www.linkedin.com/company/aws-student-builder-group-nmiet/",
   region: "ap-south-1 (Mumbai)",
   /** Last verified Meetup member count (1,252 on 2026-10-11) — shown only until the live count loads. */
   fallbackMemberCount: 1250,
@@ -88,10 +92,25 @@ export const OFFICE_HOURS = [
 ]
 
 // ── Team ──────────────────────────────────────────────────────────────────────
+// Roster: roles and teams from the jacket list, contact details from the
+// "Contact Information" form (Oct 2026). Photos are processed into
+// /public/team by scripts/team-photo.mjs (see lib/team-photos.ts).
 
-export type TeamGroup = "Leadership" | "Tech" | "Design" | "Social Media" | "Events" | "Onsite" | "Members"
+/** The teams ("constructors") of the club, in display order. */
+export type TeamGroup = "Captain" | "Tech" | "Design" | "Media" | "Events" | "Onsite" | "Members"
 
-export const TEAM_GROUPS: TeamGroup[] = ["Leadership", "Tech", "Design", "Social Media", "Events", "Onsite", "Members"]
+export const TEAM_GROUPS: TeamGroup[] = ["Captain", "Tech", "Design", "Media", "Events", "Onsite", "Members"]
+
+/** Livery for each team: name, colour and a darker shade for gradients. */
+export const TEAM_LIVERY: Record<TeamGroup, { name: string; color: string; deep: string }> = {
+  Captain: { name: "Core", color: "#F5B700", deep: "#8A5A00" },
+  Tech: { name: "Tech", color: "#FF9900", deep: "#9A3D00" },
+  Design: { name: "Design", color: "#8B5CF6", deep: "#3B1C8C" },
+  Media: { name: "Media", color: "#EC4899", deep: "#7A1048" },
+  Events: { name: "Events", color: "#14B8A6", deep: "#05514A" },
+  Onsite: { name: "Onsite", color: "#3B82F6", deep: "#173A8A" },
+  Members: { name: "Members", color: "#94A3B8", deep: "#334155" },
+}
 
 export interface TeamMember {
   id: string
@@ -106,51 +125,84 @@ export interface TeamMember {
   awsService?: string
   status: "running" | "stopped"
   order: number
-  /** "roster-seed" on members copied in by scripts/seed-team.mjs */
+  /** "roster-seed" on members copied in by the roster import */
   source?: string
 }
 
-const LEADERSHIP_ROLES = /\b(leader|lead|head)\b/i
-
 export function teamGroupOf(role: string): TeamGroup {
-  if (LEADERSHIP_ROLES.test(role)) return "Leadership"
+  if (/captain|sbg leader/i.test(role)) return "Captain"
   if (/tech/i.test(role)) return "Tech"
   if (/design/i.test(role)) return "Design"
-  if (/social/i.test(role)) return "Social Media"
+  if (/media|social/i.test(role)) return "Media"
   if (/event/i.test(role)) return "Events"
-  if (/onsite/i.test(role)) return "Onsite"
+  if (/onsite|on-site/i.test(role)) return "Onsite"
   return "Members"
 }
 
-export const TEAM_MEMBERS: TeamMember[] = [
-  { id: "m-neha", name: "Neha Sharma", role: "SBG Leader", skills: ["Cloud Architecture", "Leadership", "Organizing"], email: "neha48330707@gmail.com", github: "https://github.com/neha4833", linkedin: "https://www.linkedin.com/in/neha-sharma-sbg", awsService: "AWS Cloud", status: "running", order: 1 },
-  { id: "m-sarthakg", name: "Sarthak Suhas Godse", role: "Tech Team Lead", skills: ["AWS", "DevOps", "Infrastructure"], email: "sarthakgodse03@gmail.com", github: "https://github.com/Sarthak030506", linkedin: "https://www.linkedin.com/in/sarthak-godse-7484b4290/", awsService: "Amazon EC2", status: "running", order: 2 },
-  { id: "m-kirti", name: "Kirti Anil Tambe", role: "Design Team Lead", skills: ["UI/UX", "Creative Direction", "Figma"], email: "kirti.tambe25@gmail.com", github: "https://github.com/kirtitambe07", linkedin: "https://www.linkedin.com/in/kirti-tambe-2481a832a", awsService: "AWS Step Functions", status: "running", order: 3 },
-  { id: "m-rohan", name: "Rohan Borude", role: "Social Media Head", skills: ["Marketing", "Social Media", "Content"], email: "rohanbborude09@gmail.com", github: "https://github.com/CodexRohan-09", linkedin: "https://www.linkedin.com/in/rohan-borude-796625380?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app", awsService: "Amazon EKS", status: "running", order: 4 },
-  { id: "m-sanskar", name: "Sanskar Ubale", role: "Onsite Team Lead", skills: ["Logistics", "Operations", "Events"], email: "sanskarubale1@gmail.com", github: "https://github.com/2823sanskar", linkedin: "https://www.linkedin.com/in/sanskar-ubale", awsService: "Amazon SQS", status: "running", order: 5 },
-  { id: "m-harshad", name: "Harshad Pandurang Kedari", role: "Design Team Member", skills: ["Creative Design", "Graphics", "Figma"], email: "harshadkedari211@gmail.com", github: "https://github.com/Harsh-901", linkedin: "https://www.linkedin.com/in/harshad-kedari", awsService: "Amazon S3", status: "running", order: 6 },
-  { id: "m-snehali", name: "Snehali Sudhir Savant", role: "Design Team Member", skills: ["Graphic Design", "Illustration", "UI"], email: "snehalisavant25@gmail.com", github: "https://github.com/snehalisavant25", linkedin: "https://linkedin.com/in/snehali-savant-4160b232a", awsService: "AWS Lambda", status: "running", order: 7 },
-  { id: "m-gayatri", name: "Gayatri Trimbak Jadhav", role: "Design Team Member", skills: ["Visual Design", "UI Design", "Branding"], email: "jadhavgayatri401@gmail.com", github: "https://github.com/jadhavgayatri25", linkedin: "https://www.linkedin.com/in/gayatri-jadhav-805b92331", awsService: "Amazon DynamoDB", status: "running", order: 8 },
-  { id: "m-saee", name: "Saee Kumbhar", role: "Tech Team Member", skills: ["Cloud Engineering", "React", "AWS Services"], email: "saeeekumbhar@gmail.com", github: "https://github.com/saeeekumbhar", linkedin: "https://www.linkedin.com/in/saeeekumbhar", awsService: "Amazon RDS", status: "running", order: 9 },
-  { id: "m-pranav", name: "Pranav Suryawanshi", role: "Tech Team Member", skills: ["Frontend", "Git", "React"], email: "pranavms09@gmail.com", github: "https://github.com/Pranavms09", linkedin: "https://www.linkedin.com/in/pranavms09/", awsService: "Amazon CloudFront", status: "running", order: 10 },
-  { id: "m-prathamesh", name: "PRATHAMESH PATIL", role: "Tech Team Member", skills: ["System Design", "Backend", "Cloud Deployments"], email: "prathameshpatil.cse@gmail.com", github: "https://github.com/prathamesh-lang", linkedin: "https://www.linkedin.com/in/prathamesh-patil-794441385", awsService: "AWS IAM", status: "running", order: 11 },
-  { id: "m-prakhar", name: "Prakhar Raj", role: "Tech Team Member", skills: ["Web Dev", "API Integration", "NodeJS"], email: "rajprakhar2505@gmail.com", github: "https://github.com/rajprakhar07", linkedin: "https://www.linkedin.com/in/prakhar-raj25", awsService: "Amazon SNS", status: "running", order: 12 },
-  { id: "m-sarthakk", name: "Sarthak Sanjay Kandhare", role: "Tech Team Member", skills: ["AWS Cloud", "Development", "Git"], email: "sarthakkandhare5@gmail.com", github: "https://github.com/SarthakKandhare03", linkedin: "https://www.linkedin.com/in/sarthak-kandhare-898340312?utm_source=share_via&utm_content=profile&utm_medium=member_ios", awsService: "Amazon SageMaker", status: "running", order: 13 },
-  { id: "m-aayush", name: "Aayush Pawar", role: "Tech Team Member", skills: ["Cloud Fundamentals", "Programming", "AWS"], email: "aayush.pawar54321@gmail.com", github: "", linkedin: "https://www.linkedin.com/in/aayush-pawar-070387259?utm_source=share_via&utm_content=profile&utm_medium=member_ios", awsService: "AWS CloudTrail", status: "running", order: 14 },
-  { id: "m-jay", name: "Jay Ashok Magar", role: "Tech Team Member", skills: ["HTML/CSS", "JavaScript", "AWS Services"], email: "jaymagar310@gmail.com", github: "https://github.com/DevJay067", linkedin: "https://www.linkedin.com/in/jay-magar-5ba92b369?utm_source=share_via&utm_content=profile&utm_medium=member_android", awsService: "AWS CloudFormation", status: "running", order: 15 },
-  { id: "m-rutvik", name: "Rutvik Kale", role: "Social Media Team Member", skills: ["Content Creation", "Public Relations", "Graphics"], email: "rutvikkale2006@gmail.com", github: "https://github.com/Ritronn", linkedin: "https://www.linkedin.com/in/rutvik-kale-749775286?utm_source=share_via&utm_content=profile&utm_medium=member_android", awsService: "AWS Cognito", status: "running", order: 16 },
-  { id: "m-faisal", name: "Faisal Momin", role: "Social Media Team Member", skills: ["Photography", "Content Marketing", "Design"], email: "faisalmomin657@gmail.com", github: "https://github.com/faisalmomin11-jpg", linkedin: "https://www.linkedin.com/in/faisal-momin-080427385?utm_source=share_via&utm_content=profile&utm_medium=member_android", awsService: "AWS KMS", status: "running", order: 17 },
-  { id: "m-yuvraj", name: "Yuvraj Mathe", role: "Event Management Team Member", skills: ["Coordination", "Events Management", "Operations"], email: "matheyuvraj@gmail.com", github: "https://github.com/mYuvraj4118", linkedin: "https://www.linkedin.com/in/yuvraj-mathe", awsService: "Amazon Route 53", status: "running", order: 18 },
-  { id: "m-nidhi", name: "Nidhi Patil", role: "Event Management Team Member", skills: ["Logistics", "Event Management", "Communication"], email: "nidhispatilkv@gmail.com", github: "", linkedin: "https://www.linkedin.com/in/nidhi-patil-0778673bb", awsService: "Amazon ECS", status: "running", order: 19 },
-  { id: "m-fareeha", name: "Fareeha Naaz Abdul Khalique Modi", role: "Event Team Member", skills: ["Teamwork", "Event Planning", "Support"], email: "fareehanaaz15@gmail.com", github: "https://github.com/Fareeha06-sudo", linkedin: "https://www.linkedin.com/in/fareeha-modi-645654397", awsService: "AWS Amplify", status: "running", order: 20 },
-  { id: "m-sankalp", name: "Sankalp Shinde", role: "Event Team Member", skills: ["Planning", "Event Logistics", "Onsite Coordination"], email: "sankalpshinde1005@gmail.com", github: "https://github.com/Sankalp2403", linkedin: "https://www.linkedin.com/in/sankalp-shinde-581004395?utm_source=share_via&utm_content=profile&utm_medium=member_android", awsService: "AWS Secrets Manager", status: "running", order: 21 },
-  { id: "m-neel", name: "NEEL INGALE", role: "Onsite Team Member", skills: ["Execution", "Operations", "Coordination"], email: "neelringale@gmail.com", github: "https://github.com/neelringale", linkedin: "https://www.linkedin.com/in/neelringale", awsService: "Amazon EventBridge", status: "running", order: 22 },
-  { id: "m-pawan", name: "Pawan Hatkar", role: "Onsite Team Member", skills: ["Support", "Execution", "Logistics"], email: "pavanhatkar8794@gmail.com", github: "https://github.com/pavanhatkar505-coder", linkedin: "https://www.linkedin.com/in/pavan-hatkar-2642633b4?utm_source=share_via&utm_content=profile&utm_medium=member_android", awsService: "Amazon Aurora", status: "running", order: 23 },
-  { id: "m-ishwari", name: "Ishwari Nerkar", role: "Design Team Member", skills: ["Graphics", "Creative assets", "Social Media Templates"], email: "ishwarinerkar1010@gmail.com", github: "https://github.com/ishwarinerkar10", linkedin: "https://www.linkedin.com/in/ishwari-n-373015348", awsService: "AWS CodePipeline", status: "running", order: 24 },
-  { id: "m-kartik", name: "Kartik Narkhede", role: "Design Team Member", skills: ["UI Elements", "Figma", "Branding"], email: "kartiknarkhede2007@gmail.com", github: "https://github.com/kartik2118-cloud", linkedin: "https://www.linkedin.com/in/kartik-narkhede-21kst18/", awsService: "Amazon CloudWatch", status: "running", order: 25 },
-  { id: "m-shubham", name: "Shubham Ramesh Aute", role: "Design Team Member", skills: ["Graphics Layout", "Editing", "Visual Assets"], email: "shubhamaute101@gmail.com", github: "https://github.com/shubhamaute101", linkedin: "https://www.linkedin.com/in/shubham-aute-5b97b4385?utm_source=share_via&utm_content=profile&utm_medium=member_android", awsService: "Amazon VPC", status: "running", order: 26 },
-  { id: "m-mayur", name: "Mayur Patle", role: "Design Team Member", skills: ["Visual Design", "Branding Asset Creation", "Layouts"], email: "patlemayur286@gmail.com", github: "https://github.com/git-mayurpatle", linkedin: "https://www.linkedin.com/in/mayurnpatle?utm_source=share_via&utm_content=profile&utm_medium=member_android", awsService: "Amazon Redshift", status: "running", order: 27 },
+export function isLeadRole(role: string) {
+  return /\b(captain|lead|head|leader)\b/i.test(role)
+}
+
+const li = (handle: string) => `https://www.linkedin.com/in/${handle}`
+const gh = (handle: string) => `https://github.com/${handle}`
+
+const ROSTER: Omit<TeamMember, "status" | "photoUrl">[] = [
+  // Captain
+  { id: "m-neha", order: 1, name: "Neha Sharma", role: "SBG Captain", skills: ["AWS Cloud Computing", "Python", "Machine Learning", "Generative AI", "Docker", "Kubernetes", "MLOps"], email: "neha48330707@gmail.com", github: gh("NehaSama4833"), linkedin: li("neha-sharma-b08737316"), awsService: "AWS Cloud" },
+
+  // Team leads
+  { id: "m-sarthakg", order: 2, name: "Sarthak Suhas Godse", role: "Tech Team Lead", skills: ["AWS", "DevOps", "Infrastructure"], email: "sarthakgodse03@gmail.com", github: gh("Sarthak030506"), linkedin: li("sarthak-godse-7484b4290"), awsService: "Amazon EC2" },
+  { id: "m-kirti", order: 3, name: "Kirti Anil Tambe", role: "Design Team Lead", skills: ["UI/UX", "Creative Direction", "Figma"], email: "kirti.tambe25@gmail.com", github: gh("kirtitambe07"), linkedin: li("kirti-tambe-2481a832a"), awsService: "AWS Step Functions" },
+  { id: "m-rohan", order: 4, name: "Rohan Borude", role: "Media Team Lead", skills: ["Marketing", "Social Media", "Content"], email: "rohanbborude09@gmail.com", github: gh("CodexRohan-09"), linkedin: li("rohan-borude-796625380"), awsService: "Amazon EKS" },
+  { id: "m-arya", order: 5, name: "Arya Chougule", role: "Event Team Lead", skills: [], email: "aryachougule1997@gmail.com", github: gh("aryachougule1997-sys"), linkedin: li("arya-chougule-79889632a"), awsService: "Amazon API Gateway" },
+  { id: "m-sanskar", order: 6, name: "Sanskar Ubale", role: "Onsite Team Lead", skills: ["Logistics", "Operations", "Events"], email: "sanskarubale1@gmail.com", github: gh("2823sanskar"), linkedin: li("sanskar-ubale"), awsService: "Amazon SQS" },
+
+  // Tech
+  { id: "m-prathamesh", order: 7, name: "Prathamesh Patil", role: "Tech Team Member", skills: ["System Design", "Backend", "Cloud Deployments"], email: "prathameshpatil.cse@gmail.com", github: gh("prathamesh-lang"), linkedin: li("prathamesh-patil-794441385"), awsService: "AWS IAM" },
+  { id: "m-pranav", order: 8, name: "Pranav Suryawanshi", role: "Tech Team Member", skills: ["Frontend", "Git", "React"], email: "pranavms09@gmail.com", github: gh("Pranavms09"), linkedin: li("pranavms09"), awsService: "Amazon CloudFront" },
+  { id: "m-jay", order: 9, name: "Jay Ashok Magar", role: "Tech Team Member", skills: ["HTML/CSS", "JavaScript", "AWS Services"], email: "jaymagar310@gmail.com", github: gh("DevJay067"), linkedin: li("jay-magar-5ba92b369"), awsService: "AWS CloudFormation" },
+  { id: "m-pawan", order: 10, name: "Pawan Hatkar", role: "Tech Team Member", skills: [], email: "pavanhatkar8794@gmail.com", github: gh("pavanhatkar505-coder"), linkedin: li("pavan-hatkar-2642633b4"), awsService: "Amazon Aurora" },
+  { id: "m-aayush", order: 11, name: "Aayush Pawar", role: "Tech Team Member", skills: ["Cloud Fundamentals", "Programming", "AWS"], email: "aayush.pawar54321@gmail.com", github: "", linkedin: li("aayush-pawar-070387259"), awsService: "AWS CloudTrail" },
+  { id: "m-tanmay", order: 12, name: "Tanmay Wadodkar", role: "Tech Team Member", skills: [], email: "tanmaywadodkar40@gmail.com", github: gh("tanmaywadodkar"), linkedin: li("tanmay-wadodkar-237b03385"), awsService: "AWS Fargate" },
+  { id: "m-prakhar", order: 13, name: "Prakhar Raj", role: "Tech Team Member", skills: ["Web Dev", "API Integration", "NodeJS"], email: "rajprakhar2505@gmail.com", github: gh("rajprakhar07"), linkedin: li("prakhar-raj25"), awsService: "Amazon SNS" },
+  { id: "m-sakshi", order: 14, name: "Sakshi Vinod Gurme", role: "Tech Team Member", skills: [], email: "gurmesakshi06@gmail.com", github: gh("SakshiGurme"), linkedin: li("sakshi-gurme"), awsService: "Amazon Bedrock" },
+  { id: "m-saee", order: 15, name: "Saee Kumbhar", role: "Tech Team Member", skills: ["Cloud Engineering", "React", "AWS Services"], email: "saee.kumbhar@nmiet.edu.in", github: gh("saeeekumbhar"), linkedin: li("saeeekumbhar"), awsService: "Amazon RDS" },
+  { id: "m-bhavjot", order: 16, name: "Bhavjot Singh Rooprai", role: "Tech Team Member", skills: [], email: "bhavsingh2911@gmail.com", github: gh("bhavsingh-gpu"), linkedin: li("bhavjot-singh-rooprai-a9b861385"), awsService: "Amazon Kinesis" },
+  { id: "m-sarthakk", order: 17, name: "Sarthak Sanjay Kandhare", role: "Tech Team Member", skills: ["AWS Cloud", "Development", "Git"], email: "sarthakkandhare5@gmail.com", github: gh("SarthakKandhare03"), linkedin: li("sarthak-kandhare-898340312"), awsService: "Amazon SageMaker" },
+  { id: "m-atharv", order: 18, name: "Atharv Rajendra Chaskar", role: "Tech Team Member", skills: [], email: "atharvchaskar0001@gmail.com", github: gh("Atharvchaskar008"), linkedin: "", awsService: "AWS Glue" },
+  { id: "m-aarya", order: 19, name: "Aarya Mahesh Manolkar", role: "Tech Team Member", skills: [], email: "aaryamanolkar10@gmail.com", github: gh("aaryamanolkar10"), linkedin: li("aaryamanolkar"), awsService: "Amazon Athena" },
+  { id: "m-lobhas", order: 20, name: "Lobhas Amar Tidke", role: "Tech Team Member", skills: [], email: "lobhastidke9a64@gmail.com", github: gh("lobhastidke"), linkedin: li("lobhas-tidke"), awsService: "AWS WAF" },
+
+  // Design
+  { id: "m-shubham", order: 21, name: "Shubham Ramesh Aute", role: "Design Team Member", skills: ["Graphics Layout", "Editing", "Visual Assets"], email: "shubhamaute101@gmail.com", github: gh("shubhamaute101"), linkedin: li("shubham-aute-5b97b4385"), awsService: "Amazon VPC" },
+  { id: "m-ishwari", order: 22, name: "Ishwari Nerkar", role: "Design Team Member", skills: ["Graphics", "Creative assets", "Social Media Templates"], email: "ishwarinerkar1010@gmail.com", github: gh("ishwarinerkar10"), linkedin: li("ishwari-n-373015348"), awsService: "AWS CodePipeline" },
+  { id: "m-gayatri", order: 23, name: "Gayatri Trimbak Jadhav", role: "Design Team Member", skills: ["Visual Design", "UI Design", "Branding"], email: "jadhavgayatri401@gmail.com", github: gh("jadhavgayatri25"), linkedin: li("gayatri-jadhav-805b92331"), awsService: "Amazon DynamoDB" },
+  { id: "m-harshad", order: 24, name: "Harshad Pandurang Kedari", role: "Design Team Member", skills: ["Creative Design", "Graphics", "Figma"], email: "harshadkedari211@gmail.com", github: gh("Harsh-901"), linkedin: li("harshad-kedari"), awsService: "Amazon S3" },
+  { id: "m-kartik", order: 25, name: "Kartik Narkhede", role: "Design Team Member", skills: ["UI Elements", "Figma", "Branding"], email: "kartiknarkhede2007@gmail.com", github: gh("kartik2118-cloud"), linkedin: li("kartik-narkhede-21kst18"), awsService: "Amazon CloudWatch" },
+  { id: "m-mayur", order: 26, name: "Mayur Patle", role: "Design Team Member", skills: ["Visual Design", "Branding Asset Creation", "Layouts"], email: "patlemayur286@gmail.com", github: gh("git-mayurpatle"), linkedin: li("mayurnpatle"), awsService: "Amazon Redshift" },
+  { id: "m-snehali", order: 27, name: "Snehali Sudhir Savant", role: "Design Team Member", skills: ["Graphic Design", "Illustration", "UI"], email: "snehalisavant25@gmail.com", github: gh("snehalisavant25"), linkedin: li("snehali-savant-4160b232a"), awsService: "AWS Lambda" },
+
+  // Media
+  { id: "m-faisal", order: 28, name: "Faisal Momin", role: "Media Team Member", skills: ["Photography", "Content Marketing", "Design"], email: "faisalmomin657@gmail.com", github: gh("faisalmomin11-jpg"), linkedin: li("faisal-momin-080427385"), awsService: "AWS KMS" },
+  { id: "m-rutvik", order: 29, name: "Rutvik Kale", role: "Media Team Member", skills: ["Content Creation", "Public Relations", "Graphics"], email: "rutvikkale2006@gmail.com", github: gh("Ritronn"), linkedin: li("rutvik-kale-749775286"), awsService: "AWS Cognito" },
+
+  // Events
+  { id: "m-yuvraj", order: 30, name: "Yuvraj Mathe", role: "Event Team Member", skills: ["Coordination", "Events Management", "Operations"], email: "matheyuvraj@gmail.com", github: gh("mYuvraj4118"), linkedin: li("yuvraj-mathe"), awsService: "Amazon Route 53" },
+  { id: "m-nidhi", order: 31, name: "Nidhi Patil", role: "Event Team Member", skills: ["Logistics", "Event Management", "Communication"], email: "nidhispatilkv@gmail.com", github: "", linkedin: li("nidhi-patil-0778673bb"), awsService: "Amazon ECS" },
+  { id: "m-sankalp", order: 32, name: "Sankalp Shinde", role: "Event Team Member", skills: ["Planning", "Event Logistics", "Onsite Coordination"], email: "sankalpshinde1005@gmail.com", github: gh("Sankalp2403"), linkedin: li("sankalp-shinde-581004395"), awsService: "AWS Secrets Manager" },
+  { id: "m-fareeha", order: 33, name: "Fareeha Naaz Abdul Khalique Modi", role: "Event Team Member", skills: ["Teamwork", "Event Planning", "Support"], email: "fareehanaaz15@gmail.com", github: gh("Fareeha06-sudo"), linkedin: li("fareeha-modi-645654397"), awsService: "AWS Amplify" },
+
+  // Onsite
+  { id: "m-neel", order: 34, name: "Neel Ingale", role: "Onsite Team Member", skills: ["Execution", "Operations", "Coordination"], email: "neelringale@gmail.com", github: gh("neelringale"), linkedin: li("neelringale"), awsService: "Amazon EventBridge" },
+  { id: "m-abdullah", order: 35, name: "Abdullah Munawar Khan", role: "Onsite Team Member", skills: [], email: "abdullahk4503@gmail.com", github: gh("abdullahMunawarKhan"), linkedin: li("abdullah-munawar-khan-175a6b322"), awsService: "Amazon ElastiCache" },
+  { id: "m-ayushi", order: 36, name: "Ayushi Holey", role: "Onsite Team Member", skills: [], email: "ayushiholey26@gmail.com", github: gh("ayushi-2603"), linkedin: li("ayushi-holey-721618385"), awsService: "AWS Backup" },
 ]
+
+export const TEAM_MEMBERS: TeamMember[] = ROSTER.map(m => ({
+  ...m,
+  status: "running",
+  photoUrl: TEAM_PHOTOS[m.id],
+}))
 
 // ── Events ────────────────────────────────────────────────────────────────────
 
@@ -288,13 +340,21 @@ export interface SocialLink {
   name: string
   url: string
   followers?: string
+  /** Display handle, e.g. "@aws.sbg_nmiet". */
+  handle?: string
   platform: string
   color: string
 }
 
-/** Only links we have verified — used when the social-links API is unreachable. */
+/**
+ * Our official channels (verified). Always shown, in this order; a database
+ * entry for the same platform is replaced by these URLs (old entries point at
+ * the pre-rename AWS Cloud Club accounts).
+ */
 export const FALLBACK_SOCIAL_LINKS: SocialLink[] = [
-  { id: "fb-youtube", name: "YouTube", platform: "YouTube", url: CLUB.youtubeUrl, color: "#FF0000" },
+  { id: "fb-instagram", name: "Instagram", platform: "instagram", url: CLUB.instagramUrl, handle: "@aws.sbg_nmiet", color: "#E1306C" },
+  { id: "fb-linkedin", name: "LinkedIn", platform: "linkedin", url: CLUB.linkedinUrl, handle: "AWS Student Builder Group NMIET", color: "#0A66C2" },
+  { id: "fb-youtube", name: "YouTube", platform: "youtube", url: CLUB.youtubeUrl, handle: "@AWSStudentBuildersGroupNMIET", color: "#FF0000" },
 ]
 
 /** Links verified as dead (expired invites etc.) — never shown, even if still stored in the database. */

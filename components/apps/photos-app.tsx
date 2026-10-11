@@ -20,6 +20,7 @@ import {
   SidebarSection,
   Toolbar,
 } from "./shared/mac-ui"
+import { Stagger, StaggerItem } from "./shared/motion"
 
 type Photo = Album["photos"][number]
 type View = "library" | "albums" | string // string = album id
@@ -86,32 +87,39 @@ export function PhotosApp() {
               action={<MacButton onClick={() => windowActions.open("calendar")}>Open Events</MacButton>}
             />
           ) : view === "albums" ? (
-            <div className="grid grid-cols-2 gap-4 p-1 @2xl:grid-cols-3 @4xl:grid-cols-4">
+            <Stagger className="grid grid-cols-2 gap-4 p-1 @2xl:grid-cols-3 @4xl:grid-cols-4">
               {gallery.data.map(a => (
-                <button key={a.id} onClick={() => setView(a.id)} className="group text-left">
-                  <div className="aspect-square overflow-hidden rounded-xl bg-black/5 shadow-sm dark:bg-white/5">
+                <StaggerItem key={a.id}>
+                <button onClick={() => setView(a.id)} className="group w-full text-left">
+                  <div className="rim aspect-square overflow-hidden rounded-2xl bg-black/5 shadow-[0_12px_30px_-16px_rgba(0,0,0,0.5)] transition-transform duration-300 group-hover:-translate-y-1 dark:bg-white/5">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={a.cover} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
                   </div>
                   <p className="mt-2 line-clamp-1 text-[13px] font-semibold text-(--os-text)">{a.title}</p>
                   <p className="text-[11px] text-(--os-text-dim)">{a.photos.length} photos · {a.date}</p>
                 </button>
+                </StaggerItem>
               ))}
-            </div>
+            </Stagger>
           ) : (
-            <div className="grid grid-cols-3 gap-0.5 @2xl:grid-cols-4 @4xl:grid-cols-6">
+            <Stagger
+              key={view}
+              className="grid grid-cols-3 gap-0.5 @2xl:grid-cols-4 @4xl:grid-cols-6"
+              variants={{ hidden: {}, show: { transition: { staggerChildren: 0.012 } } }}
+            >
               {photos.map((p, i) => (
+                <StaggerItem key={p.id}>
                 <button
-                  key={p.id}
                   onClick={() => setLightbox({ photos, index: i })}
-                  className="group relative aspect-square overflow-hidden bg-black/5 dark:bg-white/5"
+                  className="group relative block aspect-square w-full overflow-hidden bg-black/5 dark:bg-white/5"
                   aria-label={p.caption}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={p.src} alt={p.caption} loading="lazy" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
                 </button>
+                </StaggerItem>
               ))}
-            </div>
+            </Stagger>
           )}
         </div>
       </div>

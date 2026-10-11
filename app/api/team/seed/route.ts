@@ -1,5 +1,5 @@
 // app/api/team/seed/route.ts
-// Admin-only, idempotent: copy the built-in 27-member roster into DynamoDB so
+// Admin-only, idempotent: copy the built-in team roster into DynamoDB so
 // the Admin panel becomes the single source of truth for the team. Members
 // already in the table (matched by email or name) are left untouched.
 // Uses the site's own AWS role — no local credentials needed.

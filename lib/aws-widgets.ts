@@ -3,7 +3,7 @@
 
 "use client"
 
-import React, { useSyncExternalStore } from "react"
+import { useSyncExternalStore } from "react"
 
 export type WidgetId = "next-event" | "club-stats" | "clock-cities" | "calendar" | "now-playing"
 
@@ -193,18 +193,12 @@ export const widgetActions = {
 // ── Grid-aware drop position ──────────────────────────────────────────────────
 
 /** How many grid columns fit in a given pixel width */
-export function colsForWidth(containerWidth: number): number {
-  const { colWidth, gap } = WIDGET_PX
-  return Math.max(1, Math.floor((containerWidth + gap) / (colWidth + gap)))
-}
-
 /** Snap a free-form (x, y) to the nearest grid cell, avoiding overlap */
 export function resolveDropPosition(
   allWidgets: WidgetInstance[],
   draggedId: WidgetId,
   rawX: number,
-  rawY: number,
-  _maxCols?: number
+  rawY: number
 ): { x: number; y: number } {
   const { colWidth, rowHeight, gap } = WIDGET_PX
   const cellW = colWidth + gap

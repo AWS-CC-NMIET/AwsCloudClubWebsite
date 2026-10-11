@@ -115,9 +115,9 @@ export function NotesApp() {
   }
 
   return (
-    <div className="flex h-full w-full flex-col md:flex-row bg-(--win-bg) text-(--os-text)">
+    <div className="flex h-full w-full flex-col md:flex-row text-(--os-text)">
       {/* ── Left Sidebar Notes List ──────────────────────────────────────────── */}
-      <aside className="w-full md:w-64 shrink-0 border-b md:border-b-0 md:border-r border-(--win-divider) bg-black/[0.02] dark:bg-white/[0.02] p-2 space-y-2 overflow-y-auto">
+      <aside className="w-full md:w-64 shrink-0 border-b md:border-b-0 md:border-r border-(--win-divider) bg-(--win-sidebar) p-2 space-y-2 overflow-y-auto">
         <div className="p-2">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-(--os-text-dim)">
             AWS Study Guides

@@ -29,6 +29,7 @@ import {
   SidebarSection,
   Toolbar,
 } from "./shared/mac-ui"
+import { Stagger, StaggerItem } from "./shared/motion"
 
 type FolderId = "All" | Project["status"]
 
@@ -165,13 +166,13 @@ export function FinderApp() {
                   }
                 />
               ) : view === "icons" ? (
-                <div className="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-x-4 gap-y-6">
+                <Stagger key={folder} className="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-x-4 gap-y-6">
                   {visible.map(p => (
+                    <StaggerItem key={p.id}>
                     <button
-                      key={p.id}
                       onClick={() => setActive(p)}
                       onDoubleClick={() => setActive(p)}
-                      className="group flex flex-col items-center gap-2 rounded-lg p-2 text-center hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
+                      className="group flex w-full flex-col items-center gap-2 rounded-lg p-2 text-center hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
                     >
                       <DocIcon project={p} />
                       <div className="w-full">
@@ -179,8 +180,9 @@ export function FinderApp() {
                         <p className="truncate text-[11px] text-(--os-text-dim)">by {p.author}</p>
                       </div>
                     </button>
+                    </StaggerItem>
                   ))}
-                </div>
+                </Stagger>
               ) : (
                 <table className="w-full text-left text-[13px]">
                   <thead>

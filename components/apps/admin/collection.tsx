@@ -3,10 +3,11 @@
 
 "use client"
 
-import React, { useCallback, useEffect, useMemo, useState } from "react"
+import React, { useCallback, useMemo, useState } from "react"
 import { AlertTriangle, ChevronRight, Plus, RotateCw, Search, type LucideIcon } from "lucide-react"
 import { systemActions } from "@/lib/aws-store"
 import { cn } from "@/lib/utils"
+import { useLoad } from "@/lib/use-load"
 import { BackButton, EmptyState, LoadingState, MacButton } from "../shared/mac-ui"
 import { defaultValue, FormField, inputCls, type FieldDef } from "./fields"
 
@@ -35,9 +36,13 @@ export interface CollectionConfig {
 }
 
 export function CollectionManager({ config }: { config: CollectionConfig }) {
-  const [items, setItems] = useState<Row[]>([])
-  const [status, setStatus] = useState<"loading" | "ready" | "error">("loading")
-  const [loadError, setLoadError] = useState("")
+  const fetchItems = useCallback(async () => {
+    const data = await config.list()
+    return ((data[config.listKey] as Row[]) ?? []).filter(i => (config.filter ? config.filter(i) : true))
+  }, [config])
+  const { data, error: loadError = "", loading, reload: load } = useLoad(fetchItems)
+  const items = useMemo(() => data ?? [], [data])
+  const status = loading ? "loading" : loadError ? "error" : "ready"
   const [query, setQuery] = useState("")
   const [selectedId, setSelectedId] = useState<string | "new" | null>(null)
   const [form, setForm] = useState<Row>({})
@@ -45,22 +50,6 @@ export function CollectionManager({ config }: { config: CollectionConfig }) {
   const [saveError, setSaveError] = useState("")
   const [confirmDelete, setConfirmDelete] = useState(false)
 
-  const load = useCallback(async () => {
-    setStatus(s => (s === "ready" ? "ready" : "loading"))
-    try {
-      const data = await config.list()
-      const list = ((data[config.listKey] as Row[]) ?? []).filter(i => (config.filter ? config.filter(i) : true))
-      setItems(list)
-      setStatus("ready")
-    } catch (err) {
-      setLoadError((err as Error).message)
-      setStatus("error")
-    }
-  }, [config])
-
-  useEffect(() => {
-    load()
-  }, [load])
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -260,7 +249,7 @@ export function CollectionManager({ config }: { config: CollectionConfig }) {
       {/* ── Delete confirmation (macOS alert) ─────────────────────────────── */}
       {confirmDelete && selected && (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/30 p-4 backdrop-blur-[2px]">
-          <div role="alertdialog" aria-modal="true" className="w-full max-w-xs rounded-2xl border border-(--win-divider) bg-(--win-bg) p-5 text-center shadow-2xl">
+          <div role="alertdialog" aria-modal="true" className="w-full max-w-xs glass-strong rim rounded-2xl p-5 text-center shadow-2xl">
             <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-xl bg-red-500/10">
               <AlertTriangle className="size-6 text-red-500" />
             </div>

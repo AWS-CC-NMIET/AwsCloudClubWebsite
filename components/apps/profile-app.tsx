@@ -184,7 +184,7 @@ export function ProfileApp({ onLogout }: { onLogout: () => void }) {
 
         {/* ── Profile details ─────────────────────────────────────────────── */}
         {editing ? (
-          <form onSubmit={save} className="space-y-4 rounded-2xl border border-(--win-divider) bg-white p-5 dark:bg-white/[0.04]">
+          <form onSubmit={save} className="glass-card rim space-y-4 p-5">
             {EDIT_FIELDS.map(field => (
               <FormField key={field.key} field={field} value={form[field.key]} onChange={v => setForm(f => ({ ...f, [field.key]: v }))} />
             ))}
@@ -229,7 +229,7 @@ export function ProfileApp({ onLogout }: { onLogout: () => void }) {
             signOut()
             onLogout()
           }}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border border-(--win-divider) bg-white py-2.5 text-[13px] font-semibold text-red-500 hover:bg-red-500/5 dark:bg-white/[0.04]"
+          className="glass-card flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-[13px] font-semibold text-red-500 hover:bg-red-500/10"
         >
           <LogOut className="size-4" /> Sign Out
         </button>
@@ -245,7 +245,7 @@ function Group({ title, action, children }: { title: string; action?: React.Reac
         <h2 className="text-[11px] font-semibold uppercase tracking-wider text-(--os-text-dim)">{title}</h2>
         {action}
       </div>
-      <div className="divide-y divide-(--win-divider) overflow-hidden rounded-2xl border border-(--win-divider) bg-white dark:bg-white/[0.04]">
+      <div className="glass-card rim divide-y divide-(--win-divider) overflow-hidden">
         {children}
       </div>
     </section>

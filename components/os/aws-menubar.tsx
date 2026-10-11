@@ -165,7 +165,7 @@ export function AwsMenuBar({ onLockScreen }: { onLockScreen?: () => void }) {
     <>
       <header
         ref={containerRef}
-        className="fixed inset-x-0 top-0 z-[950] flex h-7 items-stretch justify-between border-b border-black/10 dark:border-white/10 bg-[#f6f6f8]/85 dark:bg-[#16161c]/85 px-1.5 text-neutral-800 dark:text-neutral-200 backdrop-blur-2xl select-none shadow-xs"
+        className="fixed inset-x-0 top-0 z-[950] flex h-7 items-stretch justify-between border-b border-white/25 dark:border-white/10 bg-white/40 dark:bg-black/30 px-1.5 text-neutral-800 dark:text-neutral-100 backdrop-blur-2xl backdrop-saturate-[1.8] select-none"
       >
         {/* ── Left Menus ────────────────────────────────────────────────────────── */}
         <div className="flex items-stretch gap-0.5">
@@ -188,7 +188,7 @@ export function AwsMenuBar({ onLockScreen }: { onLockScreen?: () => void }) {
             </button>
 
             {activeDropdown === "logo-menu" && (
-              <div className="absolute left-0 top-full mt-1 min-w-60 rounded-lg border border-black/10 dark:border-white/10 bg-white/95 dark:bg-[#202028]/95 p-1 shadow-2xl backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-100 z-[960]">
+              <div className="absolute left-0 top-full mt-1 min-w-60 glass-strong rim rounded-xl p-1 animate-in fade-in zoom-in-95 duration-100 z-[960]">
                 {systemMenuItems.map((item, i) => (
                   <React.Fragment key={i}>
                     <button
@@ -222,7 +222,7 @@ export function AwsMenuBar({ onLockScreen }: { onLockScreen?: () => void }) {
             </button>
 
             {activeDropdown === "app-menu" && (
-              <div className="absolute left-0 top-full mt-1 min-w-60 rounded-lg border border-black/10 dark:border-white/10 bg-white/95 dark:bg-[#202028]/95 p-1 shadow-2xl backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-100 z-[960]">
+              <div className="absolute left-0 top-full mt-1 min-w-60 glass-strong rim rounded-xl p-1 animate-in fade-in zoom-in-95 duration-100 z-[960]">
                 {appMenuItems.map((item, idx) => (
                   <React.Fragment key={idx}>
                     <button
@@ -259,7 +259,7 @@ export function AwsMenuBar({ onLockScreen }: { onLockScreen?: () => void }) {
                 </button>
 
                 {activeDropdown === menu.title && (
-                  <div className="absolute left-0 top-full mt-1 min-w-60 rounded-lg border border-black/10 dark:border-white/10 bg-white/95 dark:bg-[#202028]/95 p-1 shadow-2xl backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-100 z-[960]">
+                  <div className="absolute left-0 top-full mt-1 min-w-60 glass-strong rim rounded-xl p-1 animate-in fade-in zoom-in-95 duration-100 z-[960]">
                     {menu.items.map((item, idx) => (
                       <React.Fragment key={idx}>
                         <button
@@ -324,7 +324,7 @@ export function AwsMenuBar({ onLockScreen }: { onLockScreen?: () => void }) {
             </button>
 
             {wifiMenuOpen && (
-              <div className="absolute right-0 top-full mt-1 min-w-[240px] rounded-xl border border-black/10 dark:border-white/10 bg-white/95 dark:bg-[#202028]/95 p-2 text-[13px] text-neutral-800 dark:text-neutral-100 shadow-2xl backdrop-blur-3xl animate-in fade-in zoom-in-95 duration-100 z-[960]">
+              <div className="absolute right-0 top-full mt-1 min-w-[240px] glass-strong rim rounded-2xl p-2 text-[13px] text-neutral-800 dark:text-neutral-100 shadow-2xl backdrop-blur-3xl animate-in fade-in zoom-in-95 duration-100 z-[960]">
                 <div className="flex items-center justify-between px-2 py-1 border-b border-black/10 dark:border-white/10 mb-1">
                   <span className="font-semibold text-xs text-neutral-800 dark:text-neutral-100">Wi-Fi</span>
                   <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">Connected</span>

@@ -6,7 +6,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react"
 import { windowActions, systemActions } from "@/lib/aws-store"
 import { APPS_META, type AppId } from "@/lib/aws-apps"
-import { AWS_FACTS, CLUB, TEAM_MEMBERS, teamGroupOf } from "@/lib/club-content"
+import { AWS_FACTS, CLUB, TEAM_MEMBERS, isLeadRole } from "@/lib/club-content"
 import { useClubFacts, useEvents } from "@/lib/club-data"
 import { cn } from "@/lib/utils"
 
@@ -60,7 +60,7 @@ export function TerminalApp() {
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const commands = useMemo<Record<string, string>>(() => {
-    const leads = TEAM_MEMBERS.filter(m => teamGroupOf(m.role) === "Leadership")
+    const leads = TEAM_MEMBERS.filter(m => isLeadRole(m.role))
     const pad = Math.max(...leads.map(m => m.name.length)) + 2
     return {
       help: `Available commands:
@@ -125,7 +125,7 @@ Steps to become a member:
   2. Attend our next workshop or event
   3. Connect with us on social media
   4. Create an account on this portal → choose
-     "Create account" on the lock screen
+     "Create a member account" on the lock screen
 
 📧 Email: ${CLUB.email}
 
@@ -186,7 +186,7 @@ Type 'about' for more info.`,
 
   Or type 'open contact' to send us a message!`,
     }
-  }, [members, firstEventRsvps, events.data])
+  }, [members, firstEventRsvps, events])
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight
