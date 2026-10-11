@@ -1,10 +1,10 @@
 // components/apps/notes-app.tsx
-// Apple-style Notes app with study guides and club documentation
+// Notes — AWS certification study guides
 
 "use client"
 
 import React, { useState } from "react"
-import { BookOpen, FileText, CheckCircle2, ChevronRight, Award, Copy, Check } from "lucide-react"
+import { CheckCircle2, Copy, Check } from "lucide-react"
 
 interface NoteDoc {
   id: string
@@ -25,42 +25,10 @@ interface NoteDoc {
 
 const NOTES_DOCS: NoteDoc[] = [
   {
-    id: "about-club",
-    title: "About AWS SBG NMIET",
-    folder: "Overview",
-    date: "Sep 2026",
-    content: {
-      heading: "AWS SBG NMIET · Student Builder Group",
-      subheading: "Official university chapter empowering student developers to build with Amazon Web Services.",
-      sections: [
-        {
-          title: "Chapter Mission",
-          body: "Our mission is to cultivate cloud fluency across university students of all academic disciplines. We offer practical, project-based learning experiences that translate academic knowledge into high-impact industry credentials.",
-          items: [
-            "Weekly Hands-on Architecting Workshops",
-            "Certification Bootcamps with Exam Vouchers",
-            "Open Source Cloud Software Development",
-            "Direct Networking with AWS Cloud Ambassadors & Solution Architects",
-          ],
-        },
-        {
-          title: "Core Domain Tracks",
-          body: "Students can specialize or explore across 4 key technology domains:",
-          items: [
-            "Cloud Architecture & DevOps: VPC networking, IAM, CI/CD pipelines, Docker, Kubernetes (EKS).",
-            "Serverless & Web: AWS Lambda, API Gateway, DynamoDB, Next.js, and Amplify.",
-            "AI / ML & Generative AI: AWS Bedrock, SageMaker, Rekognition, and LangChain.",
-            "Cloud Security: AWS WAF, Shield, GuardDuty, KMS, and least-privilege IAM policies.",
-          ],
-        },
-      ],
-    },
-  },
-  {
     id: "clf-c02",
     title: "AWS Cloud Practitioner (CLF-C02) Guide",
     folder: "Certifications",
-    date: "Aug 2026",
+    date: "CLF-C02",
     content: {
       heading: "AWS Certified Cloud Practitioner Roadmap",
       subheading: "A comprehensive 4-week study plan for university builders taking their first official AWS exam.",
@@ -87,7 +55,7 @@ const NOTES_DOCS: NoteDoc[] = [
     id: "saa-c03",
     title: "AWS Solutions Architect (SAA-C03) Path",
     folder: "Certifications",
-    date: "Jul 2026",
+    date: "SAA-C03",
     content: {
       heading: "Solutions Architect Associate (SAA-C03) Deep Dive",
       subheading: "Advanced architecture patterns, high availability, fault tolerance, and cost optimization.",
@@ -109,13 +77,13 @@ const NOTES_DOCS: NoteDoc[] = [
     id: "bedrock-guide",
     title: "AWS Bedrock & GenAI Handbook",
     folder: "AI / ML",
-    date: "Sep 2026",
+    date: "GenAI",
     content: {
       heading: "Generative AI on AWS Bedrock",
       subheading: "Build and scale generative AI applications using foundation models from Anthropic, Amazon, and Meta.",
       sections: [
         {
-          title: "Why AWS Bedrock for Student Builders?",
+          title: "Why Amazon Bedrock for Student Builders?",
           body: "Amazon Bedrock provides a single API to access leading foundation models (Claude 3.5 Sonnet, Titan, Llama 3) without managing underlying GPU clusters.",
           code: `import boto3\nimport json\n\nbedrock = boto3.client('bedrock-runtime', region_name='us-east-1')\nresponse = bedrock.invoke_model(\n    modelId='anthropic.claude-3-5-sonnet-20240620-v1:0',\n    body=json.dumps({\n        'anthropic_version': 'bedrock-2023-05-31',\n        'max_tokens': 1000,\n        'messages': [{'role': 'user', 'content': 'Explain AWS Lambda to a beginner'}]\n    })\n)`,
         },
@@ -129,7 +97,7 @@ export function NotesApp() {
   const [copiedCode, setCopiedCode] = useState(false)
 
   const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
+    navigator.clipboard?.writeText(text).catch(() => {})
     setCopiedCode(true)
     setTimeout(() => setCopiedCode(false), 2000)
   }
@@ -140,7 +108,7 @@ export function NotesApp() {
       <aside className="w-full md:w-64 shrink-0 border-b md:border-b-0 md:border-r border-(--win-divider) bg-black/[0.02] dark:bg-white/[0.02] p-2 space-y-2 overflow-y-auto">
         <div className="p-2">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-(--os-text-dim)">
-            Club Notes & Guides
+            AWS Study Guides
           </p>
         </div>
 

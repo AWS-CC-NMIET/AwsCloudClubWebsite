@@ -1,24 +1,26 @@
 // lib/aws-apps.ts
-// App registry and metadata following AWS Cloud Club OS architecture
+// App registry and metadata for the AWS Student Builder Group NMIET Cloud OS
 
 export type AppId =
   | "aws"
+  | "about"
+  | "team"
+  | "calendar"
   | "finder"
   | "safari"
-  | "appstore"
-  | "notes"
-  | "calendar"
-  | "mail"
-  | "music"
   | "photos"
-  | "messages"
+  | "achievements"
+  | "social"
+  | "mail"
   | "terminal"
+  | "notes"
+  | "music"
   | "settings"
-  | "about"
   | "trash"
   | "assistant"
-  | "admin"
+  | "about-system"
   | "profile"
+  | "admin"
 
 export interface AppMenuItem {
   label: string
@@ -35,20 +37,18 @@ export interface AppMenu {
 
 export interface AppMeta {
   id: AppId
+  /** App name — shown in the menu bar and dock tooltip. */
   name: string
+  /** Window title when it differs from the app name (e.g. Finder → "Projects"). */
+  windowTitle?: string
   subtitle?: string
   defaultSize: { w: number; h: number }
   minSize: { w: number; h: number }
-  inDock: boolean
-  inSpringboard: boolean
   springboardLabel?: string
-  icon?: string
+  /** Opening this app requires a signed-in session. */
+  requiresAuth?: boolean
   spotlight: {
     keywords: string[]
-    description: string
-  }
-  seo: {
-    title: string
     description: string
   }
   menus: AppMenu[]
@@ -59,8 +59,7 @@ const standardMenus = (appName: string, extra: AppMenu[] = []): AppMenu[] => [
     title: "File",
     items: [
       { label: "New Window", shortcut: "⌘N", disabled: true },
-      { label: "Close Window", shortcut: "⌘W", command: "close", separatorAfter: true },
-      { label: "Print…", shortcut: "⌘P", disabled: true },
+      { label: "Close Window", shortcut: "⌘W", command: "close" },
     ],
   },
   {
@@ -78,426 +77,345 @@ const standardMenus = (appName: string, extra: AppMenu[] = []): AppMenu[] => [
     title: "Window",
     items: [
       { label: "Minimize", shortcut: "⌘M", command: "minimize" },
-      { label: "Zoom", command: "zoom", separatorAfter: true },
-      { label: `Bring ${appName} to Front`, disabled: true },
+      { label: "Zoom", command: "zoom" },
     ],
   },
   {
     title: "Help",
     items: [
-      { label: `${appName} Guide`, command: "open:notes" },
-      { label: "Contact Leads", command: "open:mail" },
+      { label: `${appName} Help`, command: "open:assistant" },
+      { label: "Contact the Club", command: "open:mail" },
     ],
   },
 ]
+
+const goMenu: AppMenu = {
+  title: "Go",
+  items: [
+    { label: "Home", command: "open:aws" },
+    { label: "About Us", command: "open:about" },
+    { label: "Team", command: "open:team" },
+    { label: "Events", command: "open:calendar" },
+    { label: "Projects", command: "open:finder" },
+    { label: "Resources", command: "open:safari" },
+    { label: "Gallery", command: "open:photos" },
+    { label: "Achievements", command: "open:achievements" },
+    { label: "Social", command: "open:social" },
+    { label: "Contact", command: "open:mail" },
+  ],
+}
 
 export const APPS_META: Record<AppId, AppMeta> = {
   aws: {
     id: "aws",
     name: "AWS SBG NMIET",
-    subtitle: "Student Builder Group · NMIET Official Chapter",
-    defaultSize: { w: 920, h: 570 },
-    minSize: { w: 600, h: 400 },
-    inDock: true,
-    inSpringboard: true,
-    springboardLabel: "AWS SBG",
+    windowTitle: "Welcome",
+    subtitle: "AWS Student Builder Group · NMIET Chapter",
+    defaultSize: { w: 940, h: 600 },
+    minSize: { w: 520, h: 400 },
+    springboardLabel: "Home",
     spotlight: {
-      keywords: ["aws", "sbg", "nmiet", "cloud", "builders", "community", "overview"],
-      description: "Start here: mission, cloud stack, verified results and club tracks",
+      keywords: ["home", "aws", "sbg", "nmiet", "student builder group", "overview", "join"],
+      description: "Start here — who we are, what we do and how to join",
     },
-    seo: {
-      title: "AWS SBG NMIET · Student Builder Group",
-      description: "Empowering university students to build, architect and certify on Amazon Web Services.",
-    },
-    menus: standardMenus("AWS SBG NMIET", [
-      {
-        title: "Explore",
-        items: [
-          { label: "Open Projects (Finder)", command: "open:finder" },
-          { label: "Upcoming Meetups", command: "open:calendar" },
-          { label: "Cert Roadmaps (Notes)", command: "open:notes" },
-          { label: "Join the Club (Mail)", command: "open:mail" },
-        ],
-      },
-    ]),
+    menus: standardMenus("AWS SBG NMIET", [goMenu]),
   },
-
-  finder: {
-    id: "finder",
+  about: {
+    id: "about",
     name: "Finder",
-    subtitle: "Projects, Architectures & Repos",
-    defaultSize: { w: 980, h: 630 },
-    minSize: { w: 560, h: 400 },
-    inDock: true,
-    inSpringboard: true,
-    springboardLabel: "Finder",
+    windowTitle: "About Us",
+    subtitle: "Introduction, mission, vision & values",
+    defaultSize: { w: 900, h: 580 },
+    minSize: { w: 480, h: 380 },
+    springboardLabel: "About Us",
     spotlight: {
-      keywords: ["finder", "projects", "work", "portfolio", "cloud architectures", "github", "repos"],
-      description: "Browse student projects, cloud blueprints and open source code",
+      keywords: ["about", "mission", "vision", "values", "introduction", "who we are", "founded"],
+      description: "Our introduction, mission, vision, what we do and core values",
     },
-    seo: {
-      title: "Projects & Architecture Library · Finder",
-      description: "Explore cloud architectures, serverless backends, and AI models built by AWS Cloud Club members.",
-    },
-    menus: standardMenus("Finder", [
-      {
-        title: "Go",
-        items: [
-          { label: "All Projects", command: "open:finder" },
-          { label: "Photo Gallery", command: "open:photos" },
-          { label: "Trash Bin", command: "open:trash" },
-        ],
-      },
-    ]),
+    menus: standardMenus("Finder", [goMenu]),
   },
-
-  safari: {
-    id: "safari",
-    name: "Safari",
-    subtitle: "Live Project Deployments",
-    defaultSize: { w: 1040, h: 670 },
-    minSize: { w: 560, h: 420 },
-    inDock: true,
-    inSpringboard: true,
-    springboardLabel: "Safari",
+  team: {
+    id: "team",
+    name: "Contacts",
+    windowTitle: "Team",
+    subtitle: "The people behind AWS SBG NMIET",
+    defaultSize: { w: 940, h: 620 },
+    minSize: { w: 480, h: 400 },
+    springboardLabel: "Team",
     spotlight: {
-      keywords: ["safari", "browser", "live preview", "deployments", "cloud resume", "web apps"],
-      description: "Interactive preview of live websites and cloud applications",
+      keywords: ["team", "members", "leaders", "core team", "people", "contacts", "neha"],
+      description: "Meet the core team — leads, tech, design, social, events and onsite",
     },
-    seo: {
-      title: "Live Deployments · Safari",
-      description: "Live student deployments and AWS reference architectures.",
-    },
-    menus: standardMenus("Safari", [
-      {
-        title: "Bookmarks",
-        items: [
-          { label: "AWS Cloud Club", command: "link:https://aws.amazon.com" },
-          { label: "AWS Educate", command: "link:https://aws.amazon.com/education/awseducate/" },
-          { label: "AWS Skill Builder", command: "link:https://explore.skillbuilder.aws" },
-        ],
-      },
-    ]),
+    menus: standardMenus("Contacts", [goMenu]),
   },
-
-  appstore: {
-    id: "appstore",
-    name: "App Store",
-    subtitle: "AWS Developer Kits & Starter Packs",
-    defaultSize: { w: 980, h: 640 },
-    minSize: { w: 560, h: 420 },
-    inDock: true,
-    inSpringboard: true,
-    springboardLabel: "App Store",
-    spotlight: {
-      keywords: ["app store", "cdk", "sam", "starter kit", "templates", "cli", "downloads", "tools"],
-      description: "Free developer tools, CDK templates, and automation scripts",
-    },
-    seo: {
-      title: "Builder Tools & Starter Kits · App Store",
-      description: "Open source AWS starter templates, Lambda boilerplates, and CDK stacks.",
-    },
-    menus: standardMenus("App Store"),
-  },
-
-  notes: {
-    id: "notes",
-    name: "Notes",
-    subtitle: "Cert Guides & Roadmaps",
-    defaultSize: { w: 860, h: 600 },
-    minSize: { w: 500, h: 400 },
-    inDock: true,
-    inSpringboard: true,
-    springboardLabel: "Notes",
-    spotlight: {
-      keywords: ["notes", "docs", "certifications", "cloud practitioner", "solutions architect", "guides", "roadmap"],
-      description: "AWS certification guides, study roadmaps and club charter",
-    },
-    seo: {
-      title: "Study Guides & Roadmaps · Notes",
-      description: "In-depth guides for AWS Certified Cloud Practitioner, Solutions Architect, and Bedrock GenAI.",
-    },
-    menus: standardMenus("Notes"),
-  },
-
   calendar: {
     id: "calendar",
     name: "Calendar",
-    subtitle: "Events, Bootcamps & Workshops",
-    defaultSize: { w: 880, h: 620 },
-    minSize: { w: 520, h: 440 },
-    inDock: true,
-    inSpringboard: true,
-    springboardLabel: "Calendar",
+    windowTitle: "Events",
+    subtitle: "Workshops, sessions & meetups",
+    defaultSize: { w: 980, h: 630 },
+    minSize: { w: 480, h: 420 },
+    springboardLabel: "Events",
     spotlight: {
-      keywords: ["calendar", "events", "workshops", "meetups", "bootcamps", "rsvp", "schedule"],
-      description: "Upcoming AWS workshops, hackathons, and RSVP registration",
+      keywords: ["events", "calendar", "workshops", "meetup", "rsvp", "sessions", "upcoming"],
+      description: "Upcoming and past events — RSVP on Meetup",
     },
-    seo: {
-      title: "Events & Workshops · Calendar",
-      description: "Schedule of upcoming cloud computing sessions, workshops, and speaker meetups.",
-    },
-    menus: standardMenus("Calendar"),
+    menus: standardMenus("Calendar", [goMenu]),
   },
-
+  finder: {
+    id: "finder",
+    name: "Finder",
+    windowTitle: "Projects",
+    subtitle: "Cloud projects built by members",
+    defaultSize: { w: 960, h: 620 },
+    minSize: { w: 480, h: 400 },
+    springboardLabel: "Projects",
+    spotlight: {
+      keywords: ["projects", "finder", "builds", "github", "showcase", "portfolio"],
+      description: "Browse cloud projects built by club members",
+    },
+    menus: standardMenus("Finder", [goMenu]),
+  },
+  safari: {
+    id: "safari",
+    name: "Safari",
+    windowTitle: "Resources",
+    subtitle: "Curated AWS learning resources",
+    defaultSize: { w: 1000, h: 640 },
+    minSize: { w: 480, h: 400 },
+    springboardLabel: "Resources",
+    spotlight: {
+      keywords: ["resources", "learn", "courses", "docs", "certification", "skill builder", "videos", "safari"],
+      description: "Courses, docs, labs and videos to learn AWS",
+    },
+    menus: standardMenus("Safari", [goMenu]),
+  },
+  photos: {
+    id: "photos",
+    name: "Photos",
+    windowTitle: "Gallery",
+    subtitle: "Moments from our events",
+    defaultSize: { w: 980, h: 640 },
+    minSize: { w: 480, h: 400 },
+    springboardLabel: "Gallery",
+    spotlight: {
+      keywords: ["gallery", "photos", "pictures", "albums", "memories"],
+      description: "Photos from club events",
+    },
+    menus: standardMenus("Photos", [goMenu]),
+  },
+  achievements: {
+    id: "achievements",
+    name: "Achievements",
+    subtitle: "Milestones & wins",
+    defaultSize: { w: 900, h: 600 },
+    minSize: { w: 480, h: 400 },
+    springboardLabel: "Achievements",
+    spotlight: {
+      keywords: ["achievements", "trophies", "awards", "wins", "milestones"],
+      description: "The group's milestones and wins",
+    },
+    menus: standardMenus("Achievements", [goMenu]),
+  },
+  social: {
+    id: "social",
+    name: "Social",
+    subtitle: "Follow & connect with us",
+    defaultSize: { w: 820, h: 600 },
+    minSize: { w: 420, h: 400 },
+    springboardLabel: "Social",
+    spotlight: {
+      keywords: ["social", "meetup", "youtube", "discord", "instagram", "linkedin", "follow", "connect"],
+      description: "Meetup, YouTube, Discord and more",
+    },
+    menus: standardMenus("Social", [goMenu]),
+  },
   mail: {
     id: "mail",
     name: "Mail",
-    subtitle: "Join the Club & Contact Leads",
-    defaultSize: { w: 880, h: 600 },
-    minSize: { w: 540, h: 440 },
-    inDock: true,
-    inSpringboard: true,
-    springboardLabel: "Mail",
+    windowTitle: "Contact Us",
+    subtitle: "Send the club a message",
+    defaultSize: { w: 900, h: 600 },
+    minSize: { w: 460, h: 420 },
+    springboardLabel: "Contact",
     spotlight: {
-      keywords: ["mail", "contact", "join", "apply", "speaker", "sponsor", "email"],
-      description: "Get in touch with club leadership or apply for membership",
+      keywords: ["contact", "mail", "email", "message", "reach", "office hours", "location"],
+      description: "Send us a message — we'll get back to you soon",
     },
-    seo: {
-      title: "Contact Club Leads · Mail",
-      description: "Send inquiries, apply for club membership, or partner with AWS Cloud Club.",
-    },
-    menus: standardMenus("Mail"),
+    menus: standardMenus("Mail", [goMenu]),
   },
-
+  terminal: {
+    id: "terminal",
+    name: "Terminal",
+    windowTitle: "aws-sbg-nmiet — bash",
+    subtitle: "Type help to get started",
+    defaultSize: { w: 740, h: 480 },
+    minSize: { w: 420, h: 300 },
+    springboardLabel: "Terminal",
+    spotlight: {
+      keywords: ["terminal", "shell", "bash", "cli", "commands", "easter eggs"],
+      description: "Command line — type help to get started",
+    },
+    menus: standardMenus("Terminal"),
+  },
+  notes: {
+    id: "notes",
+    name: "Notes",
+    windowTitle: "Study Guides",
+    subtitle: "AWS certification study guides",
+    defaultSize: { w: 880, h: 600 },
+    minSize: { w: 460, h: 380 },
+    springboardLabel: "Notes",
+    spotlight: {
+      keywords: ["notes", "study", "guides", "certification", "cloud practitioner", "solutions architect", "bedrock"],
+      description: "Study guides for AWS certifications",
+    },
+    menus: standardMenus("Notes"),
+  },
   music: {
     id: "music",
     name: "Music",
-    subtitle: "AWS Cloud Radio · Coding Lo-Fi",
-    defaultSize: { w: 840, h: 560 },
-    minSize: { w: 520, h: 380 },
-    inDock: true,
-    inSpringboard: true,
+    subtitle: "Lo-fi while you build",
+    defaultSize: { w: 820, h: 520 },
+    minSize: { w: 420, h: 360 },
     springboardLabel: "Music",
     spotlight: {
-      keywords: ["music", "radio", "lofi", "ambient", "playlist", "audio", "soundtrack"],
-      description: "The AWS Cloud Club coding playlist — ambient lo-fi while you build",
-    },
-    seo: {
-      title: "AWS Cloud Radio · Music",
-      description: "Curated ambient and lo-fi soundtrack for cloud builders and students.",
+      keywords: ["music", "radio", "lofi", "audio", "play"],
+      description: "Background music while you explore",
     },
     menus: standardMenus("Music", [
       {
         title: "Controls",
-        items: [
-          { label: "Play / Pause", shortcut: "Space", command: "music:toggle" },
-          { label: "Next Track", shortcut: "⌘→", command: "music:next" },
-          { label: "Previous Track", shortcut: "⌘←", command: "music:prev" },
-        ],
+        items: [{ label: "Play / Pause", shortcut: "Space", command: "music:toggle" }],
       },
     ]),
   },
-
-  photos: {
-    id: "photos",
-    name: "Photos",
-    subtitle: "Gallery & Hackathon Memories",
-    defaultSize: { w: 980, h: 640 },
-    minSize: { w: 540, h: 420 },
-    inDock: true,
-    inSpringboard: true,
-    springboardLabel: "Photos",
-    spotlight: {
-      keywords: ["photos", "gallery", "hackathons", "images", "albums", "campus", "community"],
-      description: "Photographs from workshops, hackathons and campus cloud days",
-    },
-    seo: {
-      title: "Community Photo Gallery · Photos",
-      description: "Memories and recap photos from AWS Cloud Club workshops, hackathons, and celebrations.",
-    },
-    menus: standardMenus("Photos"),
-  },
-
-  messages: {
-    id: "messages",
-    name: "Messages",
-    subtitle: "Member Testimonials & Community",
-    defaultSize: { w: 760, h: 560 },
-    minSize: { w: 480, h: 400 },
-    inDock: false,
-    inSpringboard: true,
-    springboardLabel: "Messages",
-    spotlight: {
-      keywords: ["messages", "testimonials", "reviews", "chat", "members say", "quotes"],
-      description: "What students and alumni say about AWS Cloud Club",
-    },
-    seo: {
-      title: "Testimonials & Reviews · Messages",
-      description: "Real reviews and career growth stories from AWS Cloud Club student builders.",
-    },
-    menus: standardMenus("Messages"),
-  },
-
-  terminal: {
-    id: "terminal",
-    name: "Terminal",
-    subtitle: "Interactive Cloud Shell",
-    defaultSize: { w: 720, h: 460 },
-    minSize: { w: 440, h: 320 },
-    inDock: false,
-    inSpringboard: true,
-    springboardLabel: "Terminal",
-    spotlight: {
-      keywords: ["terminal", "shell", "cli", "bash", "commands", "hacker", "aws-cli"],
-      description: "Command line interface. Type help to get started.",
-    },
-    seo: {
-      title: "Interactive Cloud Shell · Terminal",
-      description: "Web terminal with custom AWS Cloud Club commands.",
-    },
-    menus: standardMenus("Terminal"),
-  },
-
   settings: {
     id: "settings",
     name: "System Settings",
-    subtitle: "Preferences & Cloud Infrastructure",
-    defaultSize: { w: 880, h: 600 },
-    minSize: { w: 540, h: 420 },
-    inDock: true,
-    inSpringboard: true,
+    subtitle: "Appearance, wallpaper & about this site",
+    defaultSize: { w: 860, h: 580 },
+    minSize: { w: 460, h: 400 },
     springboardLabel: "Settings",
     spotlight: {
-      keywords: ["settings", "appearance", "dark mode", "wallpapers", "tech stack", "admin", "preferences"],
-      description: "Themes, wallpapers, sound toggles, and AWS architecture specs",
-    },
-    seo: {
-      title: "System Settings · Preferences",
-      description: "Configure appearance, desktop wallpapers, and view AWS architecture details.",
+      keywords: ["settings", "appearance", "dark mode", "light mode", "wallpaper", "preferences"],
+      description: "Dark mode, wallpapers and site information",
     },
     menus: standardMenus("System Settings"),
   },
-
-  about: {
-    id: "about",
-    name: "About AWS SBG NMIET",
-    subtitle: "System Specs & Chapter Charter",
-    defaultSize: { w: 540, h: 460 },
-    minSize: { w: 480, h: 400 },
-    inDock: false,
-    inSpringboard: false,
-    spotlight: {
-      keywords: ["about", "system", "specs", "version", "chapter", "leadership"],
-      description: "About AWS SBG NMIET Chapter",
-    },
-    seo: {
-      title: "About AWS SBG NMIET",
-      description: "Official student builder group affiliated with Amazon Web Services.",
-    },
-    menus: standardMenus("About"),
-  },
-
   trash: {
     id: "trash",
     name: "Trash",
-    subtitle: "Cloud Anti-Patterns & Bad Practices",
-    defaultSize: { w: 720, h: 480 },
-    minSize: { w: 460, h: 340 },
-    inDock: true,
-    inSpringboard: false,
+    subtitle: "Cloud anti-patterns to avoid",
+    defaultSize: { w: 760, h: 500 },
+    minSize: { w: 420, h: 340 },
     spotlight: {
-      keywords: ["trash", "bin", "bad practices", "anti-patterns", "rejected"],
-      description: "Cloud architectural mistakes we threw away so you don't make them",
-    },
-    seo: {
-      title: "Cloud Anti-Patterns · Trash",
-      description: "Rejected cloud mistakes, hardcoded secrets, and monolith antipatterns.",
+      keywords: ["trash", "bin", "anti-patterns", "mistakes", "best practices"],
+      description: "Common cloud mistakes and what to do instead",
     },
     menus: standardMenus("Trash"),
   },
-
   assistant: {
     id: "assistant",
-    name: "Cloud Concierge",
-    subtitle: "AI Assistant for AWS Cloud Club",
+    name: "Assistant",
+    subtitle: "Ask about the club",
     defaultSize: { w: 460, h: 620 },
     minSize: { w: 360, h: 440 },
-    inDock: true,
-    inSpringboard: true,
     springboardLabel: "Assistant",
     spotlight: {
-      keywords: ["assistant", "concierge", "ai", "ask", "help", "siri", "chat"],
-      description: "Ask the Cloud Concierge about workshops, roadmaps, and club info",
+      keywords: ["assistant", "help", "ask", "guide", "chat"],
+      description: "Ask where to find events, the team, projects and more",
     },
-    seo: {
-      title: "Cloud Concierge · Assistant",
-      description: "Intelligent concierge guiding students through AWS certifications and club events.",
-    },
-    menus: standardMenus("Cloud Concierge"),
+    menus: standardMenus("Assistant"),
   },
-
-  admin: {
-    id: "admin",
-    name: "Admin Control",
-    subtitle: "Cognito & DynamoDB Management",
-    defaultSize: { w: 1040, h: 680 },
-    minSize: { w: 640, h: 460 },
-    inDock: false,
-    inSpringboard: true,
-    springboardLabel: "Admin",
+  "about-system": {
+    id: "about-system",
+    name: "About AWS SBG NMIET",
+    subtitle: "Chapter info",
+    defaultSize: { w: 420, h: 470 },
+    minSize: { w: 380, h: 420 },
     spotlight: {
-      keywords: ["admin", "login", "cognito", "dynamodb", "s3", "manage", "events", "team"],
-      description: "Administrator console for events, team, projects and media",
+      keywords: ["about this mac", "system", "version", "chapter"],
+      description: "Chapter information",
     },
-    seo: {
-      title: "Admin Panel · Cloud Control",
-      description: "AWS Cloud Club administrative dashboard powered by Cognito and DynamoDB.",
-    },
-    menus: standardMenus("Admin Control"),
+    menus: standardMenus("About"),
   },
-
   profile: {
     id: "profile",
     name: "My Profile",
-    subtitle: "Credentials & Cert Badges",
-    defaultSize: { w: 780, h: 560 },
-    minSize: { w: 480, h: 400 },
-    inDock: false,
-    inSpringboard: true,
+    subtitle: "Your member profile",
+    defaultSize: { w: 780, h: 580 },
+    minSize: { w: 420, h: 400 },
     springboardLabel: "Profile",
+    requiresAuth: true,
     spotlight: {
-      keywords: ["profile", "member", "credentials", "badges", "points", "account"],
-      description: "Student builder profile, badges, and credentials",
+      keywords: ["profile", "account", "my profile", "sign in", "login"],
+      description: "Your member profile (sign-in required)",
     },
-    seo: {
-      title: "Member Profile · AWS Cloud Club",
-      description: "Student credentials, earned AWS badges, and account status.",
-    },
-    menus: standardMenus("Member Profile"),
+    menus: standardMenus("My Profile"),
   },
+  admin: {
+    id: "admin",
+    name: "Admin Panel",
+    subtitle: "Manage club content",
+    defaultSize: { w: 1040, h: 680 },
+    minSize: { w: 560, h: 440 },
+    springboardLabel: "Admin",
+    requiresAuth: true,
+    spotlight: {
+      keywords: ["admin", "manage", "dashboard", "panel"],
+      description: "Manage events, team, projects and more (admins only)",
+    },
+    menus: standardMenus("Admin Panel"),
+  },
+}
+
+/** Window title helper: "Projects" for Finder, otherwise the app name. */
+export function windowTitleOf(id: AppId) {
+  const meta = APPS_META[id]
+  return meta?.windowTitle ?? meta?.name ?? id
+}
+
+/** Dock tooltip: content name first, e.g. "Projects — Finder". */
+export function dockLabelOf(id: AppId) {
+  const meta = APPS_META[id]
+  if (!meta) return id
+  if (id === "aws") return meta.name
+  return meta.windowTitle && meta.windowTitle !== meta.name && !meta.windowTitle.includes("bash")
+    ? `${meta.windowTitle} — ${meta.name}`
+    : meta.name
 }
 
 export const DOCK_APPS: AppId[] = [
   "aws",
+  "about",
+  "team",
+  "calendar",
   "finder",
   "safari",
-  "appstore",
-  "notes",
-  "mail",
-  "assistant",
-  "calendar",
   "photos",
+  "achievements",
+  "social",
+  "mail",
+  "terminal",
+  "notes",
   "music",
   "settings",
   "trash",
 ]
 
-export const SPRINGBOARD_DOCK: AppId[] = [
-  "aws",
-  "finder",
-  "calendar",
-  "mail",
-]
+export const SPRINGBOARD_DOCK: AppId[] = ["aws", "calendar", "team", "mail"]
 
 export const SPRINGBOARD_GRID: AppId[] = [
+  "about",
+  "finder",
   "safari",
-  "appstore",
+  "photos",
+  "achievements",
+  "social",
+  "terminal",
   "notes",
   "music",
-  "photos",
-  "messages",
-  "terminal",
   "settings",
   "assistant",
   "profile",

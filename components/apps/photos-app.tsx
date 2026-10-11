@@ -1,188 +1,205 @@
 // components/apps/photos-app.tsx
-// Authentic macOS Photos library for AWS Cloud Club hackathons and workshops
+// Gallery — a Photos.app library of real event photos uploaded by admins
 
 "use client"
 
-import React, { useState } from "react"
-import Image from "next/image"
-import { Image as ImageIcon, Sparkles, X, ChevronLeft, ChevronRight, Layers } from "lucide-react"
+import React, { useCallback, useEffect, useMemo, useState } from "react"
+import { AnimatePresence, motion } from "framer-motion"
+import { Camera, ChevronLeft, ChevronRight, Images, LayoutGrid, X } from "lucide-react"
+import { windowActions } from "@/lib/aws-store"
+import { useGallery, type Album } from "@/lib/club-data"
+import {
+  AppShell,
+  ChipBar,
+  EmptyState,
+  LoadingState,
+  MacButton,
+  OfflineNotice,
+  Sidebar,
+  SidebarItem,
+  SidebarSection,
+  Toolbar,
+} from "./shared/mac-ui"
 
-interface PhotoItem {
-  id: string
-  title: string
-  album: string
-  date: string
-  description: string
-  aspectRatio: "video" | "square"
-  color: string
-}
-
-const PHOTOS: PhotoItem[] = [
-  {
-    id: "p1",
-    title: "AWS Cloud Day 2026 Keynote",
-    album: "events",
-    date: "Aug 2026",
-    description: "Opening keynote introducing cloud architecture principles and student builder opportunities.",
-    aspectRatio: "video",
-    color: "from-orange-600 to-amber-700",
-  },
-  {
-    id: "p2",
-    title: "GenAI Bedrock Hands-on Lab",
-    album: "workshops",
-    date: "Sep 2026",
-    description: "Students experimenting with prompt engineering and Claude 3.5 Sonnet on AWS Bedrock.",
-    aspectRatio: "square",
-    color: "from-purple-700 to-indigo-800",
-  },
-  {
-    id: "p3",
-    title: "36-Hour Cloud Hackathon Demo Day",
-    album: "hackathons",
-    date: "May 2026",
-    description: "Finalist teams presenting serverless prototypes and computer vision architectures to the jury.",
-    aspectRatio: "video",
-    color: "from-blue-700 to-cyan-800",
-  },
-  {
-    id: "p4",
-    title: "Core Student Leadership Team",
-    album: "team",
-    date: "July 2026",
-    description: "AWS Cloud Club SBG core leads planning the autumn workshop curriculum.",
-    aspectRatio: "square",
-    color: "from-emerald-700 to-teal-800",
-  },
-  {
-    id: "p5",
-    title: "AWS Certifications Celebration",
-    album: "events",
-    date: "Jul 2026",
-    description: "Celebrating 30+ students who cleared AWS Certified Cloud Practitioner and Solutions Architect.",
-    aspectRatio: "video",
-    color: "from-rose-700 to-pink-800",
-  },
-  {
-    id: "p6",
-    title: "Serverless Microservices Workshop",
-    album: "workshops",
-    date: "Jun 2026",
-    description: "Live coding session connecting API Gateway, Lambda, and DynamoDB.",
-    aspectRatio: "square",
-    color: "from-amber-600 to-yellow-700",
-  },
-]
+type Photo = Album["photos"][number]
+type View = "library" | "albums" | string // string = album id
 
 export function PhotosApp() {
-  const [selectedAlbum, setSelectedAlbum] = useState<string>("all")
-  const [activePhoto, setActivePhoto] = useState<PhotoItem | null>(null)
+  const gallery = useGallery()
+  const [view, setView] = useState<View>("library")
+  const [lightbox, setLightbox] = useState<{ photos: Photo[]; index: number } | null>(null)
 
-  const filteredPhotos = PHOTOS.filter(
-    p => selectedAlbum === "all" || p.album === selectedAlbum
-  )
+  const allPhotos = useMemo(() => gallery.data.flatMap(a => a.photos), [gallery.data])
+  const album = gallery.data.find(a => a.id === view)
+  const photos = album ? album.photos : allPhotos
+  const title = view === "library" ? "Library" : view === "albums" ? "Albums" : album?.title ?? "Library"
+
+  const isLoading = gallery.status === "loading" && gallery.data.length === 0
 
   return (
-    <div className="flex h-full w-full flex-col md:flex-row bg-(--win-bg) text-(--os-text)">
-      {/* ── Left Albums Sidebar ──────────────────────────────────────────────── */}
-      <aside className="w-full md:w-56 shrink-0 border-b md:border-b-0 md:border-r border-(--win-divider) bg-black/[0.02] dark:bg-white/[0.02] p-3 space-y-3">
-        <p className="px-2 text-[11px] font-semibold text-(--os-text-dim) uppercase tracking-wider">
-          Albums
-        </p>
+    <AppShell>
+      <Sidebar hideOnNarrow>
+        <SidebarSection title="Photos">
+          <SidebarItem icon={Images} label="Library" count={allPhotos.length} active={view === "library"} onClick={() => setView("library")} />
+          <SidebarItem icon={LayoutGrid} label="Albums" count={gallery.data.length} active={view === "albums"} onClick={() => setView("albums")} />
+        </SidebarSection>
+        {gallery.data.length > 0 && (
+          <SidebarSection title="Events">
+            {gallery.data.map(a => (
+              <SidebarItem key={a.id} icon={Camera} label={a.title} count={a.photos.length} active={view === a.id} onClick={() => setView(a.id)} />
+            ))}
+          </SidebarSection>
+        )}
+      </Sidebar>
 
-        <div className="space-y-0.5 text-xs">
-          {[
-            { id: "all", label: "All Library", count: PHOTOS.length },
-            { id: "events", label: "Cloud Days & Keynotes", count: 2 },
-            { id: "workshops", label: "Hands-on Workshops", count: 2 },
-            { id: "hackathons", label: "Hackathon Sprints", count: 1 },
-            { id: "team", label: "Core Leads", count: 1 },
-          ].map(album => (
-            <button
-              key={album.id}
-              onClick={() => setSelectedAlbum(album.id)}
-              className={`flex w-full items-center justify-between rounded-md px-2.5 py-1.5 font-medium transition-colors ${
-                selectedAlbum === album.id
-                  ? "bg-(--accent) text-white"
-                  : "text-(--os-text) hover:bg-black/5 dark:hover:bg-white/5"
-              }`}
-            >
-              <span>{album.label}</span>
-              <span className="text-[10px] opacity-75">{album.count}</span>
-            </button>
-          ))}
+      <div className="flex min-w-0 flex-1 flex-col">
+        <Toolbar
+          left={
+            album ? (
+              <button onClick={() => setView("albums")} className="rounded-md px-1 py-0.5 text-[13px] font-medium text-(--accent) hover:bg-black/5 dark:hover:bg-white/10">
+                ‹ Albums
+              </button>
+            ) : undefined
+          }
+          title={title}
+          subtitle={album ? `${album.date} · ${album.photos.length} photos` : view === "albums" ? `${gallery.data.length} albums` : `${allPhotos.length} photos`}
+        />
+        <ChipBar
+          options={[
+            { id: "library", label: "Library", count: allPhotos.length },
+            { id: "albums", label: "Albums", count: gallery.data.length },
+          ]}
+          value={view === "library" ? "library" : "albums"}
+          onChange={setView}
+          className="border-b border-(--win-divider)"
+        />
+        <OfflineNotice show={gallery.status === "error" && !gallery.fromFallback} />
+
+        <div className="flex-1 overflow-y-auto p-3">
+          {isLoading ? (
+            <LoadingState label="Loading photos…" />
+          ) : gallery.data.length === 0 ? (
+            <EmptyState
+              icon={Camera}
+              title="No photos yet"
+              message="Event photos appear here after the team uploads them. Check out our events in the meantime."
+              action={<MacButton onClick={() => windowActions.open("calendar")}>Open Events</MacButton>}
+            />
+          ) : view === "albums" ? (
+            <div className="grid grid-cols-2 gap-4 p-1 @2xl:grid-cols-3 @4xl:grid-cols-4">
+              {gallery.data.map(a => (
+                <button key={a.id} onClick={() => setView(a.id)} className="group text-left">
+                  <div className="aspect-square overflow-hidden rounded-xl bg-black/5 shadow-sm dark:bg-white/5">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={a.cover} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                  </div>
+                  <p className="mt-2 line-clamp-1 text-[13px] font-semibold text-(--os-text)">{a.title}</p>
+                  <p className="text-[11px] text-(--os-text-dim)">{a.photos.length} photos · {a.date}</p>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-3 gap-0.5 @2xl:grid-cols-4 @4xl:grid-cols-6">
+              {photos.map((p, i) => (
+                <button
+                  key={p.id}
+                  onClick={() => setLightbox({ photos, index: i })}
+                  className="group relative aspect-square overflow-hidden bg-black/5 dark:bg-white/5"
+                  aria-label={p.caption}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={p.src} alt={p.caption} loading="lazy" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
-      </aside>
+      </div>
 
-      {/* ── Main Photo Grid ──────────────────────────────────────────────────── */}
-      <main className="flex-1 overflow-y-auto p-4 md:p-6">
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          {filteredPhotos.map(photo => (
-            <button
-              key={photo.id}
-              onClick={() => setActivePhoto(photo)}
-              className="group relative flex flex-col overflow-hidden rounded-xl border border-(--win-divider) bg-black/5 text-left transition-transform hover:scale-[1.02] focus:outline-none"
-            >
-              {/* Photo Simulation Container */}
-              <div
-                className={`w-full aspect-4/3 bg-gradient-to-br ${photo.color} relative flex items-center justify-center p-4 text-white shadow-inner`}
-              >
-                <div className="text-center space-y-1">
-                  <ImageIcon className="size-8 mx-auto opacity-70 group-hover:scale-110 transition-transform" />
-                  <p className="text-[11px] font-semibold tracking-wide uppercase opacity-90">
-                    {photo.title}
-                  </p>
-                </div>
+      <AnimatePresence>
+        {lightbox && <Lightbox {...lightbox} onClose={() => setLightbox(null)} onIndex={index => setLightbox(l => (l ? { ...l, index } : l))} />}
+      </AnimatePresence>
+    </AppShell>
+  )
+}
 
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
-              </div>
+function Lightbox({
+  photos,
+  index,
+  onClose,
+  onIndex,
+}: {
+  photos: Photo[]
+  index: number
+  onClose: () => void
+  onIndex: (i: number) => void
+}) {
+  const photo = photos[index]
+  const prev = useCallback(() => index > 0 && onIndex(index - 1), [index, onIndex])
+  const next = useCallback(() => index < photos.length - 1 && onIndex(index + 1), [index, photos.length, onIndex])
 
-              {/* Caption */}
-              <div className="p-2.5 bg-(--win-bg)">
-                <p className="text-xs font-semibold text-(--os-text) truncate">{photo.title}</p>
-                <p className="text-[10px] text-(--os-text-dim) font-mono mt-0.5">{photo.date}</p>
-              </div>
-            </button>
-          ))}
-        </div>
-      </main>
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose()
+      else if (e.key === "ArrowLeft") prev()
+      else if (e.key === "ArrowRight") next()
+    }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [onClose, prev, next])
 
-      {/* ── Lightbox Modal ───────────────────────────────────────────────────── */}
-      {activePhoto && (
-        <div
-          onClick={() => setActivePhoto(null)}
-          className="fixed inset-0 z-[1100] flex items-center justify-center bg-black/85 backdrop-blur-md p-4"
+  if (!photo) return null
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-[1200] flex items-center justify-center bg-black/90 backdrop-blur-md"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onClose}
+    >
+      <button onClick={onClose} aria-label="Close" className="absolute right-4 top-4 z-10 flex size-9 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20">
+        <X className="size-5" />
+      </button>
+      {index > 0 && (
+        <button
+          onClick={e => {
+            e.stopPropagation()
+            prev()
+          }}
+          aria-label="Previous photo"
+          className="absolute left-3 z-10 flex size-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
         >
-          <div
-            onClick={e => e.stopPropagation()}
-            className="relative max-w-2xl w-full rounded-2xl overflow-hidden bg-neutral-900 text-white shadow-2xl border border-white/10"
-          >
-            <button
-              onClick={() => setActivePhoto(null)}
-              className="absolute top-4 right-4 z-10 size-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/80"
-            >
-              <X className="size-4" />
-            </button>
-
-            <div
-              className={`w-full aspect-video bg-gradient-to-br ${activePhoto.color} flex items-center justify-center p-8`}
-            >
-              <div className="text-center space-y-2">
-                <ImageIcon className="size-12 mx-auto text-white/80" />
-                <h3 className="text-xl font-bold">{activePhoto.title}</h3>
-              </div>
-            </div>
-
-            <div className="p-5 space-y-1.5 bg-neutral-900 border-t border-neutral-800">
-              <div className="flex items-center justify-between text-xs text-neutral-400 font-mono">
-                <span>{activePhoto.date}</span>
-                <span className="uppercase">{activePhoto.album}</span>
-              </div>
-              <p className="text-sm text-neutral-200">{activePhoto.description}</p>
-            </div>
-          </div>
-        </div>
+          <ChevronLeft className="size-5" />
+        </button>
       )}
-    </div>
+      {index < photos.length - 1 && (
+        <button
+          onClick={e => {
+            e.stopPropagation()
+            next()
+          }}
+          aria-label="Next photo"
+          className="absolute right-3 z-10 flex size-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
+        >
+          <ChevronRight className="size-5" />
+        </button>
+      )}
+      <motion.figure
+        key={photo.id}
+        className="mx-14 flex max-w-3xl flex-col items-center"
+        onClick={e => e.stopPropagation()}
+        initial={{ scale: 0.94, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 320, damping: 28 }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={photo.src} alt={photo.caption} className="max-h-[75vh] w-auto rounded-xl object-contain" />
+        <figcaption className="mt-3 text-center text-sm font-medium text-white/80">{photo.caption}</figcaption>
+        <p className="mt-1 text-xs text-white/40">
+          {index + 1} / {photos.length}
+        </p>
+      </motion.figure>
+    </motion.div>
   )
 }

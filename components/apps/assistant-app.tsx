@@ -1,158 +1,191 @@
 // components/apps/assistant-app.tsx
-// Interactive Cloud Concierge powered by generative AWS knowledge
+// Assistant — a simple guide that answers common questions with real club data
+// and points visitors to the right app. (Keyword-based; no AI model involved.)
 
 "use client"
 
-import React, { useState } from "react"
-import { Sparkles, Send, Bot, ArrowRight, CornerDownLeft } from "lucide-react"
+import React, { useEffect, useRef, useState } from "react"
+import { ArrowRight, Send } from "lucide-react"
 import { AnimatedOrb } from "@/components/os/app-icon"
 import { windowActions } from "@/lib/aws-store"
+import type { AppId } from "@/lib/aws-apps"
+import { CLUB, TEAM_MEMBERS } from "@/lib/club-content"
+import { useEvents, useMemberCount, type ClubEvent } from "@/lib/club-data"
 
 interface ChatMsg {
   sender: "user" | "bot"
   text: string
-  actionApp?: string
-  actionLabel?: string
+  action?: { app?: AppId; href?: string; label: string }
+}
+
+const CHIPS = ["Next event?", "Who's on the team?", "How do I join?", "Where can I learn AWS?", "Show projects"]
+
+function answer(q: string, ctx: { members: string; nextEvent?: ClubEvent }): ChatMsg {
+  const t = q.toLowerCase()
+  const has = (...words: string[]) => words.some(w => t.includes(w))
+
+  if (has("event", "workshop", "meetup", "session", "rsvp", "next")) {
+    return ctx.nextEvent
+      ? {
+          sender: "bot",
+          text: `Our next event is “${ctx.nextEvent.title}” on ${ctx.nextEvent.date} at ${ctx.nextEvent.location}. RSVP on Meetup to save your spot!`,
+          action: { app: "calendar", label: "Open Events" },
+        }
+      : {
+          sender: "bot",
+          text: "No upcoming event is announced yet — new sessions land on our Meetup page first. You can browse past events in the Events app.",
+          action: { app: "calendar", label: "Open Events" },
+        }
+  }
+  if (has("team", "lead", "who", "people", "neha")) {
+    return {
+      sender: "bot",
+      text: `The group is led by ${CLUB.leader} (SBG Leader), with a core team of ${TEAM_MEMBERS.length} across tech, design, social media, events and onsite.`,
+      action: { app: "team", label: "Meet the Team" },
+    }
+  }
+  if (has("join", "member", "apply", "sign up", "register")) {
+    return {
+      sender: "bot",
+      text: `Joining is free and open to everyone — ${ctx.members} members already have. Join our Meetup group, then come to the next event!`,
+      action: { href: CLUB.meetupUrl, label: "Join on Meetup" },
+    }
+  }
+  if (has("learn", "resource", "course", "cert", "exam", "study", "practitioner", "architect")) {
+    return {
+      sender: "bot",
+      text: "Start with AWS Skill Builder and Cloud Practitioner Essentials — we've collected courses, docs, labs and videos in Resources, and study guides in Notes.",
+      action: { app: "safari", label: "Open Resources" },
+    }
+  }
+  if (has("project", "build", "repo", "github", "code")) {
+    return { sender: "bot", text: "Projects built by our members live in Finder.", action: { app: "finder", label: "Browse Projects" } }
+  }
+  if (has("photo", "gallery", "picture")) {
+    return { sender: "bot", text: "Event photos are in the Photos app.", action: { app: "photos", label: "Open Gallery" } }
+  }
+  if (has("achievement", "award", "win", "trophy")) {
+    return { sender: "bot", text: "Our milestones are on display in the Trophy Room.", action: { app: "achievements", label: "Open Achievements" } }
+  }
+  if (has("contact", "email", "mail", "reach", "message")) {
+    return { sender: "bot", text: `You can email us at ${CLUB.email} or send a message right here.`, action: { app: "mail", label: "Contact Us" } }
+  }
+  if (has("about", "mission", "vision", "what", "nmiet", "where", "location")) {
+    return {
+      sender: "bot",
+      text: `We're the ${CLUB.name} at ${CLUB.college}, ${CLUB.city} — founded ${CLUB.founded}. We learn, build and connect on AWS.`,
+      action: { app: "about", label: "Read About Us" },
+    }
+  }
+  if (has("discord", "youtube", "instagram", "linkedin", "social", "follow")) {
+    return { sender: "bot", text: "Find all our channels in the Social app.", action: { app: "social", label: "Open Social" } }
+  }
+  return {
+    sender: "bot",
+    text: "I can help you find events, the team, projects, learning resources, photos or how to contact us. Try one of the suggestions below!",
+  }
 }
 
 export function AssistantApp() {
+  const { display: members } = useMemberCount()
+  const events = useEvents()
+  const nextEvent = events.data.find(e => !e.isPast)
   const [messages, setMessages] = useState<ChatMsg[]>([
     {
       sender: "bot",
-      text: "Hello! I am the AWS Cloud Club Concierge. Ask me anything about our upcoming workshops, certification study roadmaps, cloud projects, or leadership team.",
+      text: `Hi! I'm the ${CLUB.shortName} assistant. Ask me about events, the team, projects, learning resources or how to join.`,
     },
   ])
-  const [inputVal, setInputVal] = useState("")
+  const [input, setInput] = useState("")
+  const bottomRef = useRef<HTMLDivElement>(null)
 
-  const handleSend = (textToSend?: string) => {
-    const q = (textToSend || inputVal).trim()
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" })
+  }, [messages])
+
+  const send = (text?: string) => {
+    const q = (text ?? input).trim()
     if (!q) return
-
-    const newMsgs: ChatMsg[] = [...messages, { sender: "user", text: q }]
-    setMessages(newMsgs)
-    setInputVal("")
-
-    setTimeout(() => {
-      const lower = q.toLowerCase()
-      let reply: ChatMsg = {
-        sender: "bot",
-        text: "I can help with that! AWS Cloud Club SBG hosts hands-on sessions covering EC2, Lambda, Bedrock, and DynamoDB. Check out our study guides or attend the next workshop!",
-      }
-
-      if (lower.includes("cert") || lower.includes("exam") || lower.includes("clf") || lower.includes("saa")) {
-        reply = {
-          sender: "bot",
-          text: "We have dedicated 4-week to 6-week study tracks for AWS Certified Cloud Practitioner (CLF-C02) and Solutions Architect Associate (SAA-C03). Would you like to read the guide?",
-          actionApp: "notes",
-          actionLabel: "Open Certification Notes",
-        }
-      } else if (lower.includes("workshop") || lower.includes("event") || lower.includes("meetup")) {
-        reply = {
-          sender: "bot",
-          text: "Our next major session is the 'AWS GenAI & Bedrock Hands-on Bootcamp' on Sep 28, 2026. RSVP is open now!",
-          actionApp: "calendar",
-          actionLabel: "View Calendar & RSVP",
-        }
-      } else if (lower.includes("project") || lower.includes("repo") || lower.includes("code")) {
-        reply = {
-          sender: "bot",
-          text: "Our students have deployed several production cloud architectures, including the Campus Serverless Portal, Cloud Resume Challenge, and Rekognition Attendance system.",
-          actionApp: "finder",
-          actionLabel: "Browse in Finder",
-        }
-      } else if (lower.includes("join") || lower.includes("apply") || lower.includes("contact")) {
-        reply = {
-          sender: "bot",
-          text: "Membership is completely free for all university students. Send a quick note directly to the student leadership team!",
-          actionApp: "mail",
-          actionLabel: "Compose in Mail",
-        }
-      }
-
-      setMessages(prev => [...prev, reply])
-    }, 450)
+    setMessages(prev => [...prev, { sender: "user", text: q }])
+    setInput("")
+    setTimeout(() => setMessages(prev => [...prev, answer(q, { members, nextEvent })]), 350)
   }
 
   return (
     <div className="flex h-full w-full flex-col bg-(--win-bg) text-(--os-text)">
-      {/* ── Assistant Header with Orb ────────────────────────────────────────── */}
-      <div className="flex items-center gap-3 border-b border-(--win-divider) bg-(--titlebar-bg)/50 p-4">
+      <div className="flex items-center gap-3 border-b border-(--win-divider) p-4">
         <div className="size-8 shrink-0">
           <AnimatedOrb size={32} />
         </div>
         <div>
-          <h2 className="text-sm font-bold text-(--os-text)">Cloud Concierge</h2>
-          <p className="text-[11px] text-(--os-text-dim)">Built-in assistant for AWS Cloud Club</p>
+          <h2 className="text-sm font-bold">Assistant</h2>
+          <p className="text-[11px] text-(--os-text-dim)">Your guide to {CLUB.shortName}</p>
         </div>
       </div>
 
-      {/* ── Chat Messages Stream ─────────────────────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+      <div className="flex-1 space-y-3 overflow-y-auto p-4">
         {messages.map((m, i) => (
-          <div
-            key={i}
-            className={`flex flex-col ${m.sender === "user" ? "items-end" : "items-start"}`}
-          >
+          <div key={i} className={`flex flex-col ${m.sender === "user" ? "items-end" : "items-start"}`}>
             <div
-              className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-xs md:text-sm leading-relaxed ${
+              className={`max-w-[85%] select-text rounded-2xl px-4 py-2.5 text-[13px] leading-relaxed ${
                 m.sender === "user"
-                  ? "bg-(--accent) text-white rounded-br-xs"
-                  : "bg-black/5 dark:bg-white/10 text-(--os-text) rounded-bl-xs border border-(--win-divider)"
+                  ? "rounded-br-sm bg-(--accent) text-white"
+                  : "rounded-bl-sm border border-(--win-divider) bg-black/5 text-(--os-text) dark:bg-white/10"
               }`}
             >
               {m.text}
-
-              {m.actionApp && (
-                <button
-                  onClick={() => windowActions.open(m.actionApp as any)}
-                  className="mt-2.5 flex items-center gap-1.5 rounded-lg bg-(--accent) px-3 py-1.5 text-xs font-semibold text-white shadow-xs hover:opacity-90"
-                >
-                  <span>{m.actionLabel}</span>
-                  <ArrowRight className="size-3" />
-                </button>
-              )}
+              {m.action &&
+                (m.action.href ? (
+                  <a
+                    href={m.action.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-2.5 flex w-fit items-center gap-1.5 rounded-lg bg-[#FF9900] px-3 py-1.5 text-xs font-semibold text-[#1a1206] hover:brightness-105"
+                  >
+                    {m.action.label} <ArrowRight className="size-3" />
+                  </a>
+                ) : (
+                  <button
+                    onClick={() => m.action?.app && windowActions.open(m.action.app)}
+                    className="mt-2.5 flex items-center gap-1.5 rounded-lg bg-(--accent) px-3 py-1.5 text-xs font-semibold text-white hover:brightness-110"
+                  >
+                    {m.action.label} <ArrowRight className="size-3" />
+                  </button>
+                ))}
             </div>
           </div>
         ))}
+        <div ref={bottomRef} />
       </div>
 
-      {/* ── Quick Chips ──────────────────────────────────────────────────────── */}
-      <div className="px-4 py-2 flex items-center gap-1.5 overflow-x-auto border-t border-(--win-divider)">
-        {[
-          "Upcoming workshops?",
-          "How to get AWS certified?",
-          "Show top student projects",
-          "How do I join?",
-        ].map(chip => (
+      <div className="flex items-center gap-1.5 overflow-x-auto border-t border-(--win-divider) px-4 py-2">
+        {CHIPS.map(chip => (
           <button
             key={chip}
-            onClick={() => handleSend(chip)}
-            className="whitespace-nowrap rounded-full border border-(--win-divider) bg-black/5 dark:bg-white/5 px-2.5 py-1 text-[11px] hover:border-(--accent) text-(--os-text) transition-colors"
+            onClick={() => send(chip)}
+            className="whitespace-nowrap rounded-full border border-(--win-divider) bg-black/5 px-2.5 py-1 text-[11px] text-(--os-text) transition-colors hover:border-(--accent) dark:bg-white/5"
           >
             {chip}
           </button>
         ))}
       </div>
 
-      {/* ── Chat Input ───────────────────────────────────────────────────────── */}
-      <div className="p-3 border-t border-(--win-divider) bg-(--titlebar-bg)">
+      <div className="border-t border-(--win-divider) bg-(--titlebar-bg) p-3">
         <form
           onSubmit={e => {
             e.preventDefault()
-            handleSend()
+            send()
           }}
-          className="flex items-center gap-2 rounded-xl border border-(--win-divider) bg-black/5 dark:bg-white/5 px-3 py-2"
+          className="flex items-center gap-2 rounded-xl border border-(--win-divider) bg-black/5 px-3 py-2 dark:bg-white/5"
         >
           <input
-            value={inputVal}
-            onChange={e => setInputVal(e.target.value)}
-            placeholder="Ask Cloud Concierge..."
-            className="w-full bg-transparent text-xs text-(--os-text) outline-none placeholder:text-(--os-text-dim)"
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            placeholder="Ask a question…"
+            aria-label="Ask the assistant"
+            className="w-full bg-transparent text-[13px] text-(--os-text) outline-none placeholder:text-(--os-text-dim)"
           />
-          <button
-            type="submit"
-            className="p-1 rounded bg-(--accent) text-white hover:opacity-90 transition-opacity"
-          >
+          <button type="submit" aria-label="Send" className="rounded bg-(--accent) p-1 text-white transition-opacity hover:opacity-90">
             <Send className="size-3.5" />
           </button>
         </form>

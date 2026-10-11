@@ -1,363 +1,337 @@
 // components/apps/finder-app.tsx
-// Authentic macOS Finder layout for browsing AWS Cloud Club projects and architectures
+// Projects — a Finder window over the club's real project showcase
 
 "use client"
 
-import React, { useState } from "react"
+import React, { useMemo, useState } from "react"
 import {
+  ExternalLink,
+  FileText,
   Folder,
   FolderOpen,
-  LayoutGrid,
-  Columns,
-  List,
-  ExternalLink,
   Github,
-  Globe,
-  Tag,
-  Server,
-  Cloud,
-  Cpu,
-  Database,
+  LayoutGrid,
+  List,
   Search,
 } from "lucide-react"
 import { windowActions } from "@/lib/aws-store"
-import { sanitizeUrl } from "@/lib/utils"
+import { useProjects, type Project } from "@/lib/club-data"
+import { sanitizeUrl, cn } from "@/lib/utils"
+import {
+  AppShell,
+  ChipBar,
+  EmptyState,
+  LoadingState,
+  MacButton,
+  OfflineNotice,
+  Sidebar,
+  SidebarItem,
+  SidebarSection,
+  Toolbar,
+} from "./shared/mac-ui"
 
-interface ProjectItem {
-  id: string
-  title: string
-  category: "serverless" | "aiml" | "devops" | "hackathon"
-  description: string
-  architecture: string
-  services: string[]
-  liveUrl?: string
-  githubUrl?: string
-  team: string[]
-  year: string
+type FolderId = "All" | Project["status"]
+
+const STATUS_COLORS: Record<string, string> = {
+  Production: "#3AAA72",
+  Development: "#E88800",
+  Beta: "#4A90C0",
 }
 
-const PROJECTS_DATA: ProjectItem[] = [
-  {
-    id: "serverless-portal",
-    title: "Campus Serverless Portal",
-    category: "serverless",
-    description: "A student-facing portal handling course evaluations and event registrations without maintaining any virtual servers.",
-    architecture: "Next.js frontend -> Amazon CloudFront -> API Gateway -> AWS Lambda (Node.js 20) -> Amazon DynamoDB with Cognito User Pool authentication.",
-    services: ["AWS Lambda", "Amazon DynamoDB", "Amazon API Gateway", "Amazon Cognito", "Amazon CloudFront"],
-    liveUrl: "https://portal.awsclub.edu",
-    githubUrl: "https://github.com/aws-cloud-club/campus-serverless-portal",
-    team: ["Omkar Rane", "Cloud Team Leads"],
-    year: "2026",
-  },
-  {
-    id: "cloud-resume",
-    title: "AWS Cloud Resume Challenge",
-    category: "devops",
-    description: "Production resume hosted on static S3 bucket with HTTPS custom domain, visitor counter API, and automated GitHub Actions CI/CD deployment.",
-    architecture: "S3 Bucket (Static Web) -> Route 53 DNS -> ACM SSL Certificate -> CloudFront CDN -> API Gateway -> Python Lambda -> DynamoDB Atomic Counter.",
-    services: ["Amazon S3", "Amazon CloudFront", "Amazon Route 53", "AWS Lambda", "Amazon DynamoDB"],
-    liveUrl: "https://resume.awsclub.edu",
-    githubUrl: "https://github.com/aws-cloud-club/cloud-resume-challenge",
-    team: ["Builder Cohort 2025"],
-    year: "2025",
-  },
-  {
-    id: "bedrock-ai-assistant",
-    title: "Bedrock GenAI Campus Assistant",
-    category: "aiml",
-    description: "An intelligent query engine indexing university syllabus documents and answering engineering questions with low latency.",
-    architecture: "Documents stored in S3 -> OpenSearch Serverless vector index -> AWS Bedrock (Claude 3.5 Sonnet) RAG pipeline -> Streamlit & Next.js UI.",
-    services: ["AWS Bedrock", "Amazon OpenSearch", "Amazon S3", "AWS Lambda", "IAM"],
-    liveUrl: "https://ai.awsclub.edu",
-    githubUrl: "https://github.com/aws-cloud-club/bedrock-assistant",
-    team: ["AI/ML Lead", "Research Team"],
-    year: "2026",
-  },
-  {
-    id: "rekognition-attendance",
-    title: "Smart Attendance via Rekognition",
-    category: "aiml",
-    description: "Computer-vision attendance tracking system utilizing facial analysis for registered workshop participants with event-driven photo processing.",
-    architecture: "Camera capture -> S3 Bucket PUT event -> EventBridge trigger -> Lambda worker -> Amazon Rekognition Collection -> DynamoDB Attendance Records.",
-    services: ["Amazon Rekognition", "Amazon EventBridge", "AWS Lambda", "Amazon S3", "Amazon DynamoDB"],
-    liveUrl: "https://attendance.awsclub.edu",
-    githubUrl: "https://github.com/aws-cloud-club/rekognition-attendance",
-    team: ["Computer Vision Track"],
-    year: "2025",
-  },
-  {
-    id: "multi-tier-resilience",
-    title: "Multi-Region Disaster Recovery Stack",
-    category: "devops",
-    description: "High availability architectural blueprint featuring auto-scaling EC2 clusters across multiple Availability Zones with automated failover.",
-    architecture: "Route 53 latency routing -> Application Load Balancer -> Auto Scaling Group -> RDS Aurora Multi-AZ with cross-region read replicas.",
-    services: ["Amazon EC2", "Auto Scaling", "Amazon VPC", "Amazon Route 53", "Amazon Aurora"],
-    githubUrl: "https://github.com/aws-cloud-club/multi-region-dr-stack",
-    team: ["DevOps & Cloud Architecture"],
-    year: "2025",
-  },
-  {
-    id: "hackathon-greencloud",
-    title: "GreenCloud: Carbon Footprint Analyzer",
-    category: "hackathon",
-    description: "Hackathon winner project: analyzes AWS Cost & Usage Reports (CUR) with Athena and generates optimization recommendations to reduce carbon output.",
-    architecture: "AWS Cost & Usage Reports -> S3 Data Lake -> Amazon Athena -> QuickSight & Next.js dashboard.",
-    services: ["Amazon Athena", "Amazon S3", "AWS Cost Explorer API", "Amazon QuickSight"],
-    liveUrl: "https://greencloud.awsclub.dev",
-    githubUrl: "https://github.com/aws-cloud-club/greencloud-analyzer",
-    team: ["Hackathon Team Alpha"],
-    year: "2026",
-  },
-]
+const fileName = (p: Project) => `${p.title.toLowerCase().replace(/\s+/g, "-")}.pdf`
+
+function formatDate(iso?: string) {
+  if (!iso) return "—"
+  const d = new Date(iso)
+  return Number.isNaN(d.getTime()) ? "—" : d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
+}
 
 export function FinderApp() {
-  const [selectedCategory, setSelectedCategory] = useState<string>("all")
-  const [selectedProject, setSelectedProject] = useState<ProjectItem>(PROJECTS_DATA[0])
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
-  const [searchQuery, setSearchQuery] = useState("")
+  const projects = useProjects()
+  const [folder, setFolder] = useState<FolderId>("All")
+  const [view, setView] = useState<"icons" | "list">("icons")
+  const [query, setQuery] = useState("")
+  const [active, setActive] = useState<Project | null>(null)
 
-  const filteredProjects = PROJECTS_DATA.filter(p => {
-    const matchesCat = selectedCategory === "all" || p.category === selectedCategory
-    const q = searchQuery.toLowerCase()
-    const matchesSearch =
-      !q ||
+  const counts = useMemo(() => {
+    const c: Record<string, number> = { All: projects.data.length }
+    for (const p of projects.data) c[p.status] = (c[p.status] ?? 0) + 1
+    return c
+  }, [projects.data])
+
+  const visible = projects.data.filter(p => {
+    if (folder !== "All" && p.status !== folder) return false
+    const q = query.trim().toLowerCase()
+    if (!q) return true
+    return (
       p.title.toLowerCase().includes(q) ||
-      p.description.toLowerCase().includes(q) ||
-      p.services.some(s => s.toLowerCase().includes(q))
-    return matchesCat && matchesSearch
+      p.author?.toLowerCase().includes(q) ||
+      p.stack?.some(s => s.toLowerCase().includes(q))
+    )
   })
 
+  const folders: { id: FolderId; label: string }[] = [
+    { id: "All", label: "All Projects" },
+    { id: "Production", label: "Production" },
+    { id: "Beta", label: "Beta" },
+    { id: "Development", label: "Development" },
+  ]
+
+  const isLoading = projects.status === "loading" && projects.data.length === 0
+
   return (
-    <div className="flex h-full w-full flex-col md:flex-row bg-(--win-bg) text-(--os-text)">
-      {/* ── Left Finder Sidebar ──────────────────────────────────────────────── */}
-      <aside className="w-full md:w-56 shrink-0 border-b md:border-b-0 md:border-r border-(--win-divider) bg-black/[0.02] dark:bg-white/[0.02] p-3 space-y-4">
-        <div>
-          <p className="px-2 text-[11px] font-semibold text-(--os-text-dim) uppercase tracking-wider">
-            Favorites
-          </p>
-          <div className="mt-1 space-y-0.5">
-            {[
-              { id: "all", label: "All Projects", count: PROJECTS_DATA.length },
-              { id: "serverless", label: "Serverless & Web", count: 2 },
-              { id: "aiml", label: "AI / ML & Bedrock", count: 2 },
-              { id: "devops", label: "DevOps & Infra", count: 2 },
-              { id: "hackathon", label: "Hackathon Winners", count: 1 },
-            ].map(cat => (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.id)}
-                className={`flex w-full items-center justify-between rounded-md px-2 py-1.5 text-xs font-medium transition-colors ${
-                  selectedCategory === cat.id
-                    ? "bg-(--accent) text-white"
-                    : "text-(--os-text) hover:bg-black/5 dark:hover:bg-white/5"
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <Folder className="size-3.5" />
-                  <span>{cat.label}</span>
-                </div>
-                <span className="text-[10px] opacity-75">{cat.count}</span>
-              </button>
-            ))}
-          </div>
-        </div>
+    <AppShell>
+      <Sidebar hideOnNarrow>
+        <SidebarSection title="Projects">
+          {folders.map(f => (
+            <SidebarItem
+              key={f.id}
+              icon={folder === f.id ? FolderOpen : Folder}
+              iconClassName="text-sky-500"
+              label={f.label}
+              count={isLoading ? "—" : counts[f.id] ?? 0}
+              active={folder === f.id && !active}
+              onClick={() => {
+                setFolder(f.id)
+                setActive(null)
+              }}
+            />
+          ))}
+        </SidebarSection>
+        <SidebarSection title="Locations">
+          <SidebarItem icon={Folder} iconClassName="text-sky-500" label="About Us" onClick={() => windowActions.open("about")} />
+          <SidebarItem icon={Folder} iconClassName="text-sky-500" label="Resources" onClick={() => windowActions.open("safari")} />
+        </SidebarSection>
+      </Sidebar>
 
-        {/* Cloud Tags */}
-        <div className="hidden md:block">
-          <p className="px-2 text-[11px] font-semibold text-(--os-text-dim) uppercase tracking-wider">
-            Key Services
-          </p>
-          <div className="mt-1.5 flex flex-wrap gap-1 px-1">
-            {["Lambda", "DynamoDB", "Bedrock", "S3", "Cognito", "EC2"].map(service => (
-              <span
-                key={service}
-                onClick={() => setSearchQuery(service)}
-                className="cursor-pointer rounded border border-(--win-divider) bg-black/5 dark:bg-white/5 px-2 py-0.5 text-[10px] font-mono hover:border-(--accent) transition-colors"
-              >
-                {service}
-              </span>
-            ))}
-          </div>
-        </div>
-      </aside>
-
-      {/* ── Main Content Area ────────────────────────────────────────────────── */}
-      <main className="flex-1 flex flex-col min-w-0">
-        {/* Finder Toolbar */}
-        <div className="flex items-center justify-between border-b border-(--win-divider) px-4 py-2 bg-(--titlebar-bg)/50">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-(--os-text)">
-              {filteredProjects.length} items
-            </span>
-            <div className="h-3.5 w-px bg-(--win-divider) mx-1" />
-            <div className="flex items-center rounded border border-(--win-divider) p-0.5 bg-black/5 dark:bg-white/5">
-              <button
-                onClick={() => setViewMode("grid")}
-                className={`p-1 rounded ${viewMode === "grid" ? "bg-white dark:bg-neutral-800 shadow-xs" : "opacity-60"}`}
-                title="Grid View"
-              >
-                <LayoutGrid className="size-3.5" />
-              </button>
-              <button
-                onClick={() => setViewMode("list")}
-                className={`p-1 rounded ${viewMode === "list" ? "bg-white dark:bg-neutral-800 shadow-xs" : "opacity-60"}`}
-                title="List View"
-              >
-                <List className="size-3.5" />
-              </button>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 w-48 sm:w-64">
-            <div className="flex items-center gap-1.5 rounded-lg border border-(--win-divider) bg-black/5 dark:bg-white/5 px-2 py-1 w-full text-xs">
-              <Search className="size-3 text-(--os-text-dim)" />
-              <input
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Filter files..."
-                className="w-full bg-transparent outline-none text-xs"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Project Items Container */}
-        <div className="flex-1 overflow-y-auto p-4">
-          {viewMode === "grid" ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-3">
-              {filteredProjects.map(project => {
-                const isSelected = selectedProject.id === project.id
-                return (
-                  <button
-                    key={project.id}
-                    onClick={() => setSelectedProject(project)}
-                    className={`group flex flex-col items-center p-3 rounded-xl border text-center transition-all ${
-                      isSelected
-                        ? "border-(--accent) bg-(--accent)/10 ring-1 ring-(--accent)"
-                        : "border-(--win-divider) bg-black/[0.01] hover:bg-black/5 dark:hover:bg-white/5"
-                    }`}
-                  >
-                    <div className="relative size-12 flex items-center justify-center rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/10 text-(--accent) mb-2">
-                      <Cloud className="size-7" />
-                    </div>
-                    <span className="text-xs font-semibold text-(--os-text) truncate max-w-full">
-                      {project.title}
-                    </span>
-                    <span className="text-[10px] font-mono text-(--os-text-dim) mt-0.5">
-                      {project.year} · {project.services[0]}
-                    </span>
-                  </button>
-                )
-              })}
-            </div>
-          ) : (
-            <div className="divide-y divide-(--win-divider) border border-(--win-divider) rounded-lg overflow-hidden text-xs">
-              {filteredProjects.map(project => {
-                const isSelected = selectedProject.id === project.id
-                return (
-                  <div
-                    key={project.id}
-                    onClick={() => setSelectedProject(project)}
-                    className={`flex items-center justify-between p-2.5 cursor-pointer transition-colors ${
-                      isSelected ? "bg-(--accent)/15 font-semibold" : "hover:bg-black/5 dark:hover:bg-white/5"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3 truncate">
-                      <Cloud className="size-4 text-(--accent) shrink-0" />
-                      <span className="truncate">{project.title}</span>
-                    </div>
-                    <div className="flex items-center gap-4 text-(--os-text-dim) shrink-0 font-mono text-[11px]">
-                      <span>{project.services[0]}</span>
-                      <span>{project.year}</span>
-                    </div>
+      <div className="flex min-w-0 flex-1 flex-col">
+        {active ? (
+          <ProjectReport project={active} onBack={() => setActive(null)} />
+        ) : (
+          <>
+            <Toolbar
+              title={folders.find(f => f.id === folder)?.label}
+              subtitle={isLoading ? "Loading…" : `${visible.length} ${visible.length === 1 ? "item" : "items"}`}
+              right={
+                <>
+                  <div className="relative hidden @lg:block">
+                    <Search className="pointer-events-none absolute left-2 top-1/2 size-3.5 -translate-y-1/2 text-(--os-text-dim)" />
+                    <input
+                      value={query}
+                      onChange={e => setQuery(e.target.value)}
+                      placeholder="Search"
+                      className="w-40 rounded-md border border-(--win-divider) bg-black/[0.04] py-1 pl-7 pr-2 text-xs text-(--os-text) outline-none placeholder:text-(--os-text-dim) focus:border-(--accent) dark:bg-white/[0.06]"
+                    />
                   </div>
-                )
-              })}
+                  <div className="flex rounded-md border border-(--win-divider) p-0.5">
+                    {(["icons", "list"] as const).map(v => {
+                      const Icon = v === "icons" ? LayoutGrid : List
+                      return (
+                        <button
+                          key={v}
+                          onClick={() => setView(v)}
+                          aria-label={`${v} view`}
+                          className={cn(
+                            "rounded px-1.5 py-0.5",
+                            view === v ? "bg-black/10 text-(--os-text) dark:bg-white/15" : "text-(--os-text-dim)"
+                          )}
+                        >
+                          <Icon className="size-3.5" />
+                        </button>
+                      )
+                    })}
+                  </div>
+                </>
+              }
+            />
+            <ChipBar
+              options={folders.map(f => ({ id: f.id, label: f.label, count: counts[f.id] ?? 0 }))}
+              value={folder}
+              onChange={setFolder}
+              className="border-b border-(--win-divider)"
+            />
+            <OfflineNotice show={projects.status === "error" && !projects.fromFallback} />
+            <div className="flex-1 overflow-y-auto p-4">
+              {isLoading ? (
+                <LoadingState label="Loading projects…" />
+              ) : visible.length === 0 ? (
+                <EmptyState
+                  icon={FolderOpen}
+                  title={projects.status === "error" ? "Projects are coming back soon" : query ? "No matches" : "This folder is empty"}
+                  message={
+                    projects.status === "error"
+                      ? "We couldn't reach the project showcase right now. Please check back in a little while."
+                      : "Member projects show up here as soon as they're published."
+                  }
+                />
+              ) : view === "icons" ? (
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-x-4 gap-y-6">
+                  {visible.map(p => (
+                    <button
+                      key={p.id}
+                      onClick={() => setActive(p)}
+                      onDoubleClick={() => setActive(p)}
+                      className="group flex flex-col items-center gap-2 rounded-lg p-2 text-center hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
+                    >
+                      <DocIcon project={p} />
+                      <div className="w-full">
+                        <p className="line-clamp-2 text-xs font-semibold text-(--os-text)">{p.title}</p>
+                        <p className="truncate text-[11px] text-(--os-text-dim)">by {p.author}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <table className="w-full text-left text-[13px]">
+                  <thead>
+                    <tr className="border-b border-(--win-divider) text-[11px] text-(--os-text-dim)">
+                      <th className="px-2 py-1.5 font-medium">Name</th>
+                      <th className="hidden px-2 py-1.5 font-medium @lg:table-cell">Author</th>
+                      <th className="px-2 py-1.5 font-medium">Status</th>
+                      <th className="hidden px-2 py-1.5 font-medium @2xl:table-cell">Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {visible.map((p, i) => (
+                      <tr
+                        key={p.id}
+                        onClick={() => setActive(p)}
+                        className={cn("cursor-pointer hover:bg-(--accent)/10", i % 2 === 1 && "bg-black/[0.02] dark:bg-white/[0.02]")}
+                      >
+                        <td className="px-2 py-1.5">
+                          <span className="flex items-center gap-2">
+                            <FileText className="size-4 shrink-0 text-red-500" />
+                            <span className="truncate font-medium text-(--os-text)">{p.title}</span>
+                          </span>
+                        </td>
+                        <td className="hidden px-2 py-1.5 text-(--os-text-dim) @lg:table-cell">{p.author}</td>
+                        <td className="px-2 py-1.5">
+                          <span className="flex items-center gap-1.5 text-xs text-(--os-text)">
+                            <span className="size-2 rounded-full" style={{ background: STATUS_COLORS[p.status] ?? "#999" }} />
+                            {p.status}
+                          </span>
+                        </td>
+                        <td className="hidden px-2 py-1.5 text-(--os-text-dim) @2xl:table-cell">{formatDate(p.createdAt)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
-          )}
-        </div>
-      </main>
+          </>
+        )}
+      </div>
+    </AppShell>
+  )
+}
 
-      {/* ── Right Inspector Pane ─────────────────────────────────────────────── */}
-      {selectedProject && (
-        <aside className="w-full md:w-80 shrink-0 border-t md:border-t-0 md:border-l border-(--win-divider) bg-black/[0.01] dark:bg-white/[0.01] p-5 space-y-4 overflow-y-auto">
-          <div className="text-center pb-3 border-b border-(--win-divider)">
-            <div className="size-16 mx-auto rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-600/20 flex items-center justify-center text-(--accent) mb-3 shadow-inner">
-              <Cloud className="size-9" />
-            </div>
-            <h3 className="text-sm font-bold text-(--os-text)">{selectedProject.title}</h3>
-            <span className="inline-block mt-1 font-mono text-[10px] uppercase tracking-wider text-(--accent) bg-(--accent)/10 px-2 py-0.5 rounded-full">
-              {selectedProject.category}
-            </span>
+function DocIcon({ project }: { project: Project }) {
+  return (
+    <div className="relative flex h-24 w-[72px] flex-col justify-between overflow-hidden rounded-md border border-black/10 bg-white shadow-sm transition-transform group-hover:-translate-y-0.5 group-hover:shadow-md">
+      <div className="absolute right-0 top-0 size-4 rounded-bl-sm border-b border-l border-black/10 bg-neutral-100" />
+      <div className="space-y-1 p-2">
+        <span className="inline-block rounded bg-red-500 px-1 text-[8px] font-extrabold text-white">PDF</span>
+        <div className="h-0.5 w-10 rounded-full bg-neutral-200" />
+        <div className="h-0.5 w-12 rounded-full bg-neutral-200" />
+        <div className="h-0.5 w-8 rounded-full bg-neutral-200" />
+      </div>
+      <div className="h-1.5 w-full" style={{ background: STATUS_COLORS[project.status] ?? "#999" }} />
+    </div>
+  )
+}
+
+function ProjectReport({ project, onBack }: { project: Project; onBack: () => void }) {
+  const github = project.githubUrl ? sanitizeUrl(project.githubUrl) : null
+  const live = project.liveUrl ? sanitizeUrl(project.liveUrl) : null
+  return (
+    <>
+      <Toolbar
+        left={
+          <button
+            onClick={onBack}
+            className="flex items-center gap-0.5 rounded-md px-1 py-0.5 text-[13px] font-medium text-(--accent) hover:bg-black/5 dark:hover:bg-white/10"
+          >
+            ‹ Projects
+          </button>
+        }
+        title={<span className="flex items-center gap-1.5"><FileText className="size-3.5 text-red-500" /> {fileName(project)}</span>}
+        right={
+          <>
+            {github && github !== "#" && (
+              <MacButton href={github} className="px-2.5 py-1">
+                <Github className="size-3.5" /> Code
+              </MacButton>
+            )}
+            {live && live !== "#" && (
+              <MacButton variant="primary" href={live} className="px-2.5 py-1">
+                <ExternalLink className="size-3.5" /> Demo
+              </MacButton>
+            )}
+          </>
+        }
+      />
+      <div className="flex-1 overflow-y-auto bg-black/[0.04] p-4 @2xl:p-6 dark:bg-black/25">
+        <article className="mx-auto flex min-h-[560px] max-w-2xl flex-col rounded-sm border border-black/10 bg-white p-6 text-slate-800 shadow-md @2xl:p-8">
+          <div className="mb-5 flex justify-between border-b border-slate-100 pb-2.5 text-[9px] font-bold uppercase tracking-widest text-slate-400">
+            <span>AWS Student Builder Group NMIET</span>
+            <span className="hidden @lg:inline">Project Report</span>
+          </div>
+          <h1 className="text-2xl font-bold uppercase leading-tight tracking-tight text-slate-900">{project.title}</h1>
+          <p className="mb-5 mt-1 text-[10px] italic text-slate-400">Project Showcase · Doc ID: SBG-PRJ-{project.id.slice(0, 6).toUpperCase()}</p>
+
+          <div className="mb-5 grid grid-cols-2 rounded-sm border border-slate-200 bg-slate-50/60 text-xs">
+            <Meta label="Principal Developer" className="border-b border-r">{project.author}</Meta>
+            <Meta label="Release Status" className="border-b">
+              <span className="inline-flex items-center gap-1">
+                <span className="size-2 rounded-full" style={{ background: STATUS_COLORS[project.status] ?? "#999" }} />
+                {project.status}
+              </span>
+            </Meta>
+            <Meta label="Report Date" className="border-r">{formatDate(project.createdAt)}</Meta>
+            <Meta label="Repository">{github && github !== "#" ? "Open Source (GitHub)" : "Internal"}</Meta>
           </div>
 
-          <div className="space-y-3 text-xs">
-            <div>
-              <p className="font-semibold text-(--os-text-dim) uppercase text-[10px] tracking-wider mb-1">
-                Overview
-              </p>
-              <p className="leading-relaxed text-(--os-text)">{selectedProject.description}</p>
-            </div>
+          <div className="mb-5 border-b-2 border-slate-900" />
 
-            <div>
-              <p className="font-semibold text-(--os-text-dim) uppercase text-[10px] tracking-wider mb-1">
-                Architecture Blueprint
-              </p>
-              <div className="rounded-lg border border-(--win-divider) bg-black/5 dark:bg-white/5 p-2.5 font-mono text-[11px] leading-relaxed text-(--os-text)">
-                {selectedProject.architecture}
-              </div>
-            </div>
+          <h2 className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-900">1. Summary</h2>
+          <p className="mb-5 whitespace-pre-line text-sm leading-relaxed text-slate-700">{project.description}</p>
 
-            <div>
-              <p className="font-semibold text-(--os-text-dim) uppercase text-[10px] tracking-wider mb-1">
-                AWS Services Deployed
-              </p>
-              <div className="flex flex-wrap gap-1">
-                {selectedProject.services.map(svc => (
-                  <span
-                    key={svc}
-                    className="rounded bg-black/5 dark:bg-white/10 px-2 py-0.5 text-[10px] font-mono"
-                  >
-                    {svc}
+          {project.stack?.length > 0 && (
+            <>
+              <h2 className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-900">2. Tech Stack</h2>
+              <div className="mb-5 flex flex-wrap gap-1.5">
+                {project.stack.map(t => (
+                  <span key={t} className="rounded-sm border border-slate-300 bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-700">
+                    {t}
                   </span>
                 ))}
               </div>
-            </div>
+            </>
+          )}
 
-            <div>
-              <p className="font-semibold text-(--os-text-dim) uppercase text-[10px] tracking-wider mb-1">
-                Builders / Contributor Leads
-              </p>
-              <p className="text-(--os-text)">{selectedProject.team.join(", ")}</p>
-            </div>
+          {project.imageUrl && (
+            <figure className="mb-6 rounded-sm border border-slate-100 bg-slate-50 p-3 text-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={project.imageUrl} alt={project.title} className="max-h-60 w-full rounded-xs object-cover" />
+              <figcaption className="mt-2 text-[10px] italic text-slate-400">Figure 1: Project screenshot.</figcaption>
+            </figure>
+          )}
 
-            {/* Quick Actions */}
-            <div className="pt-2 space-y-2">
-              {selectedProject.liveUrl && (
-                <button
-                  onClick={() => windowActions.open("safari")}
-                  className="w-full flex items-center justify-center gap-2 rounded-lg bg-(--accent) p-2 text-xs font-semibold text-white hover:opacity-90 transition-opacity"
-                >
-                  <Globe className="size-3.5" />
-                  <span>Preview in Safari</span>
-                </button>
-              )}
-
-              {selectedProject.githubUrl && (
-                <a
-                  href={sanitizeUrl(selectedProject.githubUrl)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full flex items-center justify-center gap-2 rounded-lg border border-(--win-divider) bg-black/5 dark:bg-white/10 p-2 text-xs font-semibold text-(--os-text) hover:bg-black/10 dark:hover:bg-white/15 transition-colors"
-                >
-                  <Github className="size-3.5" />
-                  <span>View Repository</span>
-                </a>
-              )}
-            </div>
+          <div className="mt-auto flex justify-between border-t border-slate-100 pt-3 text-[9px] text-slate-400">
+            <span>AWS Student Builder Group Showcase</span>
+            <span>Page 1 of 1</span>
           </div>
-        </aside>
-      )}
+        </article>
+      </div>
+    </>
+  )
+}
+
+function Meta({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
+  return (
+    <div className={cn("border-slate-200 p-2.5", className)}>
+      <span className="block text-[10px] font-bold uppercase text-slate-400">{label}</span>
+      <span className="font-semibold text-slate-800">{children}</span>
     </div>
   )
 }

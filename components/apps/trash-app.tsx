@@ -1,10 +1,10 @@
 // components/apps/trash-app.tsx
-// Cloud anti-patterns rejected by AWS Cloud Club builders
+// Trash — common cloud anti-patterns and what to do instead
 
 "use client"
 
 import React, { useState } from "react"
-import { Trash2, AlertTriangle, ShieldCheck, Check, Sparkles } from "lucide-react"
+import { Trash2, AlertTriangle, ShieldCheck } from "lucide-react"
 import { systemActions } from "@/lib/aws-store"
 
 interface AntiPattern {
@@ -117,7 +117,7 @@ export function TrashApp() {
             </div>
 
             <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 p-4 space-y-1.5 text-xs text-rose-700 dark:text-rose-300">
-              <p className="font-semibold">Why this was rejected:</p>
+              <p className="font-semibold">Why it is a problem:</p>
               <p className="leading-relaxed">{selected.whyRejected}</p>
             </div>
 

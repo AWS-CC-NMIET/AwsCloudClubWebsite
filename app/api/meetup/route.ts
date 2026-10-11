@@ -6,7 +6,7 @@ import { NextResponse } from "next/server"
 
 export const dynamic = "force-dynamic"
 
-const MEETUP_URLNAME = "aws-cloud-club-at-nutan-maharashtra-inst-of-eng-tech"
+const MEETUP_URLNAME = "aws-sbg-at-nutan-maharashtra-inst-of-engineering-and-tech"
 export const MEETUP_GROUP_URL = `https://www.meetup.com/${MEETUP_URLNAME}/`
 
 const QUERY = `{
