@@ -184,7 +184,7 @@ export const FALLBACK_EVENTS: FallbackEvent[] = [
     title: "AWS Cloud Club Introductory Event",
     date: "8 April 2026",
     dateTime: "2026-04-08T11:00:00+05:30",
-    location: "Online / TBA",
+    location: "Venue not listed",
     attendees: 433,
     eventUrl: "https://www.meetup.com/aws-sbg-at-nutan-maharashtra-inst-of-engineering-and-tech/events/314129944/",
     imageUrl: "https://secure.meetupstatic.com/photos/event/7/7/f/1/highres_533550705.jpeg",

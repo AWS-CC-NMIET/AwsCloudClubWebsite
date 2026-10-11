@@ -60,63 +60,45 @@ export function PWAInstallPrompt() {
     <AnimatePresence>
       {show && (
         <motion.div
-          className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[300] w-[calc(100vw-32px)] max-w-sm"
-          initial={{ y: 60, opacity: 0, scale: 0.95 }}
+          role="dialog"
+          aria-label="Install the app"
+          className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-1/2 z-[1250] w-[calc(100vw-32px)] max-w-sm -translate-x-1/2"
+          initial={{ y: 40, opacity: 0, scale: 0.96 }}
           animate={{ y: 0, opacity: 1, scale: 1 }}
-          exit={{ y: 60, opacity: 0, scale: 0.95 }}
-          transition={{ type: "spring" as const, stiffness: 380, damping: 28 }}
+          exit={{ y: 40, opacity: 0, scale: 0.96 }}
+          transition={{ type: "spring", stiffness: 380, damping: 30 }}
         >
-          <div
-            className="relative flex items-center gap-3 rounded-2xl p-4"
-            style={{
-              background: "rgba(234,230,255,0.97)",
-              backdropFilter: "blur(20px)",
-              WebkitBackdropFilter: "blur(20px)",
-              border: "1px solid rgba(194,186,240,0.65)",
-              boxShadow: "0 16px 40px rgba(107,79,232,0.25), 6px 6px 18px #C2BAF0, -4px -4px 12px #FFFFFF",
-            }}
-          >
-            {/* Close */}
-            <motion.button
-              onClick={dismiss}
-              className="absolute top-2 right-2 flex h-6 w-6 items-center justify-center rounded-full"
-              style={{ background: "rgba(107,79,232,0.10)", color: "#9B8FC8" }}
-              whileTap={{ scale: 0.90 }}
-            >
-              <X className="h-3.5 w-3.5" />
-            </motion.button>
-
-            <div
-              className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl"
-              style={{ background: "linear-gradient(135deg,#6B4FE8,#8B6FFF)", boxShadow: "3px 3px 10px rgba(107,79,232,0.35)" }}
-            >
-              <Image src="/logo-icon.png" alt="CloudOS" width={32} height={32} className="rounded-xl object-contain" unoptimized />
+          <div className="relative flex items-center gap-3 rounded-2xl border border-black/10 bg-white/85 p-3.5 text-neutral-900 shadow-2xl backdrop-blur-2xl dark:border-white/15 dark:bg-[#202028]/90 dark:text-white">
+            <div className="flex size-11 shrink-0 items-center justify-center rounded-[22%] bg-gradient-to-b from-[#1f2937] to-[#0f172a] shadow-md">
+              <Image src="/logo-full.png" alt="" width={32} height={32} className="size-8 object-contain" unoptimized />
             </div>
-
-            <div className="flex-1 min-w-0 pr-6">
-              <p className="text-sm font-bold" style={{ color: "#1E1060" }}>Install Cloud OS</p>
-              {isIOS ? (
-                <p className="text-xs mt-0.5 leading-relaxed" style={{ color: "#7B6FC0" }}>
-                  Tap <strong>Share</strong> → <strong>Add to Home Screen</strong> for the full app experience
-                </p>
-              ) : (
-                <p className="text-xs mt-0.5" style={{ color: "#7B6FC0" }}>
-                  Add to your home screen for instant access
-                </p>
-              )}
+            <div className="min-w-0 flex-1 pr-5">
+              <p className="text-[13px] font-semibold">Install AWS SBG NMIET</p>
+              <p className="mt-0.5 text-[12px] leading-snug text-neutral-500 dark:text-neutral-400">
+                {isIOS ? (
+                  <>
+                    Tap <strong>Share</strong> → <strong>Add to Home Screen</strong> to open it like an app.
+                  </>
+                ) : (
+                  "Open it from your home screen or dock, like an app."
+                )}
+              </p>
             </div>
-
             {!isIOS && (
-              <motion.button
+              <button
                 onClick={install}
-                className="flex-shrink-0 flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold text-white"
-                style={{ background: "linear-gradient(135deg,#6B4FE8,#8B6FFF)", boxShadow: "3px 3px 10px rgba(107,79,232,0.35)" }}
-                whileTap={{ scale: 0.93 }}
+                className="flex shrink-0 items-center gap-1.5 rounded-lg bg-[#7940ea] px-3 py-1.5 text-[12px] font-semibold text-white shadow-sm hover:brightness-110"
               >
-                <Download className="h-3.5 w-3.5" />
-                Install
-              </motion.button>
+                <Download className="size-3.5" /> Install
+              </button>
             )}
+            <button
+              onClick={dismiss}
+              aria-label="Dismiss"
+              className="absolute right-2 top-2 flex size-6 items-center justify-center rounded-full text-neutral-400 hover:bg-black/5 dark:hover:bg-white/10"
+            >
+              <X className="size-3.5" />
+            </button>
           </div>
         </motion.div>
       )}

@@ -1,587 +1,433 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { AnimatePresence, motion } from "framer-motion"
+// components/os/login-screen.tsx
+// macOS-style lock / login screen: blurred wallpaper, clock, and user tiles
+// (Guest · Member). Members sign in with Cognito via /api/auth.
+
+import React, { useEffect, useState } from "react"
 import Image from "next/image"
-import {
-  Eye, EyeOff, ArrowRight, ChevronLeft,
-  Mail, Loader2, CheckCircle2,
-  Server, Database, Shield, Zap,
-} from "lucide-react"
+import { AnimatePresence, motion } from "framer-motion"
+import { ArrowRight, ChevronLeft, Eye, EyeOff, Loader2, User, UserPlus } from "lucide-react"
 import { signIn, signUp, confirmSignUp, resendCode, forgotPassword, resetPassword } from "@/lib/auth-client"
-import { InteractiveCanvas } from "./interactive-canvas"
+import { useSystemStore, WALLPAPER_STYLES } from "@/lib/aws-store"
+import { CLUB } from "@/lib/club-content"
 
 type Phase = "lock" | "signin" | "register" | "verify" | "forgot" | "reset"
 
-// Pitch-black background for boot/login
-const BG = "#0a0a0f"
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const PASSWORD_HINT = "At least 8 characters, with upper- and lowercase letters and a number."
 
-// Same orbit icons as boot screen
-const orbitIcons = [
-  { icon: Server,   dur: "8s",  dir: "normal",  size: 20, pos: "top",    color: "#9B8FFF" },
-  { icon: Database, dur: "10s", dir: "reverse", size: 20, pos: "bottom", color: "#B8A4FF" },
-  { icon: Shield,   dur: "12s", dir: "normal",  size: 20, pos: "left",   color: "#8B7FFF" },
-  { icon: Zap,      dur: "9s",  dir: "reverse", size: 20, pos: "right",  color: "#C4B5FD" },
-]
-
-// The shared animated logo widget — identical to boot screen
-function AnimatedLogo({ scale = 1 }: { scale?: number }) {
-  return (
-    <motion.div
-      className="relative"
-      initial={{ scale: 0.7, opacity: 0, y: 0, rotate: 0 }}
-      animate={{
-        scale,
-        opacity: 1,
-        y: [-6, 6],
-        rotate: [-3, 3]
-      }}
-      transition={{
-        scale: { duration: 0.7, ease: [0.34, 1.56, 0.64, 1] },
-        opacity: { duration: 0.7 },
-        y: {
-          duration: 6,
-          repeat: Infinity,
-          repeatType: "reverse",
-          ease: "easeInOut"
-        },
-        rotate: {
-          duration: 8,
-          repeat: Infinity,
-          repeatType: "reverse",
-          ease: "easeInOut"
-        }
-      }}
-    >
-      {/* Glow ring */}
-      <div
-        className="absolute inset-0 rounded-3xl animate-glow-neon-purple"
-        style={{ margin: "-8px" }}
-      />
-      {/* Logo card */}
-      <div
-        className="relative flex h-28 w-28 items-center justify-center rounded-3xl"
-        style={{
-          background: "rgba(255,255,255,0.12)",
-          backdropFilter: "blur(10px)",
-          border: "1px solid rgba(255,255,255,0.25)",
-        }}
-      >
-        <Image
-          src="/logo-full.png"
-          alt="AWS Student Builder Group NMIET"
-          width={96}
-          height={96}
-          className="object-contain"
-          unoptimized
-        />
-      </div>
-      {/* Orbit icons — same as boot screen */}
-      {orbitIcons.map(({ icon: Icon, dur, dir, size, pos, color }, i) => {
-        const posStyle: React.CSSProperties =
-          pos === "top"    ? { top: "-1.5rem",    left: "50%",  transform: "translateX(-50%)" } :
-          pos === "bottom" ? { bottom: "-1.5rem", left: "50%",  transform: "translateX(-50%)" } :
-          pos === "left"   ? { left: "-1.5rem",   top: "50%",   transform: "translateY(-50%)" } :
-                             { right: "-1.5rem",  top: "50%",   transform: "translateY(-50%)" }
-        return (
-          <div
-            key={i}
-            className="absolute inset-0"
-            style={{
-              animation: `spin ${dur} linear infinite`,
-              animationDirection: dir as "normal" | "reverse",
-            }}
-          >
-            <Icon
-              className="absolute"
-              style={{ ...posStyle, color, width: size, height: size }}
-            />
-          </div>
-        )
-      })}
-    </motion.div>
-  )
-}
-
-// Interactive animated background is used instead of static SplashBg
-
-// Outer wrapper for form pages — scrollable on small screens
-function GlassCard({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="px-4 py-6 sm:px-6">
-      {children}
-    </div>
-  )
-}
-
-function CognitoError(err: unknown): string {
+function cognitoMessage(err: unknown): string {
   const msg = (err as { message?: string })?.message || "Something went wrong"
-  if (msg.includes("UserNotFoundException") || msg.includes("User does not exist")) return "No account found with this email."
-  if (msg.includes("NotAuthorizedException")) return "Incorrect password. Please try again."
-  if (msg.includes("UsernameExistsException")) return "An account with this email already exists."
-  if (msg.includes("InvalidPasswordException")) return "Password must be 8+ chars with uppercase, lowercase & number."
-  if (msg.includes("CodeMismatchException")) return "Invalid verification code. Please try again."
-  if (msg.includes("ExpiredCodeException")) return "Code expired. Please request a new one."
-  if (msg.includes("LimitExceededException")) return "Too many attempts. Please wait a minute."
+  if (/UserNotFound|User does not exist/.test(msg)) return "No account found with this email."
+  if (/NotAuthorized/.test(msg)) return "Incorrect email or password."
+  if (/UserNotConfirmed/.test(msg)) return "Please verify your email first."
+  if (/UsernameExists/.test(msg)) return "An account with this email already exists."
+  if (/InvalidPassword/.test(msg)) return PASSWORD_HINT
+  if (/CodeMismatch/.test(msg)) return "That code isn't right. Check your email and try again."
+  if (/ExpiredCode/.test(msg)) return "That code has expired. Request a new one."
+  if (/LimitExceeded|Too many/.test(msg)) return "Too many attempts. Please wait a minute and try again."
   return msg
 }
 
-// Individual neumorphic input box — lighter purple, blends into bg
-function UInput({ label, type = "text", value, onChange, placeholder, autoFocus = false, right }: {
-  label?: string; type?: string; value: string; onChange: (v: string) => void
-  placeholder: string; autoFocus?: boolean; right?: React.ReactNode
-}) {
-  const [focused, setFocused] = useState(false)
-  return (
-    <div>
-      {label && (
-        <label className="block text-xs mb-2 font-bold tracking-widest uppercase"
-          style={{ color: "rgba(196,181,253,0.7)", letterSpacing: "0.1em" }}>
-          {label}
-        </label>
-      )}
-      <div
-        className="flex items-center gap-2 px-4 py-3 rounded-2xl transition-all"
-        style={{
-          background: focused
-            ? "rgba(255,255,255,0.22)"
-            : "rgba(255,255,255,0.15)",
-          boxShadow: focused
-            ? `inset 3px 3px 8px rgba(0,0,0,0.25), inset -2px -2px 6px rgba(255,255,255,0.12), 0 0 0 1.5px rgba(255,255,255,0.3)`
-            : `6px 6px 16px rgba(0,0,0,0.3), -4px -4px 12px rgba(255,255,255,0.1)`,
-          transition: "all 0.25s ease",
-          backdropFilter: "blur(8px)",
-        }}
-      >
-        <input
-          type={type} value={value} onChange={e => onChange(e.target.value)}
-          placeholder={placeholder} autoFocus={autoFocus}
-          onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
-          style={{
-            background: "transparent", border: "none", outline: "none",
-            color: "white", fontSize: "16px" /* prevent iOS zoom */, fontWeight: 600, width: "100%",
-          }}
-          className="placeholder:text-white/25 font-semibold"
-        />
-        {right}
-      </div>
-    </div>
-  )
-}
-
-function ErrorLine({ error }: { error: string }) {
-  if (!error) return null
-  return (
-    <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
-      className="text-xs text-center py-1 rounded-lg"
-      style={{ color: error.startsWith("✓") ? "#a0f0c0" : "#fca5a5" }}>
-      {error}
-    </motion.p>
-  )
-}
-
-function PrimaryBtn({ loading, children }: { loading: boolean; children: React.ReactNode }) {
-  return (
-    <motion.button type="submit" disabled={loading}
-      className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl font-bold text-sm disabled:opacity-50"
-      style={{
-        background: "linear-gradient(145deg, #6B4FE8, #5535C0)",
-        color: "white",
-        boxShadow: "6px 6px 16px rgba(0,0,0,0.4), -3px -3px 10px rgba(255,255,255,0.07), inset 0 1px 0 rgba(255,255,255,0.15)",
-        letterSpacing: "0.04em",
-      }}
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.97, boxShadow: "inset 3px 3px 8px rgba(0,0,0,0.4)" as unknown as undefined }}>
-      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : children}
-    </motion.button>
-  )
-}
-
 export function LoginScreen({ onLogin, initialPhase = "lock" }: { onLogin: () => void; initialPhase?: Phase }) {
+  const appearance = useSystemStore(s => s.appearance)
+  const wallpaper = useSystemStore(s => s.wallpaper)
+  const background = WALLPAPER_STYLES[wallpaper]?.dark ?? WALLPAPER_STYLES.dynamic.dark
+
   const [phase, setPhase] = useState<Phase>(initialPhase)
-  const [showPw, setShowPw] = useState(false)
-  const [showCPw, setShowCPw] = useState(false)
+  const [now, setNow] = useState<Date | null>(null)
+  const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [name, setName] = useState("")
   const [confirmPw, setConfirmPw] = useState("")
-  const [verifyCode, setVerifyCode] = useState("")
-  const [forgotEmail, setForgotEmail] = useState("")
-  const [resetCode, setResetCode] = useState("")
+  const [code, setCode] = useState("")
   const [newPw, setNewPw] = useState("")
+  const [pendingEmail, setPendingEmail] = useState("")
+  const [showPw, setShowPw] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
-  const [pendingEmail, setPendingEmail] = useState("")
-  const [time, setTime] = useState("")
-  const [dateStr, setDateStr] = useState("")
+  const [notice, setNotice] = useState("")
 
   useEffect(() => {
-    const upd = () => {
-      const n = new Date()
-      const h = n.getHours().toString().padStart(2, "0")
-      const m = n.getMinutes().toString().padStart(2, "0")
-      setTime(`${h} : ${m}`)
-      setDateStr(n.toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" }))
-    }
-    upd(); const id = setInterval(upd, 1000); return () => clearInterval(id)
+    setNow(new Date())
+    const id = setInterval(() => setNow(new Date()), 10_000)
+    return () => clearInterval(id)
   }, [])
 
-  // Press Enter on the lock screen to bypass login and go directly to homepage
+  // Enter on the lock screen continues as a guest.
   useEffect(() => {
     if (phase !== "lock") return
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Enter") onLogin()
-    }
-    window.addEventListener("keydown", handleKeyDown)
-    return () => window.removeEventListener("keydown", handleKeyDown)
+    const onKey = (e: KeyboardEvent) => e.key === "Enter" && onLogin()
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
   }, [phase, onLogin])
 
-  const clrErr = () => setError("")
-
-  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
-  const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const cleanEmail = email.trim().toLowerCase()
-    if (!cleanEmail || !password) { setError("Please enter email and password"); return }
-    if (!EMAIL_RE.test(cleanEmail)) { setError("Please enter a valid email address"); return }
-    setError(""); setLoading(true)
-    try { await signIn(cleanEmail, password); onLogin() }
-    catch (err) { setError(CognitoError(err)) } finally { setLoading(false) }
+  const go = (next: Phase) => {
+    setError("")
+    setNotice("")
+    setShowPw(false)
+    setPhase(next)
   }
 
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const cleanName = name.trim()
-    const cleanEmail = email.trim().toLowerCase()
-    if (!cleanName || !cleanEmail || !password) { setError("Please fill all fields"); return }
-    if (!EMAIL_RE.test(cleanEmail)) { setError("Please enter a valid email address"); return }
-    if (password !== confirmPw) { setError("Passwords do not match"); return }
-    if (password.length < 8) { setError("Password must be at least 8 characters"); return }
-    setError(""); setLoading(true)
-    try { await signUp(cleanEmail, password, cleanName); setPendingEmail(cleanEmail); setPhase("verify") }
-    catch (err) { setError(CognitoError(err)) } finally { setLoading(false) }
-  }
-
-  const handleVerify = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!verifyCode) { setError("Enter the verification code"); return }
-    setError(""); setLoading(true)
+  const run = async (fn: () => Promise<void>) => {
+    setError("")
+    setLoading(true)
     try {
-      await confirmSignUp(pendingEmail, verifyCode.trim())
+      await fn()
+    } catch (err) {
+      setError(cognitoMessage(err))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSignIn = (e: React.FormEvent) => {
+    e.preventDefault()
+    const cleanEmail = email.trim().toLowerCase()
+    if (!EMAIL_RE.test(cleanEmail)) return setError("Enter the email you signed up with.")
+    if (!password) return setError("Enter your password.")
+    run(async () => {
+      await signIn(cleanEmail, password)
+      onLogin()
+    })
+  }
+
+  const handleRegister = (e: React.FormEvent) => {
+    e.preventDefault()
+    const cleanEmail = email.trim().toLowerCase()
+    if (!name.trim()) return setError("Enter your name.")
+    if (!EMAIL_RE.test(cleanEmail)) return setError("Enter a valid email address.")
+    if (password.length < 8) return setError(PASSWORD_HINT)
+    if (password !== confirmPw) return setError("Passwords don't match.")
+    run(async () => {
+      await signUp(cleanEmail, password, name.trim())
+      setPendingEmail(cleanEmail)
+      go("verify")
+    })
+  }
+
+  const handleVerify = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!code.trim()) return setError("Enter the 6-digit code from your email.")
+    run(async () => {
+      await confirmSignUp(pendingEmail, code.trim())
       if (password) {
         await signIn(pendingEmail, password)
         onLogin()
       } else {
-        setPhase("signin")
         setEmail(pendingEmail)
-        setError("✓ Email verified! Please enter your password to sign in.")
+        go("signin")
+        setNotice("Email verified — sign in to continue.")
       }
-    }
-    catch (err) { setError(CognitoError(err)) } finally { setLoading(false) }
+    })
   }
 
-  const handleResend = async () => {
-    setLoading(true)
-    try { await resendCode(pendingEmail); setError("✓ Code sent!") }
-    catch (err) { setError(CognitoError(err)) } finally { setLoading(false) }
-  }
-
-  const handleForgot = async (e: React.FormEvent) => {
+  const handleForgot = (e: React.FormEvent) => {
     e.preventDefault()
-    const cleanEmail = forgotEmail.trim().toLowerCase()
-    if (!cleanEmail) { setError("Please enter your email"); return }
-    if (!EMAIL_RE.test(cleanEmail)) { setError("Please enter a valid email address"); return }
-    setError(""); setLoading(true)
-    try { await forgotPassword(cleanEmail); setPendingEmail(cleanEmail); setPhase("reset") }
-    catch (err) { setError(CognitoError(err)) } finally { setLoading(false) }
+    const cleanEmail = email.trim().toLowerCase()
+    if (!EMAIL_RE.test(cleanEmail)) return setError("Enter the email you signed up with.")
+    run(async () => {
+      await forgotPassword(cleanEmail)
+      setPendingEmail(cleanEmail)
+      go("reset")
+    })
   }
 
-  const handleReset = async (e: React.FormEvent) => {
+  const handleReset = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!resetCode || !newPw) { setError("Please fill all fields"); return }
-    if (newPw.length < 8) { setError("Password must be at least 8 characters"); return }
-    setError(""); setLoading(true)
-    try {
-      await resetPassword(pendingEmail, resetCode.trim(), newPw)
-      setPhase("signin"); setEmail(pendingEmail); setPassword(newPw)
-      setError("✓ Password reset! Please sign in.")
-    }
-    catch (err) { setError(CognitoError(err)) } finally { setLoading(false) }
+    if (!code.trim()) return setError("Enter the code from your email.")
+    if (newPw.length < 8) return setError(PASSWORD_HINT)
+    run(async () => {
+      await resetPassword(pendingEmail, code.trim(), newPw)
+      setEmail(pendingEmail)
+      setPassword("")
+      go("signin")
+      setNotice("Password changed — sign in with your new password.")
+    })
   }
 
-  const eyeBtn = (show: boolean, toggle: () => void) => (
-    <button type="button" onClick={toggle} style={{ color: "rgba(196,181,253,0.6)", flexShrink: 0 }}>
-      {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-    </button>
-  )
-
-  const ArrowBtn = () => (
-    <motion.button type="submit" disabled={loading}
-      className="flex items-center justify-center rounded-full flex-shrink-0 disabled:opacity-50"
-      style={{ width: 36, height: 36, background: "rgba(155,143,255,0.3)", color: "white", border: "1px solid rgba(196,181,253,0.4)" }}
-      whileHover={{ background: "rgba(155,143,255,0.5)" as unknown as undefined, scale: 1.05 }}
-      whileTap={{ scale: 0.93 }}>
-      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
-    </motion.button>
-  )
+  const time = now?.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }).replace(/\s?[AP]M$/, "") ?? ""
+  const date = now?.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" }) ?? ""
 
   return (
-    <div className="fixed inset-0 overflow-hidden select-none" style={{ background: BG }}>
-      <InteractiveCanvas theme="dark" />
+    <div className="fixed inset-0 select-none overflow-hidden text-white" style={{ background }}>
+      {/* Frosted overlay like the macOS login window */}
+      <div className={`absolute inset-0 backdrop-blur-2xl ${appearance === "dark" ? "bg-black/35" : "bg-black/20"}`} />
 
-      <AnimatePresence mode="wait">
+      <div className="relative z-10 flex h-full flex-col items-center px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(3rem,env(safe-area-inset-top))]">
+        {/* ── Clock ───────────────────────────────────────────────────── */}
+        <div className="text-center drop-shadow-[0_2px_12px_rgba(0,0,0,0.25)]">
+          <p className="text-[15px] font-semibold text-white/85">{date}</p>
+          <p className="text-[clamp(4.5rem,14vw,7rem)] font-semibold leading-none tracking-tight tabular-nums">{time}</p>
+        </div>
 
-        {/* ══ LOCK SCREEN — boot screen aesthetic with login choices ══ */}
-        {phase === "lock" && (
-          <motion.div key="lock" className="absolute inset-0 flex flex-col items-center justify-center z-10 gap-6 sm:gap-8 px-4"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-            exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }}>
-
-            {/* Time — above logo */}
-            <motion.div className="text-center"
-              initial={{ y: -16, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.1, duration: 0.5 }}>
-              <div className="tabular-nums font-thin"
-                style={{ fontSize: "clamp(2.8rem, 6vw, 4.5rem)", color: "white", letterSpacing: "0.12em" }}>
-                {time}
-              </div>
-              <p className="text-sm mt-0.5 font-light" style={{ color: "rgba(196,181,253,0.7)" }}>{dateStr}</p>
-            </motion.div>
-
-            {/* Animated logo — same as boot screen */}
-            <div className="relative mb-2">
-              <AnimatedLogo />
-            </div>
-
-            {/* Title */}
-            <motion.div className="text-center"
-              initial={{ y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.4, duration: 0.5 }}>
-              <h1 className="text-3xl font-bold tracking-tight text-white">AWS Student Builder Group</h1>
-              <p className="text-base font-semibold mt-0.5" style={{ color: "#C4B5FD" }}>NMIET Chapter</p>
-            </motion.div>
-
-            {/* OS-style Press Enter prompt */}
-            <motion.div className="flex flex-col items-center gap-4 mt-2"
-              initial={{ y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.55, duration: 0.5 }}>
-
-              {/* Animated "Press Enter" hint — also clickable/tappable to continue as a guest */}
-              <motion.button
-                type="button"
-                onClick={onLogin}
-                aria-label="Continue as guest"
-                className="flex items-center gap-3 rounded-xl px-3 py-1.5 outline-none focus-visible:ring-2 focus-visible:ring-violet-300/60"
-                animate={{ opacity: [0.45, 1, 0.45] }}
-                transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}>
-                <span
-                  className="text-sm font-light tracking-widest uppercase"
-                  style={{ color: "rgba(196,181,253,0.8)", letterSpacing: "0.22em" }}>
-                  Press
-                </span>
-                <kbd
-                  className="inline-flex items-center px-3 py-1 rounded-lg text-xs font-semibold"
-                  style={{
-                    background: "rgba(255,255,255,0.1)",
-                    border: "1px solid rgba(196,181,253,0.4)",
-                    color: "rgba(255,255,255,0.9)",
-                    boxShadow: "0 2px 0 rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.15)",
-                    letterSpacing: "0.05em",
-                    backdropFilter: "blur(6px)",
-                  }}>
-                  Enter
-                </kbd>
-                <span
-                  className="text-sm font-light tracking-widest uppercase"
-                  style={{ color: "rgba(196,181,253,0.8)", letterSpacing: "0.22em" }}>
-                  to continue
-                </span>
-              </motion.button>
-
-              {/* Optional sign-in / register links — subtle, below the fold */}
-              <div className="flex items-center gap-4 mt-1">
-                <motion.button
-                  onClick={() => setPhase("signin")}
-                  className="text-xs font-medium hover:opacity-80 transition-opacity"
-                  style={{ color: "rgba(196,181,253,0.45)" }}>
-                  Sign In
-                </motion.button>
-                <span style={{ color: "rgba(196,181,253,0.2)", fontSize: 10 }}>·</span>
-                <motion.button
-                  onClick={() => setPhase("register")}
-                  className="text-xs font-medium hover:opacity-80 transition-opacity"
-                  style={{ color: "rgba(196,181,253,0.45)" }}>
-                  Create account
-                </motion.button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-
-        {/* ══ SIGN IN ══ */}
-        {phase === "signin" && (
-          <motion.div key="signin" className="absolute inset-0 flex items-center justify-center z-10 overflow-y-auto py-4"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <motion.div className="w-full max-w-sm px-4 sm:px-0"
-              initial={{ y: 24, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.08, type: "spring", stiffness: 260, damping: 26 }}>
-              <GlassCard>
-                {/* Mini logo */}
-                <div className="flex flex-col items-center mb-7">
-                  <div className="relative mb-4">
-                    <AnimatedLogo scale={0.7} />
+        <div className="flex w-full flex-1 flex-col items-center justify-end pb-6 sm:pb-14">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={phase}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}
+              className="flex w-full max-w-xs flex-col items-center"
+            >
+              {phase === "lock" && (
+                <>
+                  <div className="flex items-start gap-8">
+                    <UserTile label="Guest" sublabel="Explore the site" onClick={onLogin} logo />
+                    <UserTile label="Member" sublabel="Sign in" onClick={() => go("signin")} icon={User} />
                   </div>
-                  <h2 className="text-lg font-bold text-white">AWS Student Builder Group NMIET</h2>
-                  <p className="text-xs mt-0.5" style={{ color: "rgba(196,181,253,0.7)" }}>Sign in to Cloud OS</p>
-                </div>
-
-                <form onSubmit={handleSignIn} className="space-y-5">
-                  <UInput label="Email address" type="email" value={email}
-                    onChange={v => { setEmail(v); clrErr() }} placeholder="name@example.com" autoFocus />
-                  <UInput label="Password" type={showPw ? "text" : "password"} value={password}
-                    onChange={v => { setPassword(v); clrErr() }} placeholder="Password"
-                    right={<div className="flex items-center gap-2">{eyeBtn(showPw, () => setShowPw(s => !s))}<ArrowBtn /></div>}
-                  />
-                  <ErrorLine error={error} />
-                </form>
-
-                <div className="mt-6 flex items-center justify-between">
-                  <button onClick={() => { setPhase("lock"); clrErr() }}
-                    className="flex items-center gap-1 text-xs hover:opacity-70"
-                    style={{ color: "rgba(196,181,253,0.55)" }}>
-                    <ChevronLeft className="h-3.5 w-3.5" /> Back
+                  <button onClick={() => go("register")} className="mt-6 inline-flex items-center gap-1.5 text-[12px] font-medium text-white/70 hover:text-white">
+                    <UserPlus className="size-3.5" /> Create a member account
                   </button>
-                  <div className="flex flex-col items-end gap-1">
-                    <button onClick={() => { setPhase("forgot"); clrErr() }}
-                      className="text-xs hover:opacity-70"
-                      style={{ color: "rgba(196,181,253,0.55)" }}>Forgot password?</button>
-                    <button onClick={() => { setPhase("register"); clrErr() }}
-                      className="text-xs hover:opacity-70"
-                      style={{ color: "#C4B5FD", fontWeight: 600 }}>New here? Sign up</button>
+                  <p className="mt-2 text-[11px] text-white/45">Press Enter to continue as a guest</p>
+                </>
+              )}
+
+              {phase === "signin" && (
+                <form onSubmit={handleSignIn} className="flex w-full flex-col items-center gap-2.5">
+                  <Avatar icon={User} />
+                  <h1 className="mb-1 text-[15px] font-semibold">Member sign in</h1>
+                  <Field type="email" value={email} onChange={setEmail} placeholder="Email" autoFocus autoComplete="email" />
+                  <PasswordPill value={password} onChange={setPassword} show={showPw} onToggle={() => setShowPw(v => !v)} loading={loading} autoComplete="current-password" />
+                  <Messages error={error} notice={notice} />
+                  <div className="mt-1 flex w-full justify-between text-[12px] text-white/70">
+                    <BackLink onClick={() => go("lock")} />
+                    <button type="button" onClick={() => go("forgot")} className="hover:text-white">
+                      Forgot password?
+                    </button>
                   </div>
-                </div>
-              </GlassCard>
+                </form>
+              )}
+
+              {phase === "register" && (
+                <form onSubmit={handleRegister} className="flex w-full flex-col items-center gap-2.5">
+                  <Avatar icon={UserPlus} />
+                  <h1 className="text-[15px] font-semibold">Create a member account</h1>
+                  <p className="mb-1 text-center text-[12px] text-white/65">Save your profile and get updates from {CLUB.shortName}.</p>
+                  <Field value={name} onChange={setName} placeholder="Full name" autoFocus autoComplete="name" />
+                  <Field type="email" value={email} onChange={setEmail} placeholder="Email" autoComplete="email" />
+                  <Field type={showPw ? "text" : "password"} value={password} onChange={setPassword} placeholder="Password" autoComplete="new-password" />
+                  <PasswordPill value={confirmPw} onChange={setConfirmPw} show={showPw} onToggle={() => setShowPw(v => !v)} loading={loading} placeholder="Confirm password" autoComplete="new-password" />
+                  <p className="text-center text-[11px] text-white/55">{PASSWORD_HINT}</p>
+                  <Messages error={error} notice={notice} />
+                  <div className="flex w-full justify-between text-[12px] text-white/70">
+                    <BackLink onClick={() => go("lock")} />
+                    <button type="button" onClick={() => go("signin")} className="hover:text-white">
+                      Already a member? Sign in
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {phase === "verify" && (
+                <form onSubmit={handleVerify} className="flex w-full flex-col items-center gap-2.5">
+                  <Avatar icon={User} />
+                  <h1 className="text-[15px] font-semibold">Check your email</h1>
+                  <p className="mb-1 text-center text-[12px] text-white/70">
+                    We sent a 6-digit code to <span className="font-semibold text-white">{pendingEmail}</span>.
+                  </p>
+                  <CodePill value={code} onChange={setCode} loading={loading} />
+                  <Messages error={error} notice={notice} />
+                  <div className="flex w-full justify-between text-[12px] text-white/70">
+                    <BackLink onClick={() => go("register")} />
+                    <button
+                      type="button"
+                      onClick={() => run(async () => {
+                        await resendCode(pendingEmail)
+                        setNotice("A new code is on its way.")
+                      })}
+                      className="hover:text-white"
+                    >
+                      Resend code
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {phase === "forgot" && (
+                <form onSubmit={handleForgot} className="flex w-full flex-col items-center gap-2.5">
+                  <Avatar icon={User} />
+                  <h1 className="text-[15px] font-semibold">Reset your password</h1>
+                  <p className="mb-1 text-center text-[12px] text-white/70">We’ll email you a code to set a new one.</p>
+                  <div className="flex w-full items-center gap-2">
+                    <Field type="email" value={email} onChange={setEmail} placeholder="Email" autoFocus autoComplete="email" />
+                    <SubmitArrow loading={loading} />
+                  </div>
+                  <Messages error={error} notice={notice} />
+                  <div className="flex w-full text-[12px] text-white/70">
+                    <BackLink onClick={() => go("signin")} />
+                  </div>
+                </form>
+              )}
+
+              {phase === "reset" && (
+                <form onSubmit={handleReset} className="flex w-full flex-col items-center gap-2.5">
+                  <Avatar icon={User} />
+                  <h1 className="text-[15px] font-semibold">Choose a new password</h1>
+                  <p className="mb-1 text-center text-[12px] text-white/70">Enter the code sent to {pendingEmail}.</p>
+                  <Field value={code} onChange={setCode} placeholder="6-digit code" autoFocus inputMode="numeric" autoComplete="one-time-code" />
+                  <PasswordPill value={newPw} onChange={setNewPw} show={showPw} onToggle={() => setShowPw(v => !v)} loading={loading} placeholder="New password" autoComplete="new-password" />
+                  <p className="text-center text-[11px] text-white/55">{PASSWORD_HINT}</p>
+                  <Messages error={error} notice={notice} />
+                  <div className="flex w-full text-[12px] text-white/70">
+                    <BackLink onClick={() => go("forgot")} />
+                  </div>
+                </form>
+              )}
             </motion.div>
-          </motion.div>
-        )}
+          </AnimatePresence>
+        </div>
 
-        {/* ══ OTHER FORMS ══ */}
-        {(phase === "register" || phase === "verify" || phase === "forgot" || phase === "reset") && (
-          <motion.div key="form" className="absolute inset-0 flex items-center justify-center z-10 overflow-y-auto py-4 px-4"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <motion.div className="w-full max-w-sm"
-              initial={{ y: 24, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
-              transition={{ type: "spring", stiffness: 260, damping: 26, delay: 0.05 }}>
-              <GlassCard>
-                <AnimatePresence mode="wait">
-
-                  {/* REGISTER */}
-                  {phase === "register" && (
-                    <motion.div key="reg" initial={{ opacity: 0, x: 14 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}>
-                      <button onClick={() => { setPhase("lock"); clrErr() }}
-                        className="flex items-center gap-1 text-xs mb-5 hover:opacity-70"
-                        style={{ color: "rgba(196,181,253,0.6)" }}>
-                        <ChevronLeft className="h-3.5 w-3.5" /> Back
-                      </button>
-                      <h2 className="text-xl font-bold text-white mb-0.5">Create Account</h2>
-                      <p className="text-sm mb-5" style={{ color: "rgba(196,181,253,0.6)" }}>Join AWS Student Builder Group NMIET</p>
-                      <form onSubmit={handleRegister} className="space-y-4">
-                        <UInput label="Full Name" value={name} onChange={v => { setName(v); clrErr() }} placeholder="Your name" autoFocus />
-                        <UInput label="Email" type="email" value={email} onChange={v => { setEmail(v); clrErr() }} placeholder="name@example.com" />
-                        <UInput label="Password" type={showPw ? "text" : "password"} value={password}
-                          onChange={v => { setPassword(v); clrErr() }} placeholder="Min 8 chars"
-                          right={eyeBtn(showPw, () => setShowPw(s => !s))} />
-                        <UInput label="Confirm Password" type={showCPw ? "text" : "password"} value={confirmPw}
-                          onChange={v => { setConfirmPw(v); clrErr() }} placeholder="Re-enter password"
-                          right={eyeBtn(showCPw, () => setShowCPw(s => !s))} />
-                        <ErrorLine error={error} />
-                        <PrimaryBtn loading={loading}>Create Account <ArrowRight className="h-4 w-4" /></PrimaryBtn>
-                      </form>
-                      <button onClick={() => { setPhase("signin"); clrErr() }}
-                        className="mt-4 w-full text-center text-xs hover:opacity-70"
-                        style={{ color: "rgba(196,181,253,0.55)" }}>Already have an account? Sign in</button>
-                    </motion.div>
-                  )}
-
-                  {/* VERIFY */}
-                  {phase === "verify" && (
-                    <motion.div key="ver" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}>
-                      <div className="flex flex-col items-center mb-6">
-                        <div className="flex h-14 w-14 items-center justify-center rounded-full mb-3"
-                          style={{ border: "2px solid rgba(196,181,253,0.4)" }}>
-                          <Mail className="h-6 w-6" style={{ color: "#C4B5FD" }} />
-                        </div>
-                        <h2 className="text-xl font-bold text-white">Check Your Email</h2>
-                        <p className="text-sm mt-1 text-center" style={{ color: "rgba(196,181,253,0.6)" }}>
-                          6-digit code sent to <span className="text-white font-medium">{pendingEmail}</span>
-                        </p>
-                      </div>
-                      <form onSubmit={handleVerify} className="space-y-4">
-                        <UInput value={verifyCode} onChange={v => { setVerifyCode(v); clrErr() }}
-                          placeholder="Enter 6-digit code" autoFocus />
-                        <ErrorLine error={error} />
-                        <PrimaryBtn loading={loading}><CheckCircle2 className="h-4 w-4" /> Verify &amp; Sign In</PrimaryBtn>
-                      </form>
-                      <div className="mt-4 flex justify-between text-xs">
-                        <button onClick={handleResend} disabled={loading} className="hover:opacity-70"
-                          style={{ color: "rgba(196,181,253,0.6)" }}>Resend code</button>
-                        <button onClick={() => { setPhase("register"); clrErr() }} className="hover:opacity-70"
-                          style={{ color: "rgba(196,181,253,0.6)" }}>← Different email</button>
-                      </div>
-                    </motion.div>
-                  )}
-
-                  {/* FORGOT */}
-                  {phase === "forgot" && (
-                    <motion.div key="fgt" initial={{ opacity: 0, x: 14 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}>
-                      <button onClick={() => { setPhase("signin"); clrErr() }}
-                        className="flex items-center gap-1 text-xs mb-5 hover:opacity-70"
-                        style={{ color: "rgba(196,181,253,0.6)" }}>
-                        <ChevronLeft className="h-3.5 w-3.5" /> Back
-                      </button>
-                      <h2 className="text-xl font-bold text-white mb-0.5">Forgot Password?</h2>
-                      <p className="text-sm mb-5" style={{ color: "rgba(196,181,253,0.6)" }}>Enter your email for a reset code.</p>
-                      <form onSubmit={handleForgot} className="space-y-4">
-                        <UInput label="Email" type="email" value={forgotEmail}
-                          onChange={v => { setForgotEmail(v); clrErr() }} placeholder="name@example.com" autoFocus />
-                        <ErrorLine error={error} />
-                        <PrimaryBtn loading={loading}>Send Reset Code <ArrowRight className="h-4 w-4" /></PrimaryBtn>
-                      </form>
-                    </motion.div>
-                  )}
-
-                  {/* RESET */}
-                  {phase === "reset" && (
-                    <motion.div key="rst" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}>
-                      <h2 className="text-xl font-bold text-white mb-1">Reset Password</h2>
-                      <p className="text-sm mb-5" style={{ color: "rgba(196,181,253,0.6)" }}>Code sent to {pendingEmail}</p>
-                      <form onSubmit={handleReset} className="space-y-4">
-                        <UInput label="Reset Code" value={resetCode}
-                          onChange={v => { setResetCode(v); clrErr() }} placeholder="Enter reset code" autoFocus />
-                        <UInput label="New Password" type={showPw ? "text" : "password"} value={newPw}
-                          onChange={v => { setNewPw(v); clrErr() }} placeholder="New password"
-                          right={eyeBtn(showPw, () => setShowPw(s => !s))} />
-                        <ErrorLine error={error} />
-                        <PrimaryBtn loading={loading}>Reset Password <CheckCircle2 className="h-4 w-4" /></PrimaryBtn>
-                      </form>
-                    </motion.div>
-                  )}
-
-                </AnimatePresence>
-              </GlassCard>
-            </motion.div>
-          </motion.div>
-        )}
-
-      </AnimatePresence>
-
-      {/* Bottom branding — same as boot screen */}
-      <div className="absolute bottom-6 left-0 right-0 text-center z-10">
-        <p className="text-xs" style={{ color: "rgba(255,255,255,0.2)" }}>
-          Powered by AWS Student Builder Group · NMIET
+        <p className="text-[11px] text-white/45">
+          {CLUB.name} · {CLUB.chapter}
         </p>
       </div>
     </div>
+  )
+}
+
+// ── Pieces ───────────────────────────────────────────────────────────────────
+
+function UserTile({
+  label,
+  sublabel,
+  onClick,
+  icon: Icon,
+  logo,
+}: {
+  label: string
+  sublabel: string
+  onClick: () => void
+  icon?: typeof User
+  logo?: boolean
+}) {
+  return (
+    <button onClick={onClick} className="group flex w-24 flex-col items-center gap-2 outline-none">
+      <span className="flex size-20 items-center justify-center overflow-hidden rounded-full bg-white/20 shadow-lg ring-white/80 backdrop-blur-md transition-transform group-hover:scale-105 group-focus-visible:ring-2">
+        {logo ? (
+          <Image src="/logo-full.png" alt="" width={56} height={56} className="size-14 object-contain" unoptimized priority />
+        ) : Icon ? (
+          <Icon className="size-9 text-white" />
+        ) : null}
+      </span>
+      <span className="text-[14px] font-semibold drop-shadow">{label}</span>
+      <span className="-mt-1.5 text-[11px] text-white/65">{sublabel}</span>
+    </button>
+  )
+}
+
+function Avatar({ icon: Icon }: { icon: typeof User }) {
+  return (
+    <span className="mb-1 flex size-16 items-center justify-center rounded-full bg-white/20 shadow-lg backdrop-blur-md">
+      <Icon className="size-8 text-white" />
+    </span>
+  )
+}
+
+const pillCls =
+  "h-9 w-full rounded-full border border-white/25 bg-white/15 px-4 text-[13px] text-white outline-none backdrop-blur-md placeholder:text-white/55 focus:border-white/60 focus:bg-white/20"
+
+function Field({
+  value,
+  onChange,
+  type = "text",
+  ...rest
+}: {
+  value: string
+  onChange: (v: string) => void
+  type?: string
+  placeholder?: string
+  autoFocus?: boolean
+  autoComplete?: string
+  inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"]
+}) {
+  return <input {...rest} type={type} value={value} onChange={e => onChange(e.target.value)} aria-label={rest.placeholder} className={pillCls} />
+}
+
+function SubmitArrow({ loading }: { loading: boolean }) {
+  return (
+    <button
+      type="submit"
+      disabled={loading}
+      aria-label="Continue"
+      className="flex size-8 shrink-0 items-center justify-center rounded-full border border-white/40 bg-white/20 text-white transition-colors hover:bg-white/35 disabled:opacity-50"
+    >
+      {loading ? <Loader2 className="size-4 animate-spin" /> : <ArrowRight className="size-4" />}
+    </button>
+  )
+}
+
+function PasswordPill({
+  value,
+  onChange,
+  show,
+  onToggle,
+  loading,
+  placeholder = "Password",
+  autoComplete,
+}: {
+  value: string
+  onChange: (v: string) => void
+  show: boolean
+  onToggle: () => void
+  loading: boolean
+  placeholder?: string
+  autoComplete?: string
+}) {
+  return (
+    <div className="flex w-full items-center gap-2">
+      <div className="relative flex-1">
+        <input
+          type={show ? "text" : "password"}
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          placeholder={placeholder}
+          aria-label={placeholder}
+          autoComplete={autoComplete}
+          className={`${pillCls} pr-10`}
+        />
+        <button type="button" onClick={onToggle} aria-label={show ? "Hide password" : "Show password"} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60 hover:text-white">
+          {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+        </button>
+      </div>
+      <SubmitArrow loading={loading} />
+    </div>
+  )
+}
+
+function CodePill({ value, onChange, loading }: { value: string; onChange: (v: string) => void; loading: boolean }) {
+  return (
+    <div className="flex w-full items-center gap-2">
+      <input
+        value={value}
+        onChange={e => onChange(e.target.value.replace(/\D/g, "").slice(0, 6))}
+        placeholder="000000"
+        aria-label="Verification code"
+        inputMode="numeric"
+        autoComplete="one-time-code"
+        autoFocus
+        className={`${pillCls} text-center font-mono text-[16px] tracking-[0.4em]`}
+      />
+      <SubmitArrow loading={loading} />
+    </div>
+  )
+}
+
+function Messages({ error, notice }: { error: string; notice: string }) {
+  if (!error && !notice) return null
+  return (
+    <p role={error ? "alert" : "status"} className={`text-center text-[12px] font-medium ${error ? "text-red-200" : "text-emerald-200"}`}>
+      {error || notice}
+    </p>
+  )
+}
+
+function BackLink({ onClick }: { onClick: () => void }) {
+  return (
+    <button type="button" onClick={onClick} className="inline-flex items-center gap-0.5 hover:text-white">
+      <ChevronLeft className="size-3.5" /> Back
+    </button>
   )
 }

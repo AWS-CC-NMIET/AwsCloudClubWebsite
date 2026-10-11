@@ -180,6 +180,16 @@ interface RawDbEvent {
   description?: string
   imageUrls?: string[]
   isPast: boolean | string
+  tags?: string[]
+}
+
+/** Photo-only albums created in Admin → Gallery (not real events). */
+const isGalleryAlbum = (e: RawDbEvent) =>
+  (Array.isArray(e.tags) && e.tags.includes("gallery-album")) || e.description === "Gallery Album"
+
+function formatAlbumDate(date: string) {
+  const d = new Date(`${date}T00:00:00`)
+  return Number.isNaN(d.getTime()) ? date : d.toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -303,6 +313,7 @@ export function useEvents(): Resource<ClubEvent[]> {
     const dbEvents: ClubEvent[] = []
 
     for (const e of db.data) {
+      if (isGalleryAlbum(e)) continue
       const isPast = e.isPast === true || e.isPast === "true"
       const imageUrls = Array.isArray(e.imageUrls) ? e.imageUrls.filter(Boolean) : []
       const twin = meetupTitles.get(String(e.title).toLowerCase().trim())
@@ -426,18 +437,27 @@ export function useSocialLinks(): Resource<SocialLink[]> {
 /** Photo albums built from event photos uploaded by admins. */
 export function useGallery(): Resource<Album[]> {
   const events = useEvents()
+  const db = dbEventsResource.use()
   return useMemo(() => {
-    const albums: Album[] = events.data
+    const toAlbum = (id: string, title: string, date: string, urls: string[], sortKey: string) => ({
+      id,
+      title,
+      date,
+      cover: urls[0],
+      sortKey,
+      photos: urls.map((src, i) => ({ id: `${id}-${i}`, src, caption: `${title} — Photo ${i + 1}` })),
+    })
+    const fromEvents = events.data
       .filter(e => e.imageUrls.length > 0)
-      .map(e => ({
-        id: e.id,
-        title: e.title,
-        date: e.date,
-        cover: e.imageUrls[0],
-        photos: e.imageUrls.map((src, i) => ({ id: `${e.id}-${i}`, src, caption: `${e.title} — Photo ${i + 1}` })),
-      }))
-    return { data: albums, status: events.status, fromFallback: events.fromFallback }
-  }, [events])
+      .map(e => toAlbum(e.id, e.title, e.date, e.imageUrls, e.dateTime))
+    const albumsOnly = db.data
+      .filter(e => isGalleryAlbum(e) && Array.isArray(e.imageUrls) && e.imageUrls.length > 0)
+      .map(e => toAlbum(`album-${e.id}`, e.title, formatAlbumDate(e.date), e.imageUrls!.filter(Boolean), `${e.date}T00:00:00`))
+    const albums: Album[] = [...fromEvents, ...albumsOnly]
+      .sort((a, b) => new Date(b.sortKey).getTime() - new Date(a.sortKey).getTime())
+      .map(({ sortKey: _sortKey, ...album }) => album)
+    return { data: albums, status: events.status, fromFallback: events.fromFallback && db.fromFallback }
+  }, [events, db])
 }
 
 /** Live numbers for copy like "{members} Members on Meetup". */

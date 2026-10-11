@@ -22,7 +22,17 @@ async function apiFetch<T>(url: string, options: RequestInit = {}): Promise<T> {
   return res.json()
 }
 
-// ── Events ────────────────────────────────────────────────────
+export interface HealthReport {
+  ok: boolean
+  services?: {
+    dynamodb: Record<string, { table: string; ok: boolean; detail?: string }>
+    s3: { bucket: string; ok: boolean; detail?: string }
+    ses: { from: boolean; ok: boolean; detail?: string }
+    cognitoAdminApi: { ok: boolean; detail?: string }
+  }
+  config?: Record<string, string | boolean>
+}
+
 export const api = {
   events: {
     list: ()              => apiFetch<{ events: unknown[] }>("/api/events"),
@@ -83,6 +93,10 @@ export const api = {
       demote:  (username: string) => apiFetch<{ success: boolean }>("/api/admin/users", { method: "PUT", body: JSON.stringify({ username, action: "demote" }) }),
     },
   },
+  auth: {
+    session: () => apiFetch<{ signedIn: boolean; isAdmin: boolean; username?: string }>("/api/auth/session"),
+  },
+  health: () => apiFetch<HealthReport>("/api/health"),
   meetup: {
     data: () => apiFetch<{ memberCount: number; groupUrl: string; events: unknown[] }>("/api/meetup"),
   },

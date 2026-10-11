@@ -48,7 +48,9 @@ let cached: { at: number; payload: MeetupPayload } | null = null
 function toEvent(node: MeetupNode, isPast: boolean) {
   const venue = node.venue?.name
     ? `${node.venue.name}${node.venue.city && !node.venue.name.includes(node.venue.city) ? ", " + node.venue.city : ""}`
-    : "Online / TBA"
+    : isPast
+      ? "Venue not listed"
+      : "Venue to be announced"
   return {
     id: node.id,
     title: node.title,
