@@ -111,7 +111,11 @@ export function SocialApp() {
                     </div>
                     <div className="min-w-0">
                       <h3 className="truncate text-sm font-bold text-(--os-text)">{link.name}</h3>
-                      {link.followers && <p className="text-xs text-(--os-text-dim)">{link.followers} followers</p>}
+                      {(link.handle || link.followers) && (
+                        <p className="truncate text-xs text-(--os-text-dim)">
+                          {[link.handle, link.followers && `${link.followers} followers`].filter(Boolean).join(" · ")}
+                        </p>
+                      )}
                     </div>
                   </div>
                   <span className="text-xs font-semibold text-(--accent)">Follow →</span>

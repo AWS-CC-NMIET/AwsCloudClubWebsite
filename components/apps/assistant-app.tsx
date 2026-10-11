@@ -78,7 +78,11 @@ function answer(q: string, ctx: { members: string; nextEvent?: ClubEvent }): Cha
     }
   }
   if (has("discord", "youtube", "instagram", "linkedin", "social", "follow")) {
-    return { sender: "bot", text: "Find all our channels in the Social app.", action: { app: "social", label: "Open Social" } }
+    return {
+      sender: "bot",
+      text: "We're on Instagram (@aws.sbg_nmiet), LinkedIn and YouTube — and events are on Meetup. All links are in the Social app.",
+      action: { app: "social", label: "Open Social" },
+    }
   }
   return {
     sender: "bot",

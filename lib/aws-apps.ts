@@ -228,7 +228,7 @@ export const APPS_META: Record<AppId, AppMeta> = {
     springboardLabel: "Social",
     spotlight: {
       keywords: ["social", "meetup", "youtube", "discord", "instagram", "linkedin", "follow", "connect"],
-      description: "Meetup, YouTube, Discord and more",
+      description: "Meetup, Instagram, LinkedIn and YouTube",
     },
     menus: standardMenus("Social", [goMenu]),
   },

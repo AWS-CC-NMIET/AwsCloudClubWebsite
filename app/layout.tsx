@@ -55,7 +55,7 @@ const ORGANIZATION_JSON_LD = {
     addressCountry: 'IN',
   },
   parentOrganization: { '@type': 'CollegeOrUniversity', name: CLUB.college },
-  sameAs: [CLUB.meetupUrl, CLUB.youtubeUrl],
+  sameAs: [CLUB.meetupUrl, CLUB.instagramUrl, CLUB.linkedinUrl, CLUB.youtubeUrl],
 }
 
 export const viewport: Viewport = {
@@ -129,7 +129,7 @@ export default function RootLayout({
             <p>{CLUB.college}, {CLUB.city}. Founded {CLUB.founded}.</p>
             <ul>
               <li><a href={CLUB.meetupUrl}>Join us and RSVP to events on Meetup</a></li>
-              <li><a href={CLUB.youtubeUrl}>YouTube</a></li>
+              <li><a href={CLUB.instagramUrl}>Instagram</a> · <a href={CLUB.linkedinUrl}>LinkedIn</a> · <a href={CLUB.youtubeUrl}>YouTube</a></li>
               <li><a href={`mailto:${CLUB.email}`}>{CLUB.email}</a></li>
             </ul>
             <p>Turn on JavaScript to explore the full Cloud OS experience.</p>

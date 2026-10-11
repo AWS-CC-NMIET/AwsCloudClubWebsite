@@ -353,7 +353,7 @@ export function useEvents(): Resource<ClubEvent[]> {
 }
 
 /**
- * Team roster. Once scripts/seed-team.mjs has copied the roster into DynamoDB,
+ * Team roster. Once Admin → Team → Import roster has copied the roster into DynamoDB,
  * the database is the single source of truth (admins add, edit and remove
  * members). Until then — or if the API is unreachable — the built-in roster is
  * shown, with any database edits applied on top (matched by email or name).
@@ -362,8 +362,14 @@ export function useTeam(): Resource<TeamMember[]> {
   const db = teamResource.use()
 
   return useMemo(() => {
+    const norm = (v?: string) => v?.trim().toLowerCase() || ""
+    // Database entries without a photo (e.g. imported before photos existed)
+    // fall back to the member's built-in portrait, matched by email or name.
+    const builtInPhoto = (m: TeamMember) =>
+      TEAM_MEMBERS.find(b => (m.email && norm(b.email) === norm(m.email)) || norm(b.name) === norm(m.name))?.photoUrl
     const clean = (m: TeamMember): TeamMember => ({
       ...m,
+      photoUrl: m.photoUrl || builtInPhoto(m),
       skills: Array.isArray(m.skills) ? m.skills : [],
       awsService: m.awsService || "AWS Cloud",
       status: m.status || "running",
@@ -418,19 +424,28 @@ export function useResources(): Resource<LearningResource[]> {
 
 const isDeadLink = (url: string) => DEAD_LINKS.some(dead => url.includes(dead))
 
-/** Social links from the admin panel (dead links dropped, YouTube URL canonicalised). */
+const labelOf = (link: SocialLink) => `${link.platform} ${link.name}`.toLowerCase()
+const officialFor = (link: SocialLink) => FALLBACK_SOCIAL_LINKS.find(o => labelOf(link).includes(o.platform))
+
+/**
+ * Our official channels first (Instagram, LinkedIn, YouTube — always the
+ * verified URLs, with follower counts from the admin panel when set), then any
+ * other channels added in Admin. Dead links and Meetup (shown separately) are dropped.
+ */
 export function useSocialLinks(): Resource<SocialLink[]> {
   const res = socialResource.use()
   return useMemo(() => {
     if (res.data.length === 0) {
       return { data: FALLBACK_SOCIAL_LINKS, status: res.status, fromFallback: true }
     }
-    const links = res.data
-      .map(link => (`${link.platform} ${link.name}`.toLowerCase().includes("youtube") ? { ...link, url: CLUB.youtubeUrl } : link))
-      .filter(link => link.url && !isDeadLink(link.url))
-      // The Meetup card is always shown separately.
-      .filter(link => !`${link.platform} ${link.name}`.toLowerCase().includes("meetup"))
-    return { ...res, data: links }
+    const official = FALLBACK_SOCIAL_LINKS.map(o => {
+      const followers = res.data.find(l => officialFor(l) === o)?.followers
+      return followers && /\d/.test(followers) ? { ...o, followers } : o
+    })
+    const others = res.data.filter(
+      link => !officialFor(link) && link.url && !isDeadLink(link.url) && !labelOf(link).includes("meetup")
+    )
+    return { ...res, data: [...official, ...others] }
   }, [res])
 }
 
@@ -455,7 +470,7 @@ export function useGallery(): Resource<Album[]> {
       .map(e => toAlbum(`album-${e.id}`, e.title, formatAlbumDate(e.date), e.imageUrls!.filter(Boolean), `${e.date}T00:00:00`))
     const albums: Album[] = [...fromEvents, ...albumsOnly]
       .sort((a, b) => new Date(b.sortKey).getTime() - new Date(a.sortKey).getTime())
-      .map(({ sortKey: _sortKey, ...album }) => album)
+      .map(({ sortKey, ...album }) => album)
     return { data: albums, status: events.status, fromFallback: events.fromFallback && db.fromFallback }
   }, [events, db])
 }

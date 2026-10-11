@@ -20,6 +20,8 @@ export const CLUB = {
     "Empowering the next generation of cloud innovators through hands-on learning, real-world projects, and a thriving community.",
   meetupUrl: "https://www.meetup.com/aws-sbg-at-nutan-maharashtra-inst-of-engineering-and-tech/",
   youtubeUrl: "https://www.youtube.com/@AWSStudentBuildersGroupNMIET",
+  instagramUrl: "https://www.instagram.com/aws.sbg_nmiet/",
+  linkedinUrl: "https://www.linkedin.com/company/aws-student-builder-group-nmiet/",
   region: "ap-south-1 (Mumbai)",
   /** Last verified Meetup member count (1,252 on 2026-10-11) — shown only until the live count loads. */
   fallbackMemberCount: 1250,
@@ -92,7 +94,7 @@ export const OFFICE_HOURS = [
 // ── Team ──────────────────────────────────────────────────────────────────────
 // Roster: roles and teams from the jacket list, contact details from the
 // "Contact Information" form (Oct 2026). Photos are processed into
-// /public/team by scripts/fetch-team-photos.mjs (see lib/team-photos.ts).
+// /public/team by scripts/team-photo.mjs (see lib/team-photos.ts).
 
 /** The teams ("constructors") of the club, in display order. */
 export type TeamGroup = "Captain" | "Tech" | "Design" | "Media" | "Events" | "Onsite" | "Members"
@@ -338,13 +340,21 @@ export interface SocialLink {
   name: string
   url: string
   followers?: string
+  /** Display handle, e.g. "@aws.sbg_nmiet". */
+  handle?: string
   platform: string
   color: string
 }
 
-/** Only links we have verified — used when the social-links API is unreachable. */
+/**
+ * Our official channels (verified). Always shown, in this order; a database
+ * entry for the same platform is replaced by these URLs (old entries point at
+ * the pre-rename AWS Cloud Club accounts).
+ */
 export const FALLBACK_SOCIAL_LINKS: SocialLink[] = [
-  { id: "fb-youtube", name: "YouTube", platform: "YouTube", url: CLUB.youtubeUrl, color: "#FF0000" },
+  { id: "fb-instagram", name: "Instagram", platform: "instagram", url: CLUB.instagramUrl, handle: "@aws.sbg_nmiet", color: "#E1306C" },
+  { id: "fb-linkedin", name: "LinkedIn", platform: "linkedin", url: CLUB.linkedinUrl, handle: "AWS Student Builder Group NMIET", color: "#0A66C2" },
+  { id: "fb-youtube", name: "YouTube", platform: "youtube", url: CLUB.youtubeUrl, handle: "@AWSStudentBuildersGroupNMIET", color: "#FF0000" },
 ]
 
 /** Links verified as dead (expired invites etc.) — never shown, even if still stored in the database. */
