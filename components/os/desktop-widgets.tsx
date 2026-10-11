@@ -1,5 +1,5 @@
 // components/os/desktop-widgets.tsx
-// Desktop widget presentation layer for AWS SBG NMIET AWS Cloud OS
+// Desktop widgets for the AWS SBG NMIET Cloud OS (live club data)
 
 "use client"
 
@@ -10,7 +10,6 @@ import {
   widgetPxSize,
   colsForWidth,
   resolveDropPosition,
-  WIDGET_DEFINITIONS,
   type WidgetId,
   type WidgetSize,
 } from "@/lib/aws-widgets"
@@ -21,21 +20,20 @@ import {
   TRACKS,
 } from "@/lib/aws-store"
 import {
-  Wifi,
-  Activity,
   Calendar as CalendarIcon,
   Play,
   Pause,
-  SkipForward,
-  FolderGit2,
-  Award,
   Sun,
   Moon,
   Clock,
-  MoreHorizontal,
   Trash2,
   Sliders,
+  MapPin,
+  Users,
+  Rocket,
+  Zap,
 } from "lucide-react"
+import { useEvents, useMemberCount, useProjects, useTeam } from "@/lib/club-data"
 
 export function DesktopWidgets() {
   const widgets = useWidgetStore(s => s.widgets)
@@ -175,7 +173,7 @@ export function DesktopWidgets() {
   )
 }
 
-// ── Drag hook (mirrors AWS Cloud Club pattern) ───────────────────────────────
+// ── Drag hook ────────────────────────────────────────────────────────────────
 
 function useMotionValue(initial: number) {
   const ref = useRef(initial)
@@ -362,65 +360,85 @@ function DraggableWidget({
 
 function WidgetContent({ id, size }: { id: WidgetId; size: WidgetSize }) {
   switch (id) {
-    case "aws-status":
-      return <AwsStatusWidget />
+    case "next-event":
+      return <NextEventWidget />
+    case "club-stats":
+      return <ClubStatsWidget />
     case "clock-cities":
       return <ClockCitiesWidget size={size} />
     case "calendar":
       return <CalendarWidget />
     case "now-playing":
       return <NowPlayingWidget />
-    case "portfolio":
-      return <PortfolioWidget />
-    case "certifications":
-      return <CertificationsWidget />
     default:
       return null
   }
 }
 
-// ── 1. AWS Cloud Status Widget ────────────────────────────────────────────────
-function AwsStatusWidget() {
+// ── Next Event ──────────────────────────────────────────────────────────────
+function NextEventWidget() {
+  const events = useEvents()
+  const next = events.data.find(e => !e.isPast)
+  const latest = events.data.find(e => e.isPast)
+  const shown = next ?? latest
+
   return (
-    <div
-      onClick={() => windowActions.open("aws")}
-      className="flex h-full w-full flex-col justify-between p-3.5 cursor-pointer text-left"
-    >
+    <div onClick={() => windowActions.open("calendar")} role="button" tabIndex={0} className="flex h-full w-full cursor-pointer flex-col justify-between p-3.5 text-left">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
-          <Activity className="size-3.5 text-[#7940ea]" />
+          <CalendarIcon className="size-3.5 text-[#e8590c]" />
           <span className="text-[11px] font-bold uppercase tracking-wider text-(--os-text-dim)">
-            AWS Infrastructure
+            {next ? "Next Event" : "Latest Event"}
           </span>
         </div>
-        <div className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
-          <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          <span>Operational</span>
-        </div>
+        {next && <span className="rounded-full bg-emerald-500/12 px-2 py-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">RSVP open</span>}
       </div>
-
-      <div className="grid grid-cols-2 gap-3 py-1">
-        <div className="rounded-xl border border-black/5 dark:border-white/5 bg-black/5 dark:bg-white/5 p-2 leading-tight">
-          <p className="text-[10px] font-mono text-(--os-text-dim)">ap-south-1 (Mumbai)</p>
-          <p className="text-sm font-bold text-(--os-text) mt-0.5">24ms · 99.99%</p>
-          <p className="text-[9px] text-emerald-400 mt-0.5">DynamoDB & S3 Active</p>
+      {shown ? (
+        <div className="min-w-0">
+          <p className="line-clamp-2 text-sm font-bold leading-snug text-(--os-text)">{shown.title}</p>
+          <p className="mt-1 truncate text-[11px] text-(--os-text-dim)">{shown.date}</p>
+          <p className="flex items-center gap-1 truncate text-[11px] text-(--os-text-dim)">
+            <MapPin className="size-3 shrink-0" /> {shown.location}
+          </p>
         </div>
-        <div className="rounded-xl border border-black/5 dark:border-white/5 bg-black/5 dark:bg-white/5 p-2 leading-tight">
-          <p className="text-[10px] font-mono text-(--os-text-dim)">us-east-1 (Virginia)</p>
-          <p className="text-sm font-bold text-(--os-text) mt-0.5">182ms · 100%</p>
-          <p className="text-[9px] text-emerald-400 mt-0.5">Cognito & SES Active</p>
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between text-[10px] text-(--os-text-dim)">
-        <span>All services healthy</span>
-        <span className="text-[#7940ea] font-medium">View Telemetry →</span>
-      </div>
+      ) : (
+        <p className="text-xs text-(--os-text-dim)">{events.status === "loading" ? "Loading events…" : "New events are announced on Meetup."}</p>
+      )}
+      <span className="text-[10px] font-medium text-[#7940ea]">Open Events →</span>
     </div>
   )
 }
 
-// ── 2. Global Builder Clocks Widget ───────────────────────────────────────────
+// ── Club at a Glance ────────────────────────────────────────────────────────
+function ClubStatsWidget() {
+  const { display: members } = useMemberCount()
+  const team = useTeam()
+  const projects = useProjects()
+  const events = useEvents()
+  const stats = [
+    { label: "Members", value: members, icon: Users, color: "#7940ea" },
+    { label: "Team", value: `${team.data.length}`, icon: Zap, color: "#5BA8D8" },
+    { label: "Projects", value: projects.data.length > 0 ? `${projects.data.length}` : "3+", icon: Rocket, color: "#50C88A" },
+    { label: "Events", value: events.fromFallback ? "1+" : `${events.data.length}`, icon: CalendarIcon, color: "#FF9900" },
+  ]
+  return (
+    <div onClick={() => windowActions.open("aws")} role="button" tabIndex={0} className="flex h-full w-full cursor-pointer flex-col justify-between p-3.5 text-left">
+      <span className="text-[11px] font-bold uppercase tracking-wider text-(--os-text-dim)">AWS SBG NMIET</span>
+      <div className="grid grid-cols-4 gap-1.5">
+        {stats.map(s => (
+          <div key={s.label} className="flex flex-col items-center rounded-xl bg-black/5 p-1.5 text-center dark:bg-white/5">
+            <s.icon className="size-3.5" style={{ color: s.color }} />
+            <span className="mt-1 text-sm font-extrabold tabular-nums text-(--os-text)">{s.value}</span>
+            <span className="text-[9px] font-medium text-(--os-text-dim)">{s.label}</span>
+          </div>
+        ))}
+      </div>
+      <span className="text-[10px] font-medium text-[#7940ea]">Open Home →</span>
+    </div>
+  )
+}
+
+// ── World Clock ─────────────────────────────────────────────────────────────
 function ClockCitiesWidget({ size }: { size: WidgetSize }) {
   const [time, setTime] = useState({ mumbai: "", seattle: "" })
 
@@ -450,7 +468,7 @@ function ClockCitiesWidget({ size }: { size: WidgetSize }) {
       <div className="flex items-center gap-1.5">
         <Clock className="size-3.5 text-[#7940ea]" />
         <span className="text-[11px] font-bold uppercase tracking-wider text-(--os-text-dim)">
-          Builder Clocks
+          World Clock
         </span>
       </div>
 
@@ -458,7 +476,7 @@ function ClockCitiesWidget({ size }: { size: WidgetSize }) {
         <div>
           <div className="flex items-center gap-1 text-[11px] font-semibold text-(--os-text)">
             <Sun className="size-3 text-amber-400" />
-            <span>Mumbai (IST)</span>
+            <span>Pune (IST)</span>
           </div>
           <p className="text-xl font-bold tracking-tight text-(--os-text) tabular-nums mt-0.5">
             {time.mumbai || "..."}
@@ -478,13 +496,14 @@ function ClockCitiesWidget({ size }: { size: WidgetSize }) {
         </div>
       </div>
 
-      <p className="text-[10px] text-(--os-text-dim)">Coordinated development cycles</p>
     </div>
   )
 }
 
 // ── 3. Chapter Calendar Widget ────────────────────────────────────────────────
 function CalendarWidget() {
+  const events = useEvents()
+  const next = events.data.find(e => !e.isPast)
   const [dateInfo, setDateInfo] = useState({ weekday: "", day: 1, month: "" })
 
   useEffect(() => {
@@ -512,10 +531,10 @@ function CalendarWidget() {
         </p>
       </div>
       <div>
-        <p className="text-[11px] font-semibold text-(--os-text) leading-tight">
-          Cloud Bootcamp
+        <p className="line-clamp-2 text-[11px] font-semibold leading-tight text-(--os-text)">
+          {next ? next.title : "No upcoming events"}
         </p>
-        <p className="text-[10px] text-(--os-text-dim)">Sat · 4:00 PM</p>
+        <p className="text-[10px] text-(--os-text-dim)">{next ? next.date : "Check Meetup for news"}</p>
       </div>
     </div>
   )
@@ -556,94 +575,13 @@ function NowPlayingWidget() {
               <Play className="size-3.5 fill-current ml-0.5" />
             )}
           </button>
-          <button
-            onClick={() => audioActions.nextTrack()}
-            className="flex size-7 items-center justify-center rounded-full bg-black/5 dark:bg-white/10 text-(--os-text) hover:bg-black/10 dark:hover:bg-white/20 transition-colors"
-          >
-            <SkipForward className="size-3.5" />
-          </button>
+
         </div>
       </div>
 
       <div className="flex items-center justify-between text-[10px] text-(--os-text-dim)">
-        <span>Lo-Fi Beats to Architect To</span>
+        <span>Lo-fi while you explore</span>
         <span className="font-mono text-[#7940ea]">{track.duration}</span>
-      </div>
-    </div>
-  )
-}
-
-// ── 5. Student Cloud Architectures Widget ──────────────────────────────────────
-function PortfolioWidget() {
-  return (
-    <div
-      onClick={() => windowActions.open("finder")}
-      role="button"
-      tabIndex={0}
-      className="flex h-full w-full flex-col justify-between p-3.5 text-left cursor-pointer transition-transform hover:scale-[1.01]"
-    >
-      <div className="flex items-center justify-between">
-        <span className="text-[11px] font-bold uppercase tracking-wider text-(--os-text-dim)">
-          Projects
-        </span>
-        <FolderGit2 className="size-3.5 text-[#7940ea]" />
-      </div>
-
-      <div>
-        <p className="text-3xl font-extrabold text-(--os-text) leading-none">18</p>
-        <p className="text-[11px] font-medium text-(--os-text-dim) mt-1">
-          Deployed Stacks
-        </p>
-      </div>
-
-      <div className="text-[10px] text-(--os-text-dim) truncate">
-        Serverless & AI Blueprints →
-      </div>
-    </div>
-  )
-}
-
-// ── 6. Certifications & Accreditations Widget ─────────────────────────────────
-function CertificationsWidget() {
-  return (
-    <div
-      onClick={() => windowActions.open("notes")}
-      className="flex h-full w-full flex-col justify-between p-3.5 text-left cursor-pointer"
-    >
-      <div className="flex items-center justify-between">
-        <span className="text-[11px] font-bold uppercase tracking-wider text-(--os-text-dim)">
-          Builder Credentials
-        </span>
-        <div className="flex items-center gap-1 text-[10px] text-(--os-text-dim) font-mono">
-          <Award className="size-3 text-amber-400" />
-          <span>500+ Members</span>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-3 gap-2 py-1">
-        <div className="flex flex-col items-center rounded-xl bg-black/5 dark:bg-white/5 p-2 text-center">
-          <span className="text-sm font-bold text-[#7940ea]">12</span>
-          <span className="text-[9px] font-semibold text-(--os-text) leading-tight mt-0.5">
-            Solutions Architect
-          </span>
-        </div>
-        <div className="flex flex-col items-center rounded-xl bg-black/5 dark:bg-white/5 p-2 text-center">
-          <span className="text-sm font-bold text-blue-400">8</span>
-          <span className="text-[9px] font-semibold text-(--os-text) leading-tight mt-0.5">
-            Developer Assoc.
-          </span>
-        </div>
-        <div className="flex flex-col items-center rounded-xl bg-black/5 dark:bg-white/5 p-2 text-center">
-          <span className="text-sm font-bold text-emerald-400">18</span>
-          <span className="text-[9px] font-semibold text-(--os-text) leading-tight mt-0.5">
-            Cloud Practitioner
-          </span>
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between text-[10px] text-(--os-text-dim)">
-        <span>Explore Certification Roadmaps</span>
-        <span className="text-[#7940ea] font-medium">Notes →</span>
       </div>
     </div>
   )

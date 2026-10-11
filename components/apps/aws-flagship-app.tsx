@@ -1,330 +1,256 @@
 // components/apps/aws-flagship-app.tsx
-// Flagship AWS Cloud Club overview app modeled directly after AWS Cloud Club's homepage
+// Home — the AWS Student Builder Group NMIET welcome window
 
 "use client"
 
-import React from "react"
+import React, { useMemo, useRef, useState } from "react"
 import Image from "next/image"
-import {
-  ArrowRight,
-  Cloud,
-  Terminal,
-  ShieldCheck,
-  Cpu,
-  Layers,
-  Award,
-  Users,
-  ExternalLink,
-  Sparkles,
-} from "lucide-react"
-import { windowActions } from "@/lib/aws-store"
+import { AnimatePresence, motion } from "framer-motion"
+import { ArrowRight, Calendar, Cloud, MapPin, Rocket, Sparkles, Star, Users, Zap } from "lucide-react"
+import { windowActions, systemActions } from "@/lib/aws-store"
+import { APPS_META, type AppId } from "@/lib/aws-apps"
+import { CLUB, HIGHLIGHTS, WHAT_WE_DO, type PillarIcon } from "@/lib/club-content"
+import { fillFacts, useClubFacts, useEvents, useMemberCount, useProjects, useTeam } from "@/lib/club-data"
+import { AppIcon } from "@/components/os/app-icon"
+import { MacButton } from "./shared/mac-ui"
 
-const TECH_PILLS = [
-  "Amazon EC2",
-  "AWS Lambda",
-  "Amazon S3",
-  "Amazon DynamoDB",
-  "AWS Bedrock",
-  "AWS CDK",
-  "Next.js",
-  "TypeScript",
-  "Docker",
-  "AWS Cognito",
-  "Amazon CloudFront",
-]
+const PILLAR_ICONS: Record<PillarIcon, React.ElementType> = { cloud: Cloud, rocket: Rocket, sparkles: Sparkles }
 
-const STATS = [
-  { value: "500+", label: "Student Builders", context: "Active campus community" },
-  { value: "15+", label: "Cloud Workshops", context: "Conducted live on campus" },
-  { value: "30+", label: "AWS Certifications", context: "Earned by club members" },
-  { value: "10+", label: "Live Architectures", context: "Deployed & open sourced" },
-]
+const EXPLORE: AppId[] = ["about", "team", "calendar", "finder", "safari", "photos", "achievements", "social", "mail"]
 
-const FEATURED_PROJECTS = [
-  {
-    slug: "serverless-portal",
-    title: "Campus Serverless Portal",
-    summary: "Production student portal powered by Lambda, DynamoDB, API Gateway, and Cognito authentication.",
-    result: "99.99% Uptime",
-    context: "Zero server maintenance",
-    tags: ["AWS Lambda", "DynamoDB", "Cognito", "Next.js"],
-  },
-  {
-    slug: "cloud-resume",
-    title: "AWS Cloud Resume Challenge",
-    summary: "Full-stack portfolio with CI/CD pipeline, CloudFront distribution, HTTPS certs, and DynamoDB visitor counter.",
-    result: "100 Lighthouse",
-    context: "Global edge deployment",
-    tags: ["S3", "CloudFront", "Route 53", "GitHub Actions"],
-  },
-  {
-    slug: "bedrock-ai",
-    title: "Bedrock AI Study Assistant",
-    summary: "Retrieval-augmented generative AI bot for engineering coursework using AWS Bedrock and OpenSearch Serverless.",
-    result: "Sub-second",
-    context: "Semantic query response",
-    tags: ["AWS Bedrock", "Claude 3.5", "OpenSearch", "Python"],
-  },
-  {
-    slug: "rekognition-attendance",
-    title: "Smart Attendance via AWS Rekognition",
-    summary: "Computer-vision attendance system recognizing registered student faces in real-time with event-driven Lambda triggers.",
-    result: "99.4% Accuracy",
-    context: "Computer vision verification",
-    tags: ["AWS Rekognition", "EventBridge", "S3", "DynamoDB"],
-  },
-]
-
-const CLUB_PILLARS = [
-  {
-    title: "Hands-on Cloud Bootcamps",
-    description: "Zero-cost university workshops guiding students from IAM fundamentals to automated CI/CD and container clusters.",
-    credit: "Lead by Cloud Architecture Track",
-  },
-  {
-    title: "AWS Certification Cohorts",
-    description: "Structured 6-week study circles for AWS Certified Cloud Practitioner and Solutions Architect Associate.",
-    credit: "Lead by Certifications Team",
-  },
-  {
-    title: "GenAI on AWS Bedrock",
-    description: "Hands-on exploration of foundation models, RAG pipelines, and conversational AI built on managed AWS Bedrock infrastructure.",
-    credit: "Lead by AI/ML Domain",
-  },
-  {
-    title: "Production Architecture Labs",
-    description: "Real-world infrastructure design: multi-tier VPCs, high availability across AZs, auto-scaling, and cost optimization.",
-    credit: "Lead by DevOps Track",
-  },
-]
-
-const JOURNEY_STEPS = [
-  {
-    number: "01",
-    title: "Onboard & Discover",
-    body: "Create your AWS Educate account, master IAM security best practices, and set up your local development CLI tools.",
-  },
-  {
-    number: "02",
-    title: "Build & Architect",
-    body: "Collaborate on real-world projects with domain leads across Serverless, DevOps, Full-Stack, and Generative AI.",
-  },
-  {
-    number: "03",
-    title: "Certify & Validate",
-    body: "Complete guided study sprints, practice exam simulations, and earn official industry-recognized AWS credentials.",
-  },
-  {
-    number: "04",
-    title: "Deploy & Lead",
-    body: "Present your projects at campus demo days, contribute to open source, and mentor upcoming student builders.",
-  },
-]
+const CONFETTI_COLORS = ["#FF9900", "#6B4FE8", "#B8A4FF", "#50C88A", "#5BA8D8", "#FF3E3E"]
 
 export function AwsFlagshipApp() {
+  const { display: members } = useMemberCount()
+  const events = useEvents()
+  const projects = useProjects()
+  const team = useTeam()
+  const facts = useClubFacts()
+
+  const nextEvent = events.data.find(e => !e.isPast)
+
+  const stats = [
+    { label: "Members", value: members, icon: Users, color: "#6B4FE8" },
+    {
+      label: "Events",
+      value: events.status === "ready" && !events.fromFallback && events.data.length > 0 ? `${events.data.length}` : "1+",
+      icon: Calendar,
+      color: "#FF9900",
+    },
+    {
+      label: "Projects",
+      value: projects.status === "ready" && projects.data.length > 0 ? `${projects.data.length}` : "3+",
+      icon: Rocket,
+      color: "#50C88A",
+    },
+    { label: "Team", value: `${team.data.length}`, icon: Zap, color: "#5BA8D8" },
+  ]
+
+  // ── Easter egg: click the logo 5 times quickly ─────────────────────────────
+  const clicks = useRef({ count: 0, last: 0 })
+  const [confettiKey, setConfettiKey] = useState(0)
+  const handleLogoClick = () => {
+    const now = Date.now()
+    clicks.current.count = now - clicks.current.last < 1000 ? clicks.current.count + 1 : 1
+    clicks.current.last = now
+    if (clicks.current.count >= 5) {
+      clicks.current.count = 0
+      setConfettiKey(k => k + 1)
+      systemActions.showToast("You found us! True builders are always curious 🚀")
+    }
+  }
+
   return (
-    <div className="min-h-full w-full bg-[#fbfbfe] dark:bg-[#18181d] text-neutral-800 dark:text-neutral-100 selection:bg-[#7940ea]/30 selection:text-white">
-      <div className="mx-auto max-w-4xl px-5 py-8 md:px-10 md:py-12 space-y-12">
-        {/* ── Editorial Header ────────────────────────────────────────────────── */}
-        <section className="space-y-4">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#7940ea]/40 bg-[#7940ea]/10 px-3 py-1 font-mono text-xs font-semibold text-[#7940ea] dark:text-[#c084fc]">
-            <Sparkles className="size-3.5" />
-            <span>AWS SBG NMIET · Official Student Builder Group</span>
-          </div>
+    <div className="@container relative min-h-full w-full bg-[#fbfbfe] text-neutral-800 dark:bg-[#18181d] dark:text-neutral-100">
+      <div className="mx-auto max-w-4xl space-y-10 px-5 py-8 @2xl:px-10 @2xl:py-10">
+        {/* ── Hero ─────────────────────────────────────────────────────────── */}
+        <section className="flex flex-col gap-5 @2xl:flex-row @2xl:items-start">
+          <button
+            onClick={handleLogoClick}
+            aria-label="AWS Student Builder Group logo"
+            className="flex size-20 shrink-0 items-center justify-center rounded-3xl border border-black/10 bg-white shadow-sm transition-transform hover:scale-105 active:scale-95 dark:border-white/10 dark:bg-[#222228]"
+          >
+            <Image src="/logo-full.png" alt="" width={64} height={64} className="size-16 object-contain" unoptimized />
+          </button>
 
-          <h1 className="text-3xl font-extrabold tracking-tight md:text-5xl text-neutral-900 dark:text-white leading-[1.12]">
-            Empowering university students to build, architect, and lead on Amazon Web Services.
-          </h1>
-
-          <p className="text-base md:text-lg leading-relaxed text-neutral-600 dark:text-neutral-300 max-w-3xl">
-            We bridge academic fundamentals and production-grade cloud engineering. AWS SBG NMIET
-            is an official student-led engineering community providing hands-on cloud labs, certification
-            mentorship, hackathon squads, and industry connections.
-          </p>
-
-          {/* Tech Pills */}
-          <div className="pt-2">
-            <p className="text-xs font-mono uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2.5">
-              Cloud Stack & Technologies:
+          <div className="min-w-0 flex-1 space-y-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="rounded-full border border-[#7940ea]/30 bg-[#7940ea]/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#7940ea] dark:text-[#c4b5fd]">
+                Official AWS Community
+              </span>
+              <span className="flex items-center gap-1 text-[11px] font-medium text-neutral-500 dark:text-neutral-400">
+                <MapPin className="size-3" /> {CLUB.collegeShort}, {CLUB.city}
+              </span>
+            </div>
+            <div>
+              <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-neutral-900 @2xl:text-4xl dark:text-white">
+                {CLUB.name}
+              </h1>
+              <p className="mt-0.5 text-base font-semibold text-neutral-500 dark:text-neutral-400">{CLUB.chapter}</p>
+            </div>
+            <p className="max-w-2xl text-sm leading-relaxed text-neutral-600 @2xl:text-base dark:text-neutral-300">
+              {CLUB.tagline}
             </p>
-            <div className="flex flex-wrap gap-2">
-              {TECH_PILLS.map(tech => (
-                <span
-                  key={tech}
-                  className="rounded-md border border-black/10 dark:border-white/12 bg-black/[0.04] dark:bg-white/[0.06] px-2.5 py-1 text-xs font-medium text-neutral-700 dark:text-neutral-200 hover:border-[#7940ea] hover:text-[#7940ea] dark:hover:text-white hover:bg-[#7940ea]/10 transition-colors"
-                >
-                  {tech}
-                </span>
-              ))}
+            <div className="flex flex-wrap gap-2.5 pt-1">
+              <MacButton variant="aws" href={CLUB.meetupUrl}>
+                <Rocket className="size-3.5" /> Join the Group
+              </MacButton>
+              <MacButton onClick={() => windowActions.open("about")}>
+                Learn More <ArrowRight className="size-3.5" />
+              </MacButton>
+              <MacButton onClick={() => windowActions.open("calendar")}>
+                <Calendar className="size-3.5" /> Events
+              </MacButton>
             </div>
           </div>
         </section>
 
-        {/* ── Verified Results Grid ────────────────────────────────────────────── */}
-        <section className="border-t border-black/10 dark:border-white/10 pt-8">
-          <h2 className="text-xs font-mono uppercase tracking-[0.2em] text-[#7940ea] dark:text-[#a855f7] font-bold mb-5">
-            Verified Community Impact
-          </h2>
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-            {STATS.map(stat => (
-              <div
-                key={stat.label}
-                className="rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-[#222228] p-4 space-y-1 shadow-xs dark:shadow-md hover:border-[#7940ea]/40 transition-colors"
-              >
-                <span className="text-3xl font-extrabold text-neutral-900 dark:text-white tracking-tight">
-                  {stat.value}
-                </span>
-                <p className="text-xs font-semibold text-neutral-700 dark:text-neutral-200">{stat.label}</p>
-                <p className="text-[11px] text-neutral-500 dark:text-neutral-400">{stat.context}</p>
+        {/* ── Stats ────────────────────────────────────────────────────────── */}
+        <section className="grid grid-cols-2 gap-3 @2xl:grid-cols-4">
+          {stats.map(stat => (
+            <div
+              key={stat.label}
+              className="flex flex-col gap-2 rounded-2xl border border-black/[0.07] bg-white p-4 shadow-xs dark:border-white/10 dark:bg-[#222228]"
+            >
+              <div className="flex size-8 items-center justify-center rounded-lg" style={{ background: `${stat.color}1f` }}>
+                <stat.icon className="size-4" style={{ color: stat.color }} />
               </div>
-            ))}
-          </div>
+              <div>
+                <p className="text-2xl font-extrabold leading-none tabular-nums text-neutral-900 dark:text-white">{stat.value}</p>
+                <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">{stat.label}</p>
+              </div>
+            </div>
+          ))}
         </section>
 
-        {/* ── Selected Work Showcase ───────────────────────────────────────────── */}
-        <section className="border-t border-black/10 dark:border-white/10 pt-8 space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xs font-mono uppercase tracking-[0.2em] text-[#7940ea] dark:text-[#a855f7] font-bold">
-                Featured Deployments
-              </h2>
-              <p className="text-xl font-bold text-neutral-900 dark:text-white mt-1">
-                Cloud architectures engineered by club members
+        {/* ── Next event ───────────────────────────────────────────────────── */}
+        {nextEvent && (
+          <section className="flex flex-col gap-4 rounded-2xl border border-[#FF9900]/30 bg-gradient-to-br from-[#FF9900]/12 to-transparent p-5 @2xl:flex-row @2xl:items-center">
+            <div className="min-w-0 flex-1 space-y-1">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-[#c2410c] dark:text-[#FF9900]">Next event</p>
+              <h2 className="text-lg font-bold leading-snug text-neutral-900 dark:text-white">{nextEvent.title}</h2>
+              <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-neutral-600 dark:text-neutral-300">
+                <span className="flex items-center gap-1"><Calendar className="size-3.5" /> {nextEvent.date}</span>
+                <span className="flex items-center gap-1"><MapPin className="size-3.5" /> {nextEvent.location}</span>
+                {nextEvent.attendees > 0 && (
+                  <span className="flex items-center gap-1"><Users className="size-3.5" /> {nextEvent.attendees} going</span>
+                )}
               </p>
             </div>
-            <button
-              onClick={() => windowActions.open("finder")}
-              className="hidden items-center gap-1 text-xs font-bold text-[#7940ea] dark:text-[#a855f7] hover:text-[#9333ea] dark:hover:text-[#c084fc] hover:underline sm:flex"
-            >
-              <span>Open Finder</span>
-              <ArrowRight className="size-3.5" />
-            </button>
-          </div>
+            <div className="flex shrink-0 gap-2">
+              <MacButton variant="aws" href={nextEvent.eventUrl}>RSVP on Meetup</MacButton>
+              <MacButton onClick={() => windowActions.open("calendar")}>All events</MacButton>
+            </div>
+          </section>
+        )}
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {FEATURED_PROJECTS.map(item => (
-              <div
-                key={item.slug}
-                className="group flex flex-col justify-between rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-[#222228] p-5 hover:border-[#7940ea]/50 hover:bg-neutral-50 dark:hover:bg-[#25252c] transition-all shadow-xs dark:shadow-md"
-              >
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-mono font-medium text-[#7940ea] dark:text-[#a855f7]">
-                      {item.result} · {item.context}
-                    </span>
+        {/* ── What we do ───────────────────────────────────────────────────── */}
+        <section className="space-y-4">
+          <SectionTitle eyebrow="What we do" title="Learn. Build. Connect." />
+          <div className="grid gap-3 @2xl:grid-cols-3">
+            {WHAT_WE_DO.map(card => {
+              const Icon = PILLAR_ICONS[card.icon]
+              return (
+                <div
+                  key={card.title}
+                  className="rounded-2xl border border-black/[0.07] bg-white p-5 shadow-xs dark:border-white/10 dark:bg-[#222228]"
+                >
+                  <div className="mb-3 flex size-10 items-center justify-center rounded-xl" style={{ background: `${card.color}1a` }}>
+                    <Icon className="size-5" style={{ color: card.color }} />
                   </div>
-                  <h3 className="text-lg font-bold text-neutral-900 dark:text-white group-hover:text-[#7940ea] dark:group-hover:text-[#c084fc] transition-colors">
-                    {item.title}
-                  </h3>
-                  <p className="text-xs leading-relaxed text-neutral-600 dark:text-neutral-300">{item.summary}</p>
+                  <h3 className="mb-1 text-sm font-bold" style={{ color: card.color }}>{card.title}</h3>
+                  <p className="text-xs leading-relaxed text-neutral-600 dark:text-neutral-300">{card.description}</p>
                 </div>
+              )
+            })}
+          </div>
+        </section>
 
-                <div className="mt-4 flex items-center justify-between border-t border-black/10 dark:border-white/10 pt-3">
-                  <div className="flex flex-wrap gap-1">
-                    {item.tags.slice(0, 3).map(tag => (
-                      <span
-                        key={tag}
-                        className="rounded bg-black/5 dark:bg-white/10 px-1.5 py-0.5 text-[10px] font-mono text-neutral-600 dark:text-neutral-300"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                  <button
-                    onClick={() => windowActions.open("finder")}
-                    className="text-xs font-medium text-[#7940ea] dark:text-[#a855f7] hover:text-[#9333ea] dark:hover:text-[#c084fc] hover:underline flex items-center gap-1"
-                  >
-                    Details <ExternalLink className="size-3" />
-                  </button>
+        {/* ── Highlights ───────────────────────────────────────────────────── */}
+        <section className="space-y-4">
+          <SectionTitle eyebrow="Highlights" title="Where we are so far" icon={Star} />
+          <div className="grid gap-2 @2xl:grid-cols-2">
+            {HIGHLIGHTS.map(template => fillFacts(template, facts)).map(h => (
+              <div
+                key={h}
+                className="flex items-center gap-3 rounded-xl border border-black/[0.07] bg-white px-4 py-3 dark:border-white/10 dark:bg-[#222228]"
+              >
+                <span className="size-2 shrink-0 rounded-full bg-[#7940ea]" />
+                <span className="text-xs font-medium leading-snug text-neutral-700 dark:text-neutral-200">{h}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ── Explore ──────────────────────────────────────────────────────── */}
+        <section className="space-y-4 pb-2">
+          <SectionTitle eyebrow="Explore" title="Open an app to dive in" />
+          <div className="grid grid-cols-3 gap-3 @lg:grid-cols-5 @2xl:grid-cols-9">
+            {EXPLORE.map(id => (
+              <button
+                key={id}
+                onClick={() => windowActions.open(id)}
+                className="group flex flex-col items-center gap-1.5 rounded-xl p-2 transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
+              >
+                <div className="transition-transform group-hover:-translate-y-0.5">
+                  <AppIcon id={id} size={44} />
                 </div>
-              </div>
+                <span className="text-center text-[11px] font-medium leading-tight text-neutral-600 dark:text-neutral-300">
+                  {APPS_META[id].springboardLabel ?? APPS_META[id].name}
+                </span>
+              </button>
             ))}
-          </div>
-        </section>
-
-        {/* ── Club Tracks & Features ───────────────────────────────────────────── */}
-        <section className="border-t border-black/10 dark:border-white/10 pt-8 space-y-6">
-          <div>
-            <h2 className="text-xs font-mono uppercase tracking-[0.2em] text-[#7940ea] dark:text-[#a855f7] font-bold">
-              Core Club Offerings
-            </h2>
-            <p className="text-xl font-bold text-neutral-900 dark:text-white mt-1">
-              How we prepare students for high-scale cloud careers
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {CLUB_PILLARS.map(pillar => (
-              <div
-                key={pillar.title}
-                className="rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-[#222228] p-5 space-y-2 hover:border-[#7940ea]/40 transition-colors shadow-xs dark:shadow-md"
-              >
-                <h3 className="text-base font-bold text-neutral-900 dark:text-white">{pillar.title}</h3>
-                <p className="text-xs leading-relaxed text-neutral-600 dark:text-neutral-300">{pillar.description}</p>
-                <p className="text-[11px] font-mono text-[#7940ea] dark:text-[#a855f7] font-medium pt-1">{pillar.credit}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* ── Four-Step Builder Journey ────────────────────────────────────────── */}
-        <section className="border-t border-black/10 dark:border-white/10 pt-8 space-y-6">
-          <div>
-            <h2 className="text-xs font-mono uppercase tracking-[0.2em] text-[#7940ea] dark:text-[#a855f7] font-bold">
-              The Builder Curriculum
-            </h2>
-            <p className="text-xl font-bold text-neutral-900 dark:text-white mt-1">
-              From zero cloud knowledge to certified builder
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
-            {JOURNEY_STEPS.map(step => (
-              <div
-                key={step.number}
-                className="rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-[#222228] p-4 space-y-2 hover:border-[#7940ea]/40 transition-colors shadow-xs dark:shadow-md"
-              >
-                <span className="font-mono text-xs font-bold text-[#7940ea] dark:text-[#a855f7]">{step.number}</span>
-                <h3 className="text-sm font-bold text-neutral-900 dark:text-white">{step.title}</h3>
-                <p className="text-xs leading-relaxed text-neutral-600 dark:text-neutral-300">{step.body}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* ── Primary Call to Action ───────────────────────────────────────────── */}
-        <section className="rounded-2xl border border-[#7940ea]/30 bg-gradient-to-br from-[#7940ea]/15 via-purple-500/10 to-neutral-100 dark:to-[#222228] p-6 md:p-8 space-y-4 shadow-xl">
-          <h2 className="text-2xl font-bold text-neutral-900 dark:text-white">Ready to build in the cloud?</h2>
-          <p className="text-sm leading-relaxed text-neutral-600 dark:text-neutral-300 max-w-xl">
-            Join the AWS SBG NMIET chapter today. Attend our upcoming workshops, get access to
-            certification vouchers, and collaborate with student developers building real software.
-          </p>
-
-          <div className="flex flex-wrap gap-3 pt-2">
-            <button
-              onClick={() => windowActions.open("mail")}
-              className="flex items-center gap-2 rounded-lg bg-[#7940ea] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#8c4bff] shadow-lg shadow-[#7940ea]/25 transition-all"
-            >
-              <span>Apply to Join</span>
-              <ArrowRight className="size-3.5" />
-            </button>
-
-            <button
-              onClick={() => windowActions.open("calendar")}
-              className="flex items-center gap-2 rounded-lg border border-black/10 dark:border-white/15 bg-white dark:bg-[#282832] px-4 py-2.5 text-xs font-semibold text-neutral-800 dark:text-white hover:border-[#7940ea] hover:bg-[#7940ea]/10 transition-colors"
-            >
-              <span>Upcoming Workshops</span>
-            </button>
-
-            <button
-              onClick={() => windowActions.open("notes")}
-              className="flex items-center gap-2 rounded-lg border border-black/10 dark:border-white/15 bg-white dark:bg-[#282832] px-4 py-2.5 text-xs font-semibold text-neutral-800 dark:text-white hover:border-[#7940ea] hover:bg-[#7940ea]/10 transition-colors"
-            >
-              <span>Certification Roadmaps</span>
-            </button>
           </div>
         </section>
       </div>
+
+      <AnimatePresence>{confettiKey > 0 && <Confetti key={confettiKey} onDone={() => setConfettiKey(0)} />}</AnimatePresence>
+    </div>
+  )
+}
+
+function SectionTitle({ eyebrow, title, icon: Icon }: { eyebrow: string; title: string; icon?: React.ElementType }) {
+  return (
+    <div>
+      <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-[#7940ea] dark:text-[#a78bfa]">
+        {Icon && <Icon className="size-3.5 text-amber-500" />} {eyebrow}
+      </p>
+      <h2 className="mt-1 text-lg font-bold text-neutral-900 dark:text-white">{title}</h2>
+    </div>
+  )
+}
+
+function Confetti({ onDone }: { onDone: () => void }) {
+  const pieces = useMemo(
+    () =>
+      Array.from({ length: 80 }, (_, i) => {
+        const angle = Math.random() * Math.PI * 2
+        const distance = 80 + Math.random() * 250
+        return {
+          color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+          x: Math.cos(angle) * distance,
+          y: Math.sin(angle) * distance + 100,
+          rotate: Math.random() * 360,
+          scale: 0.4 + Math.random() * 0.8,
+          duration: 1.5 + Math.random() * 1.5,
+        }
+      }),
+    []
+  )
+
+  return (
+    <div className="pointer-events-none fixed inset-0 z-[9999] overflow-hidden">
+      {pieces.map((p, i) => (
+        <motion.div
+          key={i}
+          className="absolute left-1/2 top-1/2 size-3 rounded-xs"
+          style={{ backgroundColor: p.color }}
+          initial={{ scale: 0, rotate: 0, opacity: 1, x: 0, y: 0 }}
+          animate={{ scale: [0, p.scale, 0], rotate: [0, p.rotate], opacity: [1, 1, 0], x: p.x, y: p.y }}
+          transition={{ duration: p.duration, ease: "easeOut" }}
+          onAnimationComplete={i === 0 ? () => setTimeout(onDone, 1500) : undefined}
+        />
+      ))}
     </div>
   )
 }

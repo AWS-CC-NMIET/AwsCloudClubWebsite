@@ -94,20 +94,6 @@ export const TRACKS = [
     src: "/audio/sentimental-jazzy.mp3",
     duration: "2:45",
   },
-  {
-    title: "Cloud Architect Beats",
-    artist: "Lo-Fi Builder",
-    art: "/audio/art/sentimental-jazzy.webp",
-    src: "/audio/sentimental-jazzy.mp3",
-    duration: "3:12",
-  },
-  {
-    title: "Serverless Midnight",
-    artist: "Deep Aurora",
-    art: "/audio/art/sentimental-jazzy.webp",
-    src: "/audio/sentimental-jazzy.mp3",
-    duration: "2:58",
-  },
 ]
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -150,6 +136,32 @@ const windowStore = createStore<WindowStoreState>({
 
 let windowSequence = 0
 
+/** Height of the menu bar and the space kept free for the dock. */
+export const MENUBAR_HEIGHT = 28
+export const DOCK_RESERVE = 84
+
+/**
+ * Optional gate consulted before a window opens (e.g. sign-in-only apps).
+ * Return false to cancel the open.
+ */
+let openGuard: ((appId: AppId) => boolean) | null = null
+
+export function setOpenGuard(fn: (appId: AppId) => boolean) {
+  openGuard = fn
+  return () => {
+    if (openGuard === fn) openGuard = null
+  }
+}
+
+function maximizedBounds(): WindowBounds {
+  return {
+    x: 0,
+    y: MENUBAR_HEIGHT,
+    w: window.innerWidth,
+    h: window.innerHeight - MENUBAR_HEIGHT - DOCK_RESERVE,
+  }
+}
+
 function calculateInitialBounds(appId: AppId): WindowBounds {
   if (typeof window === "undefined") {
     return { x: 80, y: 80, w: 900, h: 600 }
@@ -160,17 +172,22 @@ function calculateInitialBounds(appId: AppId): WindowBounds {
   const vh = window.innerHeight
 
   const w = Math.min(meta.defaultSize.w, vw - 32)
-  const h = Math.min(meta.defaultSize.h, vh - 28 - 72 - 32)
+  const h = Math.min(meta.defaultSize.h, vh - MENUBAR_HEIGHT - DOCK_RESERVE - 24)
 
   const offset = (windowSequence++ % 6) * 28
-  const x = Math.max(16, Math.round((vw - w) / 2) + offset - 40)
-  const y = Math.max(36, Math.round((vh - 72 - h) / 2) + offset - 20)
+  const x = Math.min(Math.max(16, Math.round((vw - w) / 2) + offset - 40), Math.max(16, vw - w - 16))
+  const y = Math.min(
+    Math.max(MENUBAR_HEIGHT + 8, Math.round((vh - DOCK_RESERVE - h) / 2) + offset - 20),
+    Math.max(MENUBAR_HEIGHT + 8, vh - DOCK_RESERVE - h)
+  )
 
   return { x, y, w, h }
 }
 
 export const windowActions = {
   open: (appId: AppId, payload?: unknown) => {
+    if (!APPS_META[appId]) return
+    if (openGuard && !openGuard(appId)) return
     windowStore.set(prev => {
       const existing = prev.windows[appId]
       const nextZ = [...prev.zOrder.filter(id => id !== appId), appId]
@@ -273,12 +290,7 @@ export const windowActions = {
             ...target,
             isMaximized: true,
             restoreBounds: { ...target.bounds },
-            bounds: {
-              x: 0,
-              y: 28,
-              w: window.innerWidth,
-              h: window.innerHeight - 28 - 72,
-            },
+            bounds: maximizedBounds(),
           },
         },
       }
@@ -303,37 +315,34 @@ export const windowActions = {
     windowStore.set({ windows: {}, zOrder: [] })
   },
 
+  /** Keep every window on-screen after the browser is resized. */
   reflow: () => {
     if (typeof window === "undefined") return
     const vw = window.innerWidth
     const vh = window.innerHeight
 
     windowStore.set(prev => {
-      const nextWindows = { ...prev.windows }
       let changed = false
+      const nextWindows: WindowStoreState["windows"] = {}
 
-      Object.entries(nextWindows).forEach(([id, win]) => {
-        if (!win) return
+      for (const [id, win] of Object.entries(prev.windows) as [AppId, WindowInstance | undefined][]) {
+        if (!win) continue
+        let bounds = win.bounds
         if (win.isMaximized) {
-          win.bounds = { x: 0, y: 28, w: vw, h: vh - 28 - 72 }
-          changed = true
+          bounds = maximizedBounds()
         } else {
-          const clampedW = Math.min(win.bounds.w, vw - 24)
-          const clampedH = Math.min(win.bounds.h, vh - 28 - 72 - 12)
-          const clampedX = Math.min(Math.max(8, win.bounds.x), vw - 80)
-          const clampedY = Math.min(Math.max(28, win.bounds.y), vh - 80)
-
-          if (
-            clampedW !== win.bounds.w ||
-            clampedH !== win.bounds.h ||
-            clampedX !== win.bounds.x ||
-            clampedY !== win.bounds.y
-          ) {
-            win.bounds = { x: clampedX, y: clampedY, w: clampedW, h: clampedH }
-            changed = true
-          }
+          // Shrink to fit, then slide back so the whole window is visible.
+          const w = Math.min(win.bounds.w, vw - 16)
+          const h = Math.min(win.bounds.h, vh - MENUBAR_HEIGHT - DOCK_RESERVE - 8)
+          const x = Math.max(8, Math.min(win.bounds.x, vw - w - 8))
+          const y = Math.max(MENUBAR_HEIGHT + 4, Math.min(win.bounds.y, vh - DOCK_RESERVE - h))
+          bounds = { x, y, w, h }
         }
-      })
+        const same =
+          bounds.x === win.bounds.x && bounds.y === win.bounds.y && bounds.w === win.bounds.w && bounds.h === win.bounds.h
+        nextWindows[id] = same ? win : { ...win, bounds }
+        if (!same) changed = true
+      }
 
       return changed ? { ...prev, windows: nextWindows } : prev
     })

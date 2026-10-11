@@ -1,107 +1,61 @@
 // lib/ses.ts
-// Amazon SES helper for sending emails
+// Amazon SES: contact-form notification email to the club inbox.
 
 import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses"
+import { AWS_REGION, awsClientConfig } from "@/lib/aws-clients"
+import { CLUB } from "@/lib/club-content"
 
-const sesClient = new SESClient({
-  region: process.env.SES_REGION || process.env.APP_REGION || process.env.AWS_REGION || "ap-south-1",
-  credentials: {
-    accessKeyId:     (process.env.APP_ACCESS_KEY_ID    || process.env.AWS_ACCESS_KEY_ID)!,
-    secretAccessKey: (process.env.APP_SECRET_ACCESS_KEY || process.env.AWS_SECRET_ACCESS_KEY)!,
-  },
-})
+const sesClient = new SESClient(awsClientConfig(process.env.SES_REGION || AWS_REGION))
 
+// FROM must be an SES-verified identity — configure it with SES_FROM_EMAIL.
 const FROM_EMAIL = process.env.SES_FROM_EMAIL || "awscloudclub.nmiet@gmail.com"
-const TO_EMAIL   = process.env.SES_TO_EMAIL   || "awscloudclub.nmiet@gmail.com"
+const TO_EMAIL = process.env.SES_TO_EMAIL || CLUB.email
 
-export async function sendContactEmail(params: {
-  name: string
-  email: string
-  subject: string
-  message: string
-}) {
-  const command = new SendEmailCommand({
-    Source: FROM_EMAIL,
-    Destination: { ToAddresses: [TO_EMAIL] },
-    ReplyToAddresses: [params.email],
-    Message: {
-      Subject: {
-        Data: `[AWS Student Builder Group Website] ${params.subject}`,
-        Charset: "UTF-8",
-      },
-      Body: {
-        Html: {
-          Charset: "UTF-8",
-          Data: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f9f7ff; border-radius: 12px; overflow: hidden;">
-              <div style="background: linear-gradient(135deg, #6B4FE8, #8B6FFF); padding: 24px; text-align: center;">
-                <h2 style="color: white; margin: 0; font-size: 20px;">AWS Student Builder Group NMIET</h2>
-                <p style="color: rgba(255,255,255,0.75); margin: 4px 0 0; font-size: 13px;">New Contact Form Submission</p>
-              </div>
-              <div style="padding: 24px;">
-                <table style="width: 100%; border-collapse: collapse;">
-                  <tr><td style="padding: 8px 0; color: #7B6FC0; font-size: 13px; width: 90px;">Name</td><td style="padding: 8px 0; color: #1E1060; font-weight: 600;">${params.name}</td></tr>
-                  <tr><td style="padding: 8px 0; color: #7B6FC0; font-size: 13px;">Email</td><td style="padding: 8px 0; color: #1E1060;"><a href="mailto:${params.email}" style="color: #6B4FE8;">${params.email}</a></td></tr>
-                  <tr><td style="padding: 8px 0; color: #7B6FC0; font-size: 13px;">Subject</td><td style="padding: 8px 0; color: #1E1060; font-weight: 600;">${params.subject}</td></tr>
-                </table>
-                <div style="background: white; border-radius: 8px; padding: 16px; margin-top: 16px; border: 1px solid #E8E4FF;">
-                  <p style="color: #7B6FC0; font-size: 12px; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.5px;">Message</p>
-                  <p style="color: #1E1060; margin: 0; line-height: 1.6; white-space: pre-wrap;">${params.message}</p>
-                </div>
-              </div>
-              <div style="background: #EAE6FF; padding: 16px; text-align: center;">
-                <p style="color: #9B8FC8; font-size: 12px; margin: 0;">AWS Student Builder Group NMIET · awscloudclub.nmiet@gmail.com</p>
-              </div>
-            </div>
-          `,
-        },
-        Text: {
-          Charset: "UTF-8",
-          Data: `New message from ${params.name} (${params.email})\n\nSubject: ${params.subject}\n\nMessage:\n${params.message}`,
-        },
-      },
-    },
-  })
-
-  await sesClient.send(command)
+/** Visitors control these values — escape them before putting them in HTML. */
+function escapeHtml(value: string) {
+  return value.replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!)
 }
 
-// ── Send welcome email to new members ────────────────────────
-export async function sendWelcomeEmail(toEmail: string, name: string) {
-  const command = new SendEmailCommand({
-    Source: FROM_EMAIL,
-    Destination: { ToAddresses: [toEmail] },
-    Message: {
-      Subject: {
-        Data: "Welcome to AWS Student Builder Group NMIET! ☁️",
-        Charset: "UTF-8",
-      },
-      Body: {
-        Html: {
-          Charset: "UTF-8",
-          Data: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <div style="background: linear-gradient(135deg, #6B4FE8, #8B6FFF); padding: 32px; text-align: center; border-radius: 12px 12px 0 0;">
-                <h1 style="color: white; margin: 0; font-size: 28px;">Welcome to AWS Student Builder Group!</h1>
-                <p style="color: rgba(255,255,255,0.80); margin: 8px 0 0;">NMIET Chapter</p>
-              </div>
-              <div style="background: #EAE6FF; padding: 32px; border-radius: 0 0 12px 12px;">
-                <p style="color: #1E1060; font-size: 16px;">Hi ${name},</p>
-                <p style="color: #7B6FC0; line-height: 1.6;">You've successfully joined the AWS Student Builder Group NMIET community. Explore our cloud-powered OS, check out upcoming events, and connect with fellow cloud enthusiasts!</p>
-                <div style="text-align: center; margin: 24px 0;">
-                  <p style="color: #9B8FC8; font-size: 13px;">— AWS Student Builder Group NMIET Team ☁️</p>
-                </div>
-              </div>
-            </div>
-          `,
-        },
-        Text: {
-          Charset: "UTF-8",
-          Data: `Welcome to AWS Student Builder Group NMIET, ${name}! You're now part of our community.`,
-        },
-      },
-    },
-  })
+export async function sendContactEmail(params: { name: string; email: string; subject: string; message: string }) {
+  const name = escapeHtml(params.name)
+  const email = escapeHtml(params.email)
+  const subject = escapeHtml(params.subject)
+  const message = escapeHtml(params.message)
 
-  try { await sesClient.send(command) } catch { /* non-critical, don't fail signup */ }
+  await sesClient.send(
+    new SendEmailCommand({
+      Source: FROM_EMAIL,
+      Destination: { ToAddresses: [TO_EMAIL] },
+      ReplyToAddresses: [params.email],
+      Message: {
+        Subject: { Data: `[${CLUB.shortName} Website] ${params.subject.replace(/[\r\n]+/g, " ")}`, Charset: "UTF-8" },
+        Body: {
+          Html: {
+            Charset: "UTF-8",
+            Data: `
+<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;background:#f5f5f7;border-radius:14px;overflow:hidden;border:1px solid #e5e5ea">
+  <div style="background:#1d1d1f;padding:22px 24px">
+    <p style="color:#FF9900;margin:0;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase">New contact message</p>
+    <h2 style="color:#fff;margin:6px 0 0;font-size:19px">${CLUB.name} · ${CLUB.collegeShort}</h2>
+  </div>
+  <div style="padding:22px 24px;background:#fff">
+    <table style="width:100%;border-collapse:collapse;font-size:14px">
+      <tr><td style="padding:6px 0;color:#86868b;width:80px">Name</td><td style="padding:6px 0;color:#1d1d1f;font-weight:600">${name}</td></tr>
+      <tr><td style="padding:6px 0;color:#86868b">Email</td><td style="padding:6px 0"><a href="mailto:${email}" style="color:#7940ea">${email}</a></td></tr>
+      <tr><td style="padding:6px 0;color:#86868b">Subject</td><td style="padding:6px 0;color:#1d1d1f;font-weight:600">${subject}</td></tr>
+    </table>
+    <div style="margin-top:16px;padding:16px;border-radius:10px;background:#f5f5f7;color:#1d1d1f;line-height:1.6;white-space:pre-wrap;font-size:14px">${message}</div>
+    <p style="margin:16px 0 0;font-size:12px;color:#86868b">Reply to this email to answer ${name} directly.</p>
+  </div>
+  <div style="padding:14px 24px;text-align:center;font-size:12px;color:#86868b">${CLUB.name} · ${CLUB.collegeShort} · ${CLUB.email}</div>
+</div>`,
+          },
+          Text: {
+            Charset: "UTF-8",
+            Data: `New message from ${params.name} (${params.email})\n\nSubject: ${params.subject}\n\n${params.message}`,
+          },
+        },
+      },
+    })
+  )
 }

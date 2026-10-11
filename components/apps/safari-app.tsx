@@ -1,192 +1,167 @@
 // components/apps/safari-app.tsx
-// Authentic macOS Safari browser window previewing live club applications
+// Resources — a Safari "Favorites" start page of curated AWS learning links
 
 "use client"
 
-import React, { useState } from "react"
+import React, { useMemo, useState } from "react"
 import {
+  BookOpen,
   ChevronLeft,
   ChevronRight,
-  RotateCw,
-  Share,
+  Code,
+  FileText,
   Lock,
-  ExternalLink,
-  Smartphone,
-  Monitor,
-  Laptop,
-  Globe,
+  RotateCw,
+  Search,
+  Star,
+  Video,
+  type LucideIcon,
 } from "lucide-react"
-import { sanitizeUrl } from "@/lib/utils"
+import type { LearningResource, ResourceType } from "@/lib/club-content"
+import { useResources } from "@/lib/club-data"
+import { sanitizeUrl, cn } from "@/lib/utils"
+import { AppShell, ChipBar, EmptyState, OfflineNotice, Sidebar, SidebarItem, SidebarSection } from "./shared/mac-ui"
 
-interface BrowserBookmark {
-  name: string
-  url: string
-  title: string
-  description: string
-  badge: string
+const TYPE_STYLE: Record<ResourceType, { icon: LucideIcon; bg: string; label: string }> = {
+  Course: { icon: BookOpen, bg: "linear-gradient(135deg,#10b981,#047857)", label: "Course" },
+  Video: { icon: Video, bg: "linear-gradient(135deg,#6366f1,#4338ca)", label: "Video" },
+  Document: { icon: FileText, bg: "linear-gradient(135deg,#ef4444,#b91c1c)", label: "Docs" },
+  Tool: { icon: Code, bg: "linear-gradient(135deg,#f59e0b,#b45309)", label: "Lab" },
 }
 
-const BOOKMARKS: BrowserBookmark[] = [
-  {
-    name: "Campus Serverless Portal",
-    url: "https://portal.awsclub.edu",
-    title: "AWS SBG NMIET Campus Portal",
-    description: "Production portal for event check-in, workshop attendance, and cloud certificate downloads.",
-    badge: "Live on AWS Lambda & DynamoDB",
-  },
-  {
-    name: "AWS Cloud Resume",
-    url: "https://resume.awsclub.edu",
-    title: "Serverless Cloud Resume Showcase",
-    description: "Cloud-native portfolio with CI/CD deployment through GitHub Actions and Amazon CloudFront CDN.",
-    badge: "100 Lighthouse Performance",
-  },
-  {
-    name: "Bedrock AI Study Assistant",
-    url: "https://ai.awsclub.edu",
-    title: "Bedrock GenAI Campus Engine",
-    description: "Conversational RAG assistant trained on computer science and cloud architecture syllabi.",
-    badge: "AWS Bedrock Claude 3.5 Sonnet",
-  },
-]
+const hostOf = (url: string) => {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "")
+  } catch {
+    return url
+  }
+}
 
 export function SafariApp() {
-  const [currentBookmark, setCurrentBookmark] = useState<BrowserBookmark>(BOOKMARKS[0])
-  const [viewportMode, setViewportMode] = useState<"desktop" | "mobile">("desktop")
+  const resources = useResources()
+  const [category, setCategory] = useState<string>("All")
+  const [query, setQuery] = useState("")
+
+  const categories = useMemo(() => Array.from(new Set(resources.data.map(r => r.category))), [resources.data])
+
+  const filtered = resources.data.filter(r => {
+    if (category === "Featured" && !r.featured) return false
+    if (category !== "All" && category !== "Featured" && r.category !== category) return false
+    const q = query.trim().toLowerCase()
+    return !q || r.name.toLowerCase().includes(q) || r.category.toLowerCase().includes(q) || hostOf(r.url).includes(q)
+  })
+
+  const grouped = useMemo(() => {
+    const map = new Map<string, LearningResource[]>()
+    for (const r of filtered) map.set(r.category, [...(map.get(r.category) ?? []), r])
+    return Array.from(map.entries())
+  }, [filtered])
+
+  const address = category === "All" ? "favorites" : `favorites/${category.toLowerCase().replace(/\s+/g, "-")}`
+  const chipOptions = ["All", "Featured", ...categories].map(c => ({ id: c, label: c }))
 
   return (
-    <div className="flex h-full w-full flex-col bg-(--win-bg) text-(--os-text)">
-      {/* ── Safari Browser Navigation Chrome ─────────────────────────────────── */}
-      <div className="border-b border-(--win-divider) bg-(--titlebar-bg) p-2 space-y-2">
-        <div className="flex items-center gap-2 px-1">
-          <div className="flex items-center gap-1 text-(--os-text-dim)">
-            <button className="p-1 rounded hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
-              <ChevronLeft className="size-4" />
-            </button>
-            <button className="p-1 rounded hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
-              <ChevronRight className="size-4" />
-            </button>
-          </div>
-
-          <button className="p-1 rounded text-(--os-text-dim) hover:bg-black/5 dark:hover:bg-white/10">
-            <RotateCw className="size-3.5" />
-          </button>
-
-          {/* Safari URL Pill */}
-          <div className="flex-1 mx-2 flex items-center justify-between rounded-lg border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 px-3 py-1 text-xs">
-            <div className="flex items-center gap-2 truncate">
-              <Lock className="size-3 text-emerald-500 shrink-0" />
-              <span className="font-mono text-[11px] text-(--os-text) truncate">
-                {currentBookmark.url}
-              </span>
-            </div>
-            <span className="text-[10px] font-mono text-(--os-text-dim) hidden sm:inline">
-              AWS CloudFront SSL
-            </span>
-          </div>
-
-          {/* Viewport Toggles */}
-          <div className="flex items-center gap-1 border border-(--win-divider) rounded-md p-0.5">
-            <button
-              onClick={() => setViewportMode("desktop")}
-              className={`p-1 rounded ${viewportMode === "desktop" ? "bg-white dark:bg-neutral-700 shadow-xs" : "opacity-60"}`}
-              title="Desktop Viewport"
-            >
-              <Monitor className="size-3.5" />
-            </button>
-            <button
-              onClick={() => setViewportMode("mobile")}
-              className={`p-1 rounded ${viewportMode === "mobile" ? "bg-white dark:bg-neutral-700 shadow-xs" : "opacity-60"}`}
-              title="Mobile Viewport"
-            >
-              <Smartphone className="size-3.5" />
-            </button>
-          </div>
-
-          <a
-            href={sanitizeUrl(currentBookmark.url)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-1 rounded text-(--os-text-dim) hover:bg-black/5 dark:hover:bg-white/10"
-            title="Open Live Site in New Tab"
-          >
-            <ExternalLink className="size-3.5" />
-          </a>
+    <AppShell className="flex-col">
+      {/* ── Browser chrome ───────────────────────────────────────────────────── */}
+      <div className="flex shrink-0 items-center gap-2 border-b border-(--win-divider) bg-(--titlebar-bg) px-3 py-2">
+        <div className="hidden items-center gap-0.5 text-(--os-text-dim) @lg:flex">
+          <ChevronLeft className="size-4 opacity-40" />
+          <ChevronRight className="size-4 opacity-40" />
         </div>
-
-        {/* Bookmarks Bar */}
-        <div className="flex items-center gap-2 px-2 overflow-x-auto text-[11px] text-(--os-text-dim)">
-          {BOOKMARKS.map(bm => (
-            <button
-              key={bm.name}
-              onClick={() => setCurrentBookmark(bm)}
-              className={`px-2.5 py-1 rounded-md whitespace-nowrap transition-colors ${
-                currentBookmark.name === bm.name
-                  ? "bg-(--accent) text-white font-medium"
-                  : "hover:bg-black/5 dark:hover:bg-white/5 text-(--os-text)"
-              }`}
-            >
-              {bm.name}
-            </button>
-          ))}
+        <div className="flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-(--win-divider) bg-black/[0.05] px-3 py-1 dark:bg-white/[0.07]">
+          {query ? <Search className="size-3.5 shrink-0 text-(--os-text-dim)" /> : <Lock className="size-3 shrink-0 text-emerald-500" />}
+          <input
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            placeholder={`sbg://${address}`}
+            aria-label="Search resources"
+            className="min-w-0 flex-1 bg-transparent text-center text-xs text-(--os-text) outline-none placeholder:text-(--os-text) focus:text-left focus:placeholder:text-(--os-text-dim)"
+          />
         </div>
+        <button onClick={() => setQuery("")} aria-label="Clear search" className="rounded p-1 text-(--os-text-dim) hover:bg-black/5 dark:hover:bg-white/10">
+          <RotateCw className="size-3.5" />
+        </button>
       </div>
 
-      {/* ── Viewport Display Area ────────────────────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto p-4 flex justify-center bg-neutral-100 dark:bg-neutral-900/50">
+      <div className="flex min-h-0 flex-1">
+        <Sidebar hideOnNarrow>
+          <SidebarSection title="Favorites">
+            <SidebarItem icon={Star} iconClassName="text-amber-500" label="All Resources" count={resources.data.length} active={category === "All"} onClick={() => setCategory("All")} />
+            <SidebarItem icon={Star} iconClassName="text-amber-500" label="Featured" count={resources.data.filter(r => r.featured).length} active={category === "Featured"} onClick={() => setCategory("Featured")} />
+          </SidebarSection>
+          <SidebarSection title="Categories">
+            {categories.map(c => (
+              <SidebarItem
+                key={c}
+                icon={BookOpen}
+                label={c}
+                count={resources.data.filter(r => r.category === c).length}
+                active={category === c}
+                onClick={() => setCategory(c)}
+              />
+            ))}
+          </SidebarSection>
+        </Sidebar>
+
+        <div className="flex min-w-0 flex-1 flex-col">
+          <ChipBar options={chipOptions} value={category} onChange={setCategory} className="border-b border-(--win-divider)" />
+          <OfflineNotice show={resources.status === "error" && !resources.fromFallback} />
+          <div className="flex-1 overflow-y-auto px-5 py-6 @2xl:px-8">
+            {filtered.length === 0 ? (
+              <EmptyState icon={Search} title="No results" message={`Nothing matches “${query}”.`} />
+            ) : (
+              <div className="mx-auto max-w-3xl space-y-8">
+                <div>
+                  <h1 className="text-2xl font-bold text-(--os-text)">Favorites</h1>
+                  <p className="mt-1 text-xs text-(--os-text-dim)">
+                    Hand-picked AWS courses, docs, labs and videos. Links open in a new tab.
+                  </p>
+                </div>
+                {grouped.map(([cat, items]) => (
+                  <section key={cat}>
+                    <h2 className="mb-3 text-[13px] font-bold text-(--os-text)">{cat}</h2>
+                    <div className="grid grid-cols-[repeat(auto-fill,minmax(92px,1fr))] gap-x-3 gap-y-5">
+                      {items.map(r => (
+                        <FavoriteTile key={r.id} resource={r} />
+                      ))}
+                    </div>
+                  </section>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </AppShell>
+  )
+}
+
+function FavoriteTile({ resource }: { resource: LearningResource }) {
+  const style = TYPE_STYLE[resource.type] ?? TYPE_STYLE.Tool
+  const Icon = style.icon
+  return (
+    <a
+      href={sanitizeUrl(resource.url)}
+      target="_blank"
+      rel="noopener noreferrer"
+      title={`${resource.name} — ${hostOf(resource.url)}`}
+      className="group flex flex-col items-center gap-1.5 text-center"
+    >
+      <div className="relative">
         <div
-          className={`h-full transition-all duration-300 rounded-xl overflow-hidden border border-(--win-divider) bg-(--win-bg) shadow-lg flex flex-col ${
-            viewportMode === "mobile" ? "w-[390px] max-w-full" : "w-full"
-          }`}
+          className="flex size-16 items-center justify-center rounded-2xl text-white shadow-md transition-transform group-hover:-translate-y-0.5 group-hover:shadow-lg"
+          style={{ background: style.bg }}
         >
-          {/* Simulated App Page */}
-          <div className="p-6 md:p-8 space-y-6 flex-1 overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-(--win-divider) pb-4">
-              <div className="flex items-center gap-2">
-                <Globe className="size-5 text-(--accent)" />
-                <span className="text-sm font-bold text-(--os-text)">{currentBookmark.title}</span>
-              </div>
-              <span className="rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 px-2.5 py-0.5 text-[10px] font-mono">
-                {currentBookmark.badge}
-              </span>
-            </div>
-
-            <div className="space-y-4">
-              <h1 className="text-2xl font-bold text-(--os-text)">{currentBookmark.title}</h1>
-              <p className="text-sm leading-relaxed text-(--os-text-dim)">
-                {currentBookmark.description}
-              </p>
-
-              {/* Interactive Sandbox Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                <div className="rounded-lg border border-(--win-divider) bg-black/5 dark:bg-white/5 p-4 space-y-1.5">
-                  <p className="text-xs font-semibold text-(--os-text)">Cloud Health Check</p>
-                  <p className="text-xs font-mono text-emerald-500">200 OK · Latency: 18ms</p>
-                  <p className="text-[11px] text-(--os-text-dim)">us-east-1 edge node</p>
-                </div>
-                <div className="rounded-lg border border-(--win-divider) bg-black/5 dark:bg-white/5 p-4 space-y-1.5">
-                  <p className="text-xs font-semibold text-(--os-text)">Security & SSL</p>
-                  <p className="text-xs font-mono text-emerald-500">TLS 1.3 · Valid ACM Cert</p>
-                  <p className="text-[11px] text-(--os-text-dim)">Automated DNS validation</p>
-                </div>
-              </div>
-
-              {/* Action Bar */}
-              <div className="pt-4 flex flex-wrap gap-3">
-                <a
-                  href={sanitizeUrl(currentBookmark.url)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 rounded-lg bg-(--accent) px-4 py-2 text-xs font-semibold text-white hover:opacity-90 transition-opacity"
-                >
-                  <span>Open Live Deployment</span>
-                  <ExternalLink className="size-3.5" />
-                </a>
-              </div>
-            </div>
-          </div>
+          <Icon className="size-7" />
         </div>
+        {resource.featured && (
+          <span className="absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-amber-400 shadow">
+            <Star className="size-3 fill-white text-white" />
+          </span>
+        )}
       </div>
-    </div>
+      <span className="line-clamp-2 text-[11px] font-medium leading-tight text-(--os-text)">{resource.name}</span>
+      <span className={cn("max-w-full truncate text-[10px] text-(--os-text-dim)")}>{style.label} · {hostOf(resource.url)}</span>
+    </a>
   )
 }

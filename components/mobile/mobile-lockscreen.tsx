@@ -35,9 +35,11 @@ export function MobileLockscreen({ onUnlock }: Props) {
   const opacity = useTransform(y, [0, -160], [1, 0])
   const scale   = useTransform(y, [0, -160], [1, 0.94])
 
+  const unlock = () => animate(y, -900, { duration: 0.28, ease: "easeIn" }).then(onUnlock)
+
   const handleDragEnd = (_: PointerEvent | MouseEvent | TouchEvent, info: PanInfo) => {
     if (info.offset.y < -90 || info.velocity.y < -500) {
-      animate(y, -900, { duration: 0.28, ease: "easeIn" }).then(onUnlock)
+      unlock()
     } else {
       animate(y, 0, { type: "spring", stiffness: 420, damping: 32 })
     }
@@ -136,8 +138,13 @@ export function MobileLockscreen({ onUnlock }: Props) {
           </div>
         </div>
 
-        {/* ── Swipe hint ── */}
-        <div className="absolute bottom-12 flex flex-col items-center gap-2">
+        {/* ── Swipe hint (also tappable / keyboard accessible) ── */}
+        <button
+          type="button"
+          onClick={unlock}
+          aria-label="Unlock"
+          className="absolute bottom-[max(3rem,calc(env(safe-area-inset-bottom)+2rem))] flex flex-col items-center gap-2 rounded-2xl px-6 py-2 outline-none focus-visible:ring-2 focus-visible:ring-violet-300/60"
+        >
           <motion.div
             animate={{ y: [0, -8, 0] }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
@@ -150,9 +157,9 @@ export function MobileLockscreen({ onUnlock }: Props) {
             className="text-[10px]"
             style={{ color: "rgba(196,181,253,0.38)", letterSpacing: "0.20em" }}
           >
-            SWIPE UP TO UNLOCK
+            SWIPE UP OR TAP TO UNLOCK
           </p>
-        </div>
+        </button>
       </motion.div>
     </div>
   )

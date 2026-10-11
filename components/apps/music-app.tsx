@@ -1,5 +1,5 @@
 // components/apps/music-app.tsx
-// AWS Cloud Radio music player
+// Music — AWS SBG Radio, background lo-fi while you explore
 
 "use client"
 
@@ -14,7 +14,6 @@ import {
   Volume2,
   VolumeX,
   Radio,
-  Sparkles,
 } from "lucide-react"
 import {
   useAudioStore,
@@ -70,12 +69,12 @@ export function MusicApp() {
 
         {/* Player Controls */}
         <div className="flex items-center gap-6">
-          <button
+          {TRACKS.length > 1 && <button
             onClick={() => audioActions.prevTrack()}
             className="p-2 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
           >
             <SkipBack className="size-5 text-(--os-text)" />
-          </button>
+          </button>}
 
           <button
             onClick={() => audioActions.togglePlay()}
@@ -88,12 +87,12 @@ export function MusicApp() {
             )}
           </button>
 
-          <button
+          {TRACKS.length > 1 && <button
             onClick={() => audioActions.nextTrack()}
             className="p-2 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
           >
             <SkipForward className="size-5 text-(--os-text)" />
-          </button>
+          </button>}
         </div>
 
         {/* Volume Slider */}
@@ -122,7 +121,7 @@ export function MusicApp() {
         <div className="flex items-center gap-2 pb-2 border-b border-(--win-divider)">
           <Radio className="size-4 text-(--accent)" />
           <span className="text-xs font-bold uppercase tracking-wider text-(--os-text)">
-            AWS Cloud Radio Playlist
+            AWS SBG Radio
           </span>
         </div>
 

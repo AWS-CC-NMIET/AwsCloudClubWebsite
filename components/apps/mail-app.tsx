@@ -1,246 +1,189 @@
 // components/apps/mail-app.tsx
-// macOS Mail application interface connecting directly with AWS SES & DynamoDB
+// Contact Us — a Mail.app compose window that delivers via /api/contact (SES).
+// If the backend is unreachable, it offers a pre-filled email instead.
 
 "use client"
 
-import React, { useState } from "react"
-import { Send, CheckCircle2, Mail as MailIcon, Inbox, AlertCircle, Loader2 } from "lucide-react"
+import React, { useRef, useState } from "react"
+import { AlertCircle, CheckCircle2, Clock, Loader2, Mail, MapPin, PenSquare, Send } from "lucide-react"
 import { api } from "@/lib/api-client"
 import { systemActions } from "@/lib/aws-store"
+import { CLUB, OFFICE_HOURS } from "@/lib/club-content"
+import { AppShell, MacButton, Sidebar, SidebarItem, SidebarSection, Toolbar } from "./shared/mac-ui"
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const EMPTY = { name: "", email: "", subject: "", message: "" }
+
+function mailtoHref(form: typeof EMPTY) {
+  const body = `${form.message}\n\n— ${form.name}${form.email ? ` (${form.email})` : ""}`
+  return `mailto:${CLUB.email}?subject=${encodeURIComponent(form.subject || "Hello from the website")}&body=${encodeURIComponent(body)}`
+}
 
 export function MailApp() {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    year: "3rd Year",
-    track: "Cloud Architecture",
-    subject: "Application to Join AWS Cloud Club SBG",
-    message: "",
-  })
+  const [form, setForm] = useState(EMPTY)
   const [loading, setLoading] = useState(false)
-  const [submitted, setSubmitted] = useState(false)
+  const [sent, setSent] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [deliveryFailed, setDeliveryFailed] = useState(false)
+  const formRef = useRef<HTMLFormElement>(null)
+
+  const update = (key: keyof typeof EMPTY) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+    setForm(f => ({ ...f, [key]: e.target.value }))
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+    setDeliveryFailed(false)
 
-    const cleanName = formData.name.trim()
-    const cleanEmail = formData.email.trim().toLowerCase()
-    const cleanSubject = formData.subject.trim()
-    const cleanMessage = formData.message.trim()
-
-    if (!cleanName || !cleanEmail || !cleanSubject || !cleanMessage) {
+    const clean = {
+      name: form.name.trim(),
+      email: form.email.trim().toLowerCase(),
+      subject: form.subject.trim(),
+      message: form.message.trim(),
+    }
+    if (!clean.name || !clean.email || !clean.subject || !clean.message) {
       setError("Please fill out all fields.")
       return
     }
-
-    if (!EMAIL_REGEX.test(cleanEmail)) {
+    if (!EMAIL_REGEX.test(clean.email)) {
       setError("Please enter a valid email address.")
       return
     }
 
     setLoading(true)
-
     try {
-      await api.contact.submit({
-        name: cleanName,
-        email: cleanEmail,
-        subject: cleanSubject,
-        message: `[Year: ${formData.year} | Track: ${formData.track}]\n\n${cleanMessage}`,
-      })
-      setSubmitted(true)
-      systemActions.showToast("✉️ Message Sent to AWS Club Leads!")
-    } catch (err: any) {
-      setError(err?.message || "Failed to deliver message. Please try again.")
+      await api.contact.submit(clean)
+      setSent(true)
+      setForm(EMPTY)
+      systemActions.showToast("Message sent — we'll get back to you soon!")
+    } catch (err) {
+      setDeliveryFailed(true)
+      setError(
+        (err as Error)?.message && !/HTTP 5|Failed to fetch|Request failed/i.test((err as Error).message)
+          ? (err as Error).message
+          : "We couldn't deliver your message right now."
+      )
     } finally {
       setLoading(false)
     }
   }
 
+  const fieldCls =
+    "w-full bg-transparent py-2 text-[13px] text-(--os-text) outline-none placeholder:text-(--os-text-dim)"
+
   return (
-    <div className="flex h-full w-full flex-col md:flex-row bg-(--win-bg) text-(--os-text)">
-      {/* ── Left Mailboxes Sidebar ───────────────────────────────────────────── */}
-      <aside className="w-full md:w-56 shrink-0 border-b md:border-b-0 md:border-r border-(--win-divider) bg-black/[0.02] dark:bg-white/[0.02] p-3 space-y-4">
-        <div>
-          <p className="px-2 text-[11px] font-semibold text-(--os-text-dim) uppercase tracking-wider">
-            Mailboxes
-          </p>
-          <div className="mt-1 space-y-0.5">
-            <button className="flex w-full items-center justify-between rounded-md bg-(--accent) px-2.5 py-1.5 text-xs font-medium text-white shadow-xs">
-              <div className="flex items-center gap-2">
-                <MailIcon className="size-3.5" />
-                <span>New Message</span>
-              </div>
-            </button>
-            <button className="flex w-full items-center justify-between rounded-md px-2.5 py-1.5 text-xs font-medium text-(--os-text) hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
-              <div className="flex items-center gap-2">
-                <Inbox className="size-3.5" />
-                <span>Club Inquiries</span>
-              </div>
-              <span className="text-[10px] opacity-70">Official</span>
-            </button>
+    <AppShell>
+      <Sidebar hideOnNarrow>
+        <SidebarSection title="Mailboxes">
+          <SidebarItem icon={PenSquare} label="New Message" active />
+        </SidebarSection>
+        <SidebarSection title="Contact Info">
+          <div className="space-y-3 px-2.5 text-[12px] leading-relaxed">
+            <p className="flex gap-2 text-(--os-text)">
+              <Mail className="mt-0.5 size-3.5 shrink-0 text-[#FF9900]" />
+              <a href={`mailto:${CLUB.email}`} className="break-all hover:underline">{CLUB.email}</a>
+            </p>
+            <p className="flex gap-2 whitespace-pre-line text-(--os-text)">
+              <MapPin className="mt-0.5 size-3.5 shrink-0 text-(--accent)" />
+              {CLUB.address}
+            </p>
           </div>
-        </div>
+        </SidebarSection>
+        <SidebarSection title="Office Hours">
+          <div className="space-y-1 px-1">
+            {OFFICE_HOURS.map(h => (
+              <div key={h.day} className="flex items-center justify-between rounded-md px-1.5 py-1 text-[12px]">
+                <span className="text-(--os-text)">{h.day}</span>
+                <span className="text-(--os-text-dim)">{h.time}</span>
+              </div>
+            ))}
+          </div>
+        </SidebarSection>
+      </Sidebar>
 
-        <div className="rounded-lg border border-(--win-divider) bg-black/5 dark:bg-white/5 p-3 text-xs space-y-1.5">
-          <p className="font-semibold text-(--os-text)">Club Lead Contact</p>
-          <p className="text-[11px] text-(--os-text-dim)">awscloudclub@sbg.edu</p>
-          <p className="text-[11px] text-(--os-text-dim)">Responses within 24 hours.</p>
-        </div>
-      </aside>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <Toolbar
+          title="New Message"
+          subtitle="We usually reply within a few days"
+          right={
+            !sent && (
+              <MacButton variant="primary" disabled={loading} className="px-3 py-1.5 @xl:hidden" onClick={() => formRef.current?.requestSubmit()}>
+                {loading ? <Loader2 className="size-3.5 animate-spin" /> : <Send className="size-3.5" />}
+                {loading ? "Sending…" : "Send"}
+              </MacButton>
+            )
+          }
+        />
 
-      {/* ── Right Compose Email View ─────────────────────────────────────────── */}
-      <main className="flex-1 overflow-y-auto p-6 md:p-8">
-        {submitted ? (
-          <div className="flex h-full flex-col items-center justify-center text-center space-y-3 py-12">
-            <div className="size-14 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+        {sent ? (
+          <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
+            <div className="flex size-14 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-500">
               <CheckCircle2 className="size-8" />
             </div>
-            <h2 className="text-xl font-bold text-(--os-text)">Application Received!</h2>
-            <p className="text-xs text-(--os-text-dim) max-w-sm">
-              Thank you for reaching out to AWS Cloud Club SBG. Our student leadership team has
-              received your application and will email you with workshop discord invites.
-            </p>
-            <button
-              onClick={() => {
-                setSubmitted(false)
-                setFormData(prev => ({ ...prev, message: "" }))
-              }}
-              className="mt-2 rounded-lg bg-(--accent) px-4 py-2 text-xs font-semibold text-white hover:opacity-90"
-            >
-              Send Another Note
-            </button>
+            <h2 className="text-lg font-bold text-(--os-text)">Message Sent!</h2>
+            <p className="max-w-sm text-xs text-(--os-text-dim)">Thanks for reaching out. We&apos;ll get back to you soon.</p>
+            <MacButton variant="primary" onClick={() => setSent(false)}>Write Another</MacButton>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="max-w-xl space-y-4">
-            <div className="border-b border-(--win-divider) pb-2">
-              <h2 className="text-base font-bold text-(--os-text)">New Message to Club Leads</h2>
-              <p className="text-xs text-(--os-text-dim)">
-                Apply for membership, propose a collaboration, or ask about upcoming cohorts.
-              </p>
+          <form ref={formRef} onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-y-auto">
+            <div className="divide-y divide-(--win-divider) border-b border-(--win-divider) px-4">
+              <Field label="To:">
+                <span className="inline-flex max-w-full items-center rounded-full bg-(--accent)/12 px-2 py-0.5 text-[12px] font-medium text-(--accent)">
+                  <span className="truncate">AWS SBG NMIET &lt;{CLUB.email}&gt;</span>
+                </span>
+              </Field>
+              <Field label="Name:">
+                <input required maxLength={100} value={form.name} onChange={update("name")} placeholder="Your name" className={fieldCls} />
+              </Field>
+              <Field label="From:">
+                <input required type="email" maxLength={254} value={form.email} onChange={update("email")} placeholder="your@email.com" className={fieldCls} />
+              </Field>
+              <Field label="Subject:">
+                <input required maxLength={200} value={form.subject} onChange={update("subject")} placeholder="What's this about?" className={fieldCls} />
+              </Field>
             </div>
 
+            <textarea
+              required
+              maxLength={5000}
+              value={form.message}
+              onChange={update("message")}
+              placeholder="Write your message…"
+              className="min-h-48 flex-1 resize-none bg-transparent px-4 py-3 text-[13px] leading-relaxed text-(--os-text) outline-none placeholder:text-(--os-text-dim)"
+            />
+
             {error && (
-              <div className="flex items-center gap-2 rounded-lg bg-red-500/10 border border-red-500/20 p-2.5 text-xs text-red-600 dark:text-red-400">
-                <AlertCircle className="size-4 shrink-0" />
-                <span>{error}</span>
+              <div className="mx-4 mb-3 space-y-2 rounded-lg border border-red-500/25 bg-red-500/10 p-3 text-xs text-red-600 dark:text-red-400">
+                <p className="flex items-center gap-2"><AlertCircle className="size-4 shrink-0" /> {error}</p>
+                {deliveryFailed && (
+                  <MacButton variant="secondary" href={mailtoHref(form)}>
+                    <Mail className="size-3.5" /> Send via email instead
+                  </MacButton>
+                )}
               </div>
             )}
 
-            <div className="space-y-3 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="font-semibold text-(--os-text-dim)">Your Full Name</label>
-                  <input
-                    required
-                    maxLength={100}
-                    value={formData.name}
-                    onChange={e => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="e.g. Alex Sharma"
-                    className="w-full rounded-lg border border-(--win-divider) bg-black/5 dark:bg-white/5 px-3 py-2 text-sm text-(--os-text) outline-none focus:border-(--accent)"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="font-semibold text-(--os-text-dim)">College Email</label>
-                  <input
-                    required
-                    type="email"
-                    maxLength={100}
-                    value={formData.email}
-                    onChange={e => setFormData({ ...formData, email: e.target.value })}
-                    placeholder="student@college.edu"
-                    className="w-full rounded-lg border border-(--win-divider) bg-black/5 dark:bg-white/5 px-3 py-2 text-sm text-(--os-text) outline-none focus:border-(--accent)"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="font-semibold text-(--os-text-dim)">Current Academic Year</label>
-                  <select
-                    value={formData.year}
-                    onChange={e => setFormData({ ...formData, year: e.target.value })}
-                    className="w-full rounded-lg border border-(--win-divider) bg-black/5 dark:bg-white/5 px-3 py-2 text-sm text-(--os-text) outline-none focus:border-(--accent)"
-                  >
-                    <option value="1st Year">1st Year (Freshman)</option>
-                    <option value="2nd Year">2nd Year (Sophomore)</option>
-                    <option value="3rd Year">3rd Year (Junior)</option>
-                    <option value="4th Year">4th Year (Senior)</option>
-                    <option value="Faculty / Alumni">Faculty / Alumni</option>
-                  </select>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="font-semibold text-(--os-text-dim)">Preferred Cloud Domain</label>
-                  <select
-                    value={formData.track}
-                    onChange={e => setFormData({ ...formData, track: e.target.value })}
-                    className="w-full rounded-lg border border-(--win-divider) bg-black/5 dark:bg-white/5 px-3 py-2 text-sm text-(--os-text) outline-none focus:border-(--accent)"
-                  >
-                    <option value="Cloud Architecture">Cloud Architecture & DevOps</option>
-                    <option value="AI / ML Bedrock">AI / ML & AWS Bedrock</option>
-                    <option value="Serverless Full-Stack">Serverless & Web Apps</option>
-                    <option value="Cloud Security">Cloud Security & Governance</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="font-semibold text-(--os-text-dim)">Subject</label>
-                <input
-                  required
-                  maxLength={200}
-                  value={formData.subject}
-                  onChange={e => setFormData({ ...formData, subject: e.target.value })}
-                  className="w-full rounded-lg border border-(--win-divider) bg-black/5 dark:bg-white/5 px-3 py-2 text-sm text-(--os-text) outline-none focus:border-(--accent)"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="font-semibold text-(--os-text-dim)">Message / Why do you want to join?</label>
-                <textarea
-                  required
-                  maxLength={5000}
-                  rows={4}
-                  value={formData.message}
-                  onChange={e => setFormData({ ...formData, message: e.target.value })}
-                  placeholder="Tell us about your background, any cloud interest, or questions..."
-                  className="w-full rounded-lg border border-(--win-divider) bg-black/5 dark:bg-white/5 px-3 py-2 text-sm text-(--os-text) outline-none focus:border-(--accent) resize-none"
-                />
-              </div>
+            <div className="flex items-center justify-between gap-3 border-t border-(--win-divider) px-4 py-3">
+              <span className="flex items-center gap-1.5 text-[11px] text-(--os-text-dim)">
+                <Clock className="size-3.5" /> {CLUB.city}
+              </span>
+              <MacButton variant="primary" type="submit" disabled={loading}>
+                {loading ? <Loader2 className="size-3.5 animate-spin" /> : <Send className="size-3.5" />}
+                {loading ? "Sending…" : "Send Message"}
+              </MacButton>
             </div>
-
-            {error && (
-              <div className="flex items-center gap-2 rounded-lg bg-red-500/10 border border-red-500/20 px-3 py-2 text-xs text-red-600 dark:text-red-400">
-                <AlertCircle className="size-4 shrink-0" />
-                <span>{error}</span>
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex items-center gap-2 rounded-lg bg-(--accent) px-5 py-2.5 text-xs font-semibold text-white hover:opacity-90 shadow-sm transition-opacity disabled:opacity-50"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="size-3.5 animate-spin" />
-                  <span>Transmitting through AWS SES...</span>
-                </>
-              ) : (
-                <>
-                  <Send className="size-3.5" />
-                  <span>Send Message</span>
-                </>
-              )}
-            </button>
           </form>
         )}
-      </main>
-    </div>
+      </div>
+    </AppShell>
+  )
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="flex min-h-10 items-center gap-3">
+      <span className="w-14 shrink-0 text-right text-[12px] text-(--os-text-dim)">{label}</span>
+      <span className="min-w-0 flex-1">{children}</span>
+    </label>
   )
 }

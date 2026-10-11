@@ -1,77 +1,66 @@
-// app/api/profile/route.ts
+// app/api/profile/route.ts — the signed-in member's own profile
+
 import { NextResponse } from "next/server"
-import { validateAuth } from "@/lib/auth"
+import { requireUser, getUserAttributes } from "@/lib/auth"
 import { scanTable, putItem, updateItem, TABLES } from "@/lib/dynamodb"
+import { jsonError, NO_STORE, parseBody, serverError } from "@/lib/http"
+import { profileSchema } from "@/lib/validation"
 
-// GET current user's profile
+async function findProfile(sub: string) {
+  const profiles = await scanTable(TABLES.PROFILES)
+  return profiles.find(p => p.sub === sub) ?? null
+}
+
 export async function GET(request: Request) {
-  const user = await validateAuth(request)
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-
-  const sub = user.UserAttributes?.find((a) => a.Name === "sub")?.Value
-  if (!sub) return NextResponse.json({ error: "Invalid token" }, { status: 401 })
-
+  const user = await requireUser(request)
+  if (user instanceof NextResponse) return user
   try {
-    const profiles = await scanTable(TABLES.PROFILES)
-    const profile = profiles.find((p: Record<string, unknown>) => p.sub === sub)
-    return NextResponse.json({ profile: profile || null })
-  } catch {
-    return NextResponse.json({ error: "Failed to fetch profile" }, { status: 500 })
+    return NextResponse.json({ profile: await findProfile(user.sub) }, { headers: NO_STORE })
+  } catch (err) {
+    return serverError("GET profile", err, "Failed to fetch profile")
   }
 }
 
-// POST — create profile (called after first login)
+// Create the profile on first sign-in (idempotent: returns the existing one).
 export async function POST(request: Request) {
-  const user = await validateAuth(request)
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-
-  const sub = user.UserAttributes?.find((a) => a.Name === "sub")?.Value
-  const email = user.UserAttributes?.find((a) => a.Name === "email")?.Value
-
+  const user = await requireUser(request)
+  if (user instanceof NextResponse) return user
+  const parsed = await parseBody(request, profileSchema.partial())
+  if (parsed.error) return parsed.error
   try {
-    const body = await request.json()
+    const existing = await findProfile(user.sub)
+    if (existing) return NextResponse.json({ profile: existing }, { headers: NO_STORE })
+
+    const attributes = await getUserAttributes(user.accessToken)
+    const email = attributes.email ?? ""
     const profile = await putItem(TABLES.PROFILES, {
-      sub,
+      sub: user.sub,
       email,
-      displayName: body.displayName || email?.split("@")[0] || "Cloud User",
-      bio: body.bio || "",
-      avatarUrl: body.avatarUrl || "",
-      linkedinUrl: body.linkedinUrl || "",
-      githubUrl: body.githubUrl || "",
-      skills: body.skills || [],
+      displayName: parsed.data.displayName || attributes.name || email.split("@")[0] || "Cloud Builder",
+      bio: parsed.data.bio ?? "",
+      avatarUrl: parsed.data.avatarUrl ?? "",
+      linkedinUrl: parsed.data.linkedinUrl ?? "",
+      githubUrl: parsed.data.githubUrl ?? "",
+      skills: parsed.data.skills ?? [],
       joinedAt: new Date().toISOString(),
     })
-    return NextResponse.json({ profile }, { status: 201 })
-  } catch {
-    return NextResponse.json({ error: "Failed to create profile" }, { status: 500 })
+    return NextResponse.json({ profile }, { status: 201, headers: NO_STORE })
+  } catch (err) {
+    return serverError("POST profile", err, "Failed to create profile")
   }
 }
 
-// PUT — update profile
 export async function PUT(request: Request) {
-  const user = await validateAuth(request)
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-
-  const sub = user.UserAttributes?.find((a) => a.Name === "sub")?.Value
-
+  const user = await requireUser(request)
+  if (user instanceof NextResponse) return user
+  const parsed = await parseBody(request, profileSchema.partial())
+  if (parsed.error) return parsed.error
   try {
-    const body = await request.json()
-    const profiles = await scanTable(TABLES.PROFILES)
-    const existing = profiles.find((p: Record<string, unknown>) => p.sub === sub) as Record<string, unknown> | undefined
-
-    if (!existing) return NextResponse.json({ error: "Profile not found" }, { status: 404 })
-
-    const { displayName, bio, avatarUrl, linkedinUrl, githubUrl, skills } = body
-    const updates: Record<string, unknown> = {}
-    if (displayName !== undefined) updates.displayName = displayName
-    if (bio        !== undefined) updates.bio         = bio
-    if (avatarUrl  !== undefined) updates.avatarUrl   = avatarUrl
-    if (linkedinUrl !== undefined) updates.linkedinUrl = linkedinUrl
-    if (githubUrl  !== undefined) updates.githubUrl   = githubUrl
-    if (skills     !== undefined) updates.skills      = skills
-    const updated = await updateItem(TABLES.PROFILES, existing.id as string, updates)
-    return NextResponse.json({ profile: updated })
-  } catch {
-    return NextResponse.json({ error: "Failed to update profile" }, { status: 500 })
+    const existing = await findProfile(user.sub)
+    if (!existing) return jsonError("Profile not found", 404)
+    const profile = await updateItem(TABLES.PROFILES, String(existing.id), parsed.data)
+    return NextResponse.json({ profile }, { headers: NO_STORE })
+  } catch (err) {
+    return serverError("PUT profile", err, "Failed to update profile")
   }
 }

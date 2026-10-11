@@ -22,7 +22,17 @@ async function apiFetch<T>(url: string, options: RequestInit = {}): Promise<T> {
   return res.json()
 }
 
-// ── Events ────────────────────────────────────────────────────
+export interface HealthReport {
+  ok: boolean
+  services?: {
+    dynamodb: Record<string, { table: string; ok: boolean; detail?: string }>
+    s3: { bucket: string; ok: boolean; detail?: string }
+    ses: { from: boolean; ok: boolean; detail?: string }
+    cognitoAdminApi: { ok: boolean; detail?: string }
+  }
+  config?: Record<string, string | boolean>
+}
+
 export const api = {
   events: {
     list: ()              => apiFetch<{ events: unknown[] }>("/api/events"),
@@ -35,6 +45,7 @@ export const api = {
     create: (data: unknown) => apiFetch<{ member: unknown }>("/api/team", { method: "POST", body: JSON.stringify(data) }),
     update: (id: string, data: unknown) => apiFetch<{ member: unknown }>(`/api/team/${id}`, { method: "PUT", body: JSON.stringify(data) }),
     delete: (id: string)  => apiFetch<{ success: boolean }>(`/api/team/${id}`, { method: "DELETE" }),
+    importRoster: ()      => apiFetch<{ added: number; alreadyPresent: number }>("/api/team/seed", { method: "POST" }),
   },
   projects: {
     list: ()              => apiFetch<{ projects: unknown[] }>("/api/projects"),
@@ -83,6 +94,10 @@ export const api = {
       demote:  (username: string) => apiFetch<{ success: boolean }>("/api/admin/users", { method: "PUT", body: JSON.stringify({ username, action: "demote" }) }),
     },
   },
+  auth: {
+    session: () => apiFetch<{ signedIn: boolean; isAdmin: boolean; username?: string }>("/api/auth/session"),
+  },
+  health: () => apiFetch<HealthReport>("/api/health"),
   meetup: {
     data: () => apiFetch<{ memberCount: number; groupUrl: string; events: unknown[] }>("/api/meetup"),
   },

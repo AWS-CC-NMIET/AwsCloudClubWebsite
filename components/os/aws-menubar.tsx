@@ -1,5 +1,5 @@
 // components/os/aws-menubar.tsx
-// Top macOS glass menu bar featuring AWS SBG NMIET logo, reactive app menus, and interactive Control Center
+// macOS menu bar: chapter menu, focused-app menus, status items and Control Center
 
 "use client"
 
@@ -120,25 +120,27 @@ export function AwsMenuBar({ onLockScreen }: { onLockScreen?: () => void }) {
       onLockScreen?.()
     } else if (command === "simplified") {
       windowActions.closeAll()
+    } else if (command === "spotlight") {
+      systemActions.setSpotlightOpen(true)
     } else if (command.startsWith("link:")) {
       window.open(command.replace("link:", ""), "_blank")
     }
   }
 
-  // AWS Cloud Club authentic Apple / AWS System Menu
+  // Chapter (Apple-style) menu
   const systemMenuItems = [
-    { label: "About AWS SBG NMIET", command: "open:about", separatorAfter: true },
+    { label: "About AWS SBG NMIET", command: "open:about-system", separatorAfter: true },
     { label: "System Settings…", command: "open:settings", shortcut: "⌘," },
-    { label: "App Store…", command: "open:appstore", separatorAfter: true },
+    { label: "Search…", command: "spotlight", shortcut: "⌘K", separatorAfter: true },
     { label: "Restart…", command: "restart" },
     { label: "Shut Down…", command: "shutdown", separatorAfter: true },
     { label: "Simplified View", command: "simplified", separatorAfter: true },
-    { label: "Log Out Visitor…", command: "shutdown" },
+    { label: "Lock Screen…", command: "lock" },
   ]
 
   // Active App Menu items
   const appMenuItems = [
-    { label: `About ${focusedMeta.name}`, command: `open:${focusedAppId}` },
+    { label: `About ${focusedMeta.name}`, command: "open:about-system" },
     { label: "Settings…", command: "open:settings", shortcut: "⌘,", separatorAfter: true },
     { label: `Hide ${focusedMeta.name}`, command: "minimize", shortcut: "⌘H" },
     { label: "Hide Others", command: "hide-others", shortcut: "⌥⌘H", disabled: true },

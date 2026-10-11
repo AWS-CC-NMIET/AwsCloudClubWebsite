@@ -27,6 +27,11 @@ export function rateLimit(key: string, options: RateLimitOptions): RateLimitResu
   const { limit, windowMs } = options
   const now = Date.now()
 
+  // Drop expired windows so the map can't grow without bound.
+  if (store.size > 5000) {
+    for (const [k, v] of store) if (now > v.resetAt) store.delete(k)
+  }
+
   const entry = store.get(key)
 
   if (!entry || now > entry.resetAt) {
