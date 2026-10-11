@@ -9,6 +9,7 @@ import { Award, Calendar, Medal, Star, Target, Trophy, Zap, type LucideIcon } fr
 import { useAchievements, type Achievement } from "@/lib/club-data"
 import { cn } from "@/lib/utils"
 import { AppShell, BackButton, EmptyState, LoadingState, OfflineNotice, Toolbar } from "./shared/mac-ui"
+import { Stagger, StaggerItem } from "./shared/motion"
 
 const ICONS: Record<string, LucideIcon> = { Trophy, Medal, Star, Award, Target, Zap }
 
@@ -62,11 +63,13 @@ export function AchievementsApp() {
         <div className="flex flex-1 flex-col justify-around gap-6 overflow-y-auto bg-gradient-to-b from-black/[0.02] to-black/[0.06] p-5 dark:from-white/[0.02] dark:to-black/30">
           {shelves.map((shelf, s) => (
             <div key={s} className="pt-4">
-              <div className="relative z-10 flex flex-wrap items-end justify-around gap-3 px-2">
+              <Stagger className="relative z-10 flex flex-wrap items-end justify-around gap-3 px-2">
                 {shelf.map(a => (
-                  <TrophyItem key={a.id} achievement={a} selected={selected?.id === a.id} onClick={() => select(a.id)} />
+                  <StaggerItem key={a.id}>
+                    <TrophyItem achievement={a} selected={selected?.id === a.id} onClick={() => select(a.id)} />
+                  </StaggerItem>
                 ))}
-              </div>
+              </Stagger>
               <div className="mt-1 h-2.5 w-full rounded-md border-t border-amber-600 bg-gradient-to-r from-amber-700 via-amber-800 to-amber-900 shadow-sm" />
               <div className="mx-auto mt-0.5 h-3 w-[96%] rounded-full bg-black/10 blur-xs" />
             </div>
@@ -107,7 +110,7 @@ function TrophyItem({ achievement, selected, onClick }: { achievement: Achieveme
     >
       <div
         className={cn(
-          "flex size-14 items-center justify-center rounded-full border bg-white transition-all dark:bg-[#2a2a32]",
+          "glass-card flex size-14 items-center justify-center rounded-full border transition-all",
           selected ? "scale-110 shadow-lg" : "border-black/10 opacity-90 dark:border-white/10"
         )}
         style={selected ? { borderColor: color, boxShadow: `0 -4px 14px ${color}55` } : undefined}
@@ -131,7 +134,7 @@ function AchievementCard({ achievement }: { achievement: Achievement }) {
   return (
     <div className="flex flex-1 items-center justify-center overflow-y-auto p-5">
       <div
-        className="relative w-full max-w-md select-text rounded-2xl border border-(--win-divider) bg-white p-6 shadow-md dark:bg-[#22222a]"
+        className="glass-strong rim relative w-full max-w-md select-text rounded-3xl p-6"
         style={{ borderLeft: `5px solid ${color}` }}
       >
         <div className="mb-4 flex items-center justify-between">

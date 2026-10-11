@@ -29,6 +29,7 @@ import {
   SidebarSection,
   Toolbar,
 } from "./shared/mac-ui"
+import { Stagger, StaggerItem } from "./shared/motion"
 
 type Filter = "all" | "upcoming" | "past"
 
@@ -179,7 +180,7 @@ export function CalendarApp({ payload }: { payload?: { focusId?: string } }) {
                 action={<MacButton variant="aws" href={CLUB.meetupUrl}>Follow on Meetup</MacButton>}
               />
             ) : (
-              <div className="space-y-1">
+              <Stagger key={filter} className="space-y-1">
                 {visible.map((e, i) => {
                   const showHeader = filter === "all" && (i === 0 || visible[i - 1].isPast !== e.isPast)
                   return (
@@ -189,11 +190,13 @@ export function CalendarApp({ payload }: { payload?: { focusId?: string } }) {
                           {e.isPast ? "Past" : "Upcoming"}
                         </p>
                       )}
-                      <EventRow event={e} active={selected?.id === e.id} onClick={() => select(e.id)} />
+                      <StaggerItem>
+                        <EventRow event={e} active={selected?.id === e.id} onClick={() => select(e.id)} />
+                      </StaggerItem>
                     </React.Fragment>
                   )
                 })}
-              </div>
+              </Stagger>
             )}
           </div>
         </div>

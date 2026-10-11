@@ -21,6 +21,7 @@ import { CLUB, type SocialLink } from "@/lib/club-content"
 import { useMemberCount, useSocialLinks } from "@/lib/club-data"
 import { sanitizeUrl } from "@/lib/utils"
 import { AppShell, MacButton } from "./shared/mac-ui"
+import { Stagger, staggerChild } from "./shared/motion"
 
 function MeetupIcon({ className }: { className?: string }) {
   return (
@@ -65,7 +66,7 @@ export function SocialApp() {
           rel="noopener noreferrer"
           whileHover={{ y: -3 }}
           whileTap={{ scale: 0.98 }}
-          className="block rounded-2xl border border-(--win-divider) bg-white p-5 shadow-sm transition-shadow hover:shadow-md dark:bg-white/[0.05]"
+          className="glass-card rim interactive block p-5"
         >
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-4">
@@ -88,7 +89,7 @@ export function SocialApp() {
 
         {/* ── Other channels ─────────────────────────────────────────────── */}
         {links.data.length > 0 && (
-          <div className="grid gap-3 @lg:grid-cols-2 @3xl:grid-cols-3">
+          <Stagger className="grid gap-3 @lg:grid-cols-2 @3xl:grid-cols-3">
             {links.data.map(link => {
               const Icon = iconFor(link)
               return (
@@ -97,8 +98,9 @@ export function SocialApp() {
                   href={sanitizeUrl(link.url)}
                   target="_blank"
                   rel="noopener noreferrer"
+                  variants={staggerChild}
                   whileHover={{ y: -3 }}
-                  className="group block rounded-2xl border border-(--win-divider) bg-white p-4 shadow-xs transition-shadow hover:shadow-md dark:bg-white/[0.05]"
+                  className="glass-card rim interactive group block p-4"
                 >
                   <div className="mb-3 flex items-center gap-3">
                     <div
@@ -116,11 +118,11 @@ export function SocialApp() {
                 </motion.a>
               )
             })}
-          </div>
+          </Stagger>
         )}
 
         {/* ── Email ──────────────────────────────────────────────────────── */}
-        <div className="rounded-2xl border border-(--win-divider) bg-gradient-to-br from-(--accent)/10 to-transparent p-6 text-center">
+        <div className="glass-card rim bg-gradient-to-br from-(--accent)/12 to-transparent p-6 text-center">
           <h3 className="mb-1 text-base font-bold text-(--os-text)">Drop Us an Email</h3>
           <p className="mb-4 text-xs text-(--os-text-dim)">Have questions or want to collaborate? Reach out directly.</p>
           <MacButton variant="primary" href={`mailto:${CLUB.email}`} className="max-w-full break-all">

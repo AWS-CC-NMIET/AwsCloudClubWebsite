@@ -197,7 +197,7 @@ export function SettingsApp({ payload }: { payload?: { pane?: string } }) {
   )
 
   return (
-    <div className="flex h-full w-full flex-col md:flex-row bg-(--win-bg) text-(--os-text) select-none">
+    <div className="flex h-full w-full flex-col md:flex-row text-(--os-text) select-none">
       {/* ── Left Sidebar ───────────────────────────────────────────────────────── */}
       <aside className="w-full md:w-64 shrink-0 border-b md:border-b-0 md:border-r border-(--win-divider) bg-black/[0.02] dark:bg-white/[0.02] p-3 flex flex-col gap-3">
         {/* Chapter Profile Card */}

@@ -112,7 +112,7 @@ export function AssistantApp() {
   }
 
   return (
-    <div className="flex h-full w-full flex-col bg-(--win-bg) text-(--os-text)">
+    <div className="flex h-full w-full flex-col text-(--os-text)">
       <div className="flex items-center gap-3 border-b border-(--win-divider) p-4">
         <div className="size-8 shrink-0">
           <AnimatedOrb size={32} />

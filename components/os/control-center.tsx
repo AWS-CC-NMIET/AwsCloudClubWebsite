@@ -80,7 +80,7 @@ export function ControlCenter() {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96, y: -6, transition: { duration: 0.12 } }}
           transition={{ type: "spring", stiffness: 450, damping: 32 }}
-          className="fixed right-2 top-8 z-[1100] w-[330px] origin-top-right rounded-2xl border border-black/10 dark:border-white/15 bg-white/90 dark:bg-[#1e1e26]/95 p-3 text-neutral-900 dark:text-white shadow-2xl backdrop-blur-3xl select-none"
+          className="fixed right-2 top-8 z-[1100] w-[330px] origin-top-right glass-strong rim rounded-[22px] p-3 text-neutral-900 dark:text-white select-none"
           role="dialog"
           aria-label="Control Center"
         >
@@ -113,7 +113,7 @@ export function ControlCenter() {
                 className={`flex size-9 shrink-0 items-center justify-center rounded-full transition-colors shadow-md ${
                   appearance === "dark"
                     ? "bg-[#7940ea] text-white"
-                    : "bg-neutral-200 dark:bg-white/15 text-neutral-700 dark:text-neutral-200"
+                    : "bg-black/[0.07] dark:bg-white/15 text-neutral-700 dark:text-neutral-200"
                 }`}
               >
                 {appearance === "dark" ? <Moon className="size-4" /> : <Sun className="size-4" />}
@@ -142,7 +142,7 @@ export function ControlCenter() {
                 className={`flex size-9 shrink-0 items-center justify-center rounded-full transition-colors shadow-md ${
                   partyMode
                     ? "bg-[#ec4899] text-white animate-spin"
-                    : "bg-neutral-200 dark:bg-white/15 text-neutral-700 dark:text-neutral-200"
+                    : "bg-black/[0.07] dark:bg-white/15 text-neutral-700 dark:text-neutral-200"
                 }`}
               >
                 <Sparkles className="size-4" />
@@ -166,7 +166,7 @@ export function ControlCenter() {
               tabIndex={0}
               aria-label="Open Settings"
             >
-              <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-neutral-200 dark:bg-white/15 text-neutral-700 dark:text-white shadow-md transition-colors">
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-black/[0.07] dark:bg-white/15 text-neutral-700 dark:text-white shadow-md transition-colors">
                 <Layers className="size-4" />
               </div>
               <div className="min-w-0 flex-1 text-left leading-tight">

@@ -15,6 +15,7 @@ import { WidgetEditorModal } from "./widget-editor-modal"
 import { AppIcon } from "./app-icon"
 import { Spotlight } from "./spotlight"
 import { SystemToast } from "./system-toast"
+import { LiveWallpaper } from "./live-wallpaper"
 
 const DESKTOP_ICONS: AppId[] = ["about", "team", "calendar", "finder"]
 
@@ -96,6 +97,8 @@ export function AwsDesktop({ children }: { children?: React.ReactNode }) {
       data-wallpaper={wallpaper}
       style={{ background }}
     >
+      <LiveWallpaper />
+
       {/* ── Watermark ────────────────────────────────────────────────────── */}
       <div
         aria-hidden="true"
@@ -151,7 +154,7 @@ export function AwsDesktop({ children }: { children?: React.ReactNode }) {
             top: Math.min(contextMenu.y, (typeof window !== "undefined" ? window.innerHeight : 9999) - 260),
           }}
           onClick={e => e.stopPropagation()}
-          className="z-[999] min-w-[210px] rounded-xl border border-black/10 bg-white/90 p-1 text-[13px] shadow-2xl backdrop-blur-2xl dark:border-white/15 dark:bg-[#202028]/95"
+          className="z-[999] min-w-[210px] glass-strong rim rounded-xl p-1 text-[13px]"
         >
           {menuItem("Change Wallpaper…", () => windowActions.open("settings", { pane: "wallpaper" }))}
           {menuItem("Edit Widgets…", () => widgetActions.setEditorOpen(true))}

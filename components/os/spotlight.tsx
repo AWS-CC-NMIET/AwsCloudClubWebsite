@@ -105,14 +105,14 @@ export function Spotlight() {
   }
 
   return (
-    <div onClick={close} className="pointer-events-auto fixed inset-0 z-[1200] flex items-start justify-center bg-black/40 px-4 pt-24 backdrop-blur-sm">
+    <div onClick={close} className="pointer-events-auto fixed inset-0 z-[1200] flex items-start justify-center bg-black/25 px-4 pt-24 backdrop-blur-[3px]">
       <motion.div
         onClick={e => e.stopPropagation()}
         initial={{ scale: 0.96, opacity: 0, y: -10 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.96, opacity: 0, y: -10 }}
         transition={{ duration: 0.15 }}
-        className="w-full max-w-xl overflow-hidden rounded-2xl border border-black/10 bg-white/95 text-neutral-900 shadow-2xl backdrop-blur-2xl dark:border-white/15 dark:bg-[#1e1e26]/97 dark:text-white"
+        className="w-full max-w-xl overflow-hidden glass-strong rim rounded-[22px] text-neutral-900 dark:text-white"
         role="dialog"
         aria-label="Spotlight Search"
       >

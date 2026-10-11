@@ -260,7 +260,7 @@ export function CollectionManager({ config }: { config: CollectionConfig }) {
       {/* ── Delete confirmation (macOS alert) ─────────────────────────────── */}
       {confirmDelete && selected && (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/30 p-4 backdrop-blur-[2px]">
-          <div role="alertdialog" aria-modal="true" className="w-full max-w-xs rounded-2xl border border-(--win-divider) bg-(--win-bg) p-5 text-center shadow-2xl">
+          <div role="alertdialog" aria-modal="true" className="w-full max-w-xs glass-strong rim rounded-2xl p-5 text-center shadow-2xl">
             <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-xl bg-red-500/10">
               <AlertTriangle className="size-6 text-red-500" />
             </div>

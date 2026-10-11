@@ -48,12 +48,12 @@ export function AppSheet({ id, origin, onClose, children }: AppSheetProps) {
         transition: { duration: 0.24, ease: "easeIn" },
       }}
       transition={{ type: "spring", stiffness: 320, damping: 32 }}
-      className="fixed inset-0 z-[1000] flex flex-col overflow-hidden bg-white text-neutral-900 dark:bg-[#16161b] dark:text-neutral-100"
+      className="window-material fixed inset-0 z-[1000] flex flex-col overflow-hidden text-neutral-900 dark:text-neutral-100"
     >
       {/* ── Grabber + navigation header (drag handle) ─────────────────────── */}
       <div
         onPointerDown={e => dragControls.start(e)}
-        className="shrink-0 touch-none select-none border-b border-black/10 bg-[#f6f6f8] pt-[env(safe-area-inset-top)] dark:border-white/10 dark:bg-[#1e1e24]"
+        className="shrink-0 touch-none select-none border-b border-(--win-divider) bg-(--titlebar-bg) pt-[env(safe-area-inset-top)]"
       >
         <div className="flex justify-center pb-1 pt-2">
           <div className="h-1.5 w-10 rounded-full bg-black/20 dark:bg-white/25" />
@@ -75,7 +75,7 @@ export function AppSheet({ id, origin, onClose, children }: AppSheetProps) {
       </div>
 
       {/* ── App content ───────────────────────────────────────────────────── */}
-      <div className="selectable min-h-0 flex-1 overflow-y-auto overscroll-contain bg-white pb-[env(safe-area-inset-bottom)] dark:bg-[#16161b]">
+      <div className="selectable min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[env(safe-area-inset-bottom)]">
         {children}
       </div>
     </motion.div>

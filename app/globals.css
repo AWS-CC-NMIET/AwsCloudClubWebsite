@@ -5,14 +5,27 @@
 
 :root {
   --os-text: #1d1d1f;
-  --os-text-dim: #00000073;
-  --win-bg: #f5f5f7;
-  --titlebar-bg: #f6f6f6f5;
+  --os-text-dim: #00000080;
+  --win-bg: rgba(250, 250, 252, 0.58);
+  --titlebar-bg: rgba(255, 255, 255, 0.35);
   --win-divider: #00000014;
   --menubar-bg: #f6f6f8a8;
   --menu-bg: #f8f8fad1;
   --tl-dim: #c9c9cd;
   --accent: #7940ea;
+
+  /* ── Liquid glass ── */
+  --glass-bg: rgba(255, 255, 255, 0.52);
+  --glass-bg-strong: rgba(255, 255, 255, 0.74);
+  --glass-card: rgba(255, 255, 255, 0.62);
+  --glass-card-hover: rgba(255, 255, 255, 0.82);
+  --glass-rim-hi: rgba(255, 255, 255, 0.95);
+  --glass-rim-lo: rgba(255, 255, 255, 0.18);
+  --glass-shadow: 0 18px 50px -14px rgba(20, 16, 40, 0.28), 0 2px 8px rgba(20, 16, 40, 0.08);
+  --win-material: rgba(244, 244, 248, 0.66);
+  --win-sidebar: rgba(255, 255, 255, 0.28);
+  --toolbar-bg: rgba(246, 246, 250, 0.84);
+  --sheen: rgba(255, 255, 255, 0.55);
 
   --background: #f5f5f7;
   --foreground: #1d1d1f;
@@ -35,13 +48,25 @@
 .dark {
   --os-text: #f5f5f7;
   --os-text-dim: #a1a1aa;
-  --win-bg: #1e1e24;
-  --titlebar-bg: #282830;
+  --win-bg: rgba(26, 26, 32, 0.55);
+  --titlebar-bg: rgba(255, 255, 255, 0.04);
   --win-divider: rgba(255, 255, 255, 0.12);
   --menubar-bg: rgba(22, 22, 28, 0.92);
   --menu-bg: rgba(32, 32, 40, 0.96);
   --tl-dim: #444448;
   --accent: #7940ea;
+
+  --glass-bg: rgba(36, 36, 46, 0.42);
+  --glass-bg-strong: rgba(30, 30, 38, 0.72);
+  --glass-card: rgba(255, 255, 255, 0.055);
+  --glass-card-hover: rgba(255, 255, 255, 0.09);
+  --glass-rim-hi: rgba(255, 255, 255, 0.38);
+  --glass-rim-lo: rgba(255, 255, 255, 0.04);
+  --glass-shadow: 0 24px 60px -16px rgba(0, 0, 0, 0.7), 0 2px 10px rgba(0, 0, 0, 0.35);
+  --win-material: rgba(22, 22, 28, 0.62);
+  --win-sidebar: rgba(255, 255, 255, 0.035);
+  --toolbar-bg: rgba(22, 22, 28, 0.84);
+  --sheen: rgba(255, 255, 255, 0.16);
 
   --background: #141416;
   --foreground: #f5f5f7;
@@ -277,4 +302,147 @@
 
 .dark ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.38);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Liquid glass
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* In the components layer so Tailwind utilities (absolute, fixed, bg-*, …)
+   can still override these on any element. */
+@layer components {
+/* Frosted material: translucent fill, blurred + saturated backdrop. */
+.glass {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(28px) saturate(185%);
+  backdrop-filter: blur(28px) saturate(185%);
+  box-shadow: var(--glass-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+.glass-strong {
+  background: var(--glass-bg-strong);
+  -webkit-backdrop-filter: blur(36px) saturate(190%);
+  backdrop-filter: blur(36px) saturate(190%);
+  box-shadow: var(--glass-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+/* Window material: what every app window (and mobile sheet) is made of. */
+.window-material {
+  background: var(--win-material);
+  -webkit-backdrop-filter: blur(44px) saturate(180%);
+  backdrop-filter: blur(44px) saturate(180%);
+}
+
+/* Specular rim — a gradient hairline that catches light like Apple's
+   Liquid Glass edges. Works on any element with a border-radius. */
+.rim {
+  position: relative;
+  isolation: isolate;
+}
+.rim::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(155deg, var(--glass-rim-hi), var(--glass-rim-lo) 32%, var(--glass-rim-lo) 68%, var(--glass-rim-hi));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Cards inside windows: translucent (the window already blurs), rim, lift. */
+.glass-card {
+  background: var(--glass-card);
+  border-radius: 1rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  transition: background 0.25s ease, transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease;
+}
+.dark .glass-card {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.glass-card.interactive:hover {
+  background: var(--glass-card-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 34px -14px rgba(20, 16, 40, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+/* Cursor-following sheen (set --mx / --my from pointermove). */
+.sheen {
+  position: relative;
+  overflow: hidden;
+}
+.sheen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), var(--sheen), transparent 42%);
+  z-index: 1;
+}
+.sheen:hover::after {
+  opacity: 1;
+}
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Motion
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Living wallpaper: large soft colour fields drifting slowly. */
+.live-wallpaper {
+  position: absolute;
+  inset: -20%;
+  pointer-events: none;
+  z-index: -1; /* behind content, above the wallpaper's own gradient */
+}
+.live-wallpaper span {
+  position: absolute;
+  width: 55vmax;
+  height: 55vmax;
+  border-radius: 50%;
+  opacity: 0.5;
+  will-change: transform;
+}
+.live-wallpaper span:nth-child(1) { top: -10%; right: 0%; animation: blob-drift-a 38s ease-in-out infinite alternate; }
+.live-wallpaper span:nth-child(2) { top: 25%; left: -5%; animation: blob-drift-b 46s ease-in-out infinite alternate; }
+.live-wallpaper span:nth-child(3) { bottom: -15%; left: 30%; animation: blob-drift-c 54s ease-in-out infinite alternate; }
+
+@keyframes blob-drift-a { 0% { transform: translate3d(0, 0, 0) scale(1); } 100% { transform: translate3d(-18vw, 14vh, 0) scale(1.15); } }
+@keyframes blob-drift-b { 0% { transform: translate3d(0, 0, 0) scale(1.1); } 100% { transform: translate3d(20vw, -10vh, 0) scale(0.9); } }
+@keyframes blob-drift-c { 0% { transform: translate3d(0, 0, 0) scale(0.95); } 100% { transform: translate3d(-12vw, -16vh, 0) scale(1.2); } }
+
+/* Diagonal light sweep (team cards, buttons). */
+@keyframes shine-sweep {
+  0% { transform: translateX(-120%) skewX(-20deg); }
+  100% { transform: translateX(220%) skewX(-20deg); }
+}
+
+/* Racing stripes drifting across a livery. */
+@keyframes livery-drift {
+  0% { background-position: 0 0; }
+  100% { background-position: 120px 0; }
+}
+
+@keyframes float-y {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }

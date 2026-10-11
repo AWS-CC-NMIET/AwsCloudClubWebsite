@@ -21,6 +21,7 @@ import type { LearningResource, ResourceType } from "@/lib/club-content"
 import { useResources } from "@/lib/club-data"
 import { sanitizeUrl, cn } from "@/lib/utils"
 import { AppShell, ChipBar, EmptyState, OfflineNotice, Sidebar, SidebarItem, SidebarSection } from "./shared/mac-ui"
+import { Stagger, StaggerItem } from "./shared/motion"
 
 const TYPE_STYLE: Record<ResourceType, { icon: LucideIcon; bg: string; label: string }> = {
   Course: { icon: BookOpen, bg: "linear-gradient(135deg,#10b981,#047857)", label: "Course" },
@@ -120,11 +121,13 @@ export function SafariApp() {
                 {grouped.map(([cat, items]) => (
                   <section key={cat}>
                     <h2 className="mb-3 text-[13px] font-bold text-(--os-text)">{cat}</h2>
-                    <div className="grid grid-cols-[repeat(auto-fill,minmax(92px,1fr))] gap-x-3 gap-y-5">
+                    <Stagger className="grid grid-cols-[repeat(auto-fill,minmax(92px,1fr))] gap-x-3 gap-y-5">
                       {items.map(r => (
-                        <FavoriteTile key={r.id} resource={r} />
+                        <StaggerItem key={r.id}>
+                          <FavoriteTile resource={r} />
+                        </StaggerItem>
                       ))}
-                    </div>
+                    </Stagger>
                   </section>
                 ))}
               </div>

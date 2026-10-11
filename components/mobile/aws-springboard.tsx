@@ -12,6 +12,7 @@ import { AppIcon } from "@/components/os/app-icon"
 import { SystemToast } from "@/components/os/system-toast"
 import { AppErrorBoundary } from "@/components/app-error-boundary"
 import { AppSheet } from "./aws-sheet"
+import { LiveWallpaper } from "@/components/os/live-wallpaper"
 import { useSession } from "@/lib/session"
 import { isAppVisible } from "@/lib/open-guard"
 
@@ -61,6 +62,8 @@ export function SpringBoard({ renderAppContent }: { renderAppContent: (appId: Ap
       data-wallpaper={wallpaper}
       style={{ background }}
     >
+      <LiveWallpaper />
+
       {/* ── Status bar ───────────────────────────────────────────────────── */}
       <div className="z-50 flex shrink-0 items-center justify-between px-6 pb-1 pt-[max(0.5rem,env(safe-area-inset-top))] text-white">
         <span className="text-sm font-semibold tracking-tight [text-shadow:0_1px_3px_rgba(0,0,0,0.6)]">{currentTime}</span>
@@ -77,7 +80,7 @@ export function SpringBoard({ renderAppContent }: { renderAppContent: (appId: Ap
 
       {/* ── Search ───────────────────────────────────────────────────────── */}
       <div className="px-5 pb-1 pt-3">
-        <label className="flex items-center gap-2 rounded-xl border border-white/20 bg-white/20 px-3 py-2 text-white shadow-sm backdrop-blur-xl">
+        <label className="rim flex items-center gap-2 rounded-2xl bg-white/20 px-3 py-2 text-white shadow-sm backdrop-blur-xl backdrop-saturate-150">
           <Search className="size-4 opacity-75" />
           <input
             value={query}
@@ -91,17 +94,22 @@ export function SpringBoard({ renderAppContent }: { renderAppContent: (appId: Ap
 
       {/* ── App grid ─────────────────────────────────────────────────────── */}
       <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-2 pt-5">
-        <div className="mx-auto grid max-w-md grid-cols-4 content-start gap-x-3 gap-y-6">
+        <motion.div
+          className="mx-auto grid max-w-md grid-cols-4 content-start gap-x-3 gap-y-6"
+          initial="hidden"
+          animate="show"
+          variants={{ hidden: {}, show: { transition: { staggerChildren: 0.025, delayChildren: 0.08 } } }}
+        >
           {grid.map(id => (
             <SpringBoardItem key={id} id={id} onOpen={rect => openApp(id, rect)} />
           ))}
-        </div>
+        </motion.div>
         {grid.length === 0 && <p className="pt-10 text-center text-sm text-white/70">No apps match “{query}”</p>}
       </div>
 
       {/* ── Dock ─────────────────────────────────────────────────────────── */}
       <div className="mt-auto px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-2">
-        <div className="mx-auto flex max-w-md items-center justify-around rounded-[28px] border border-white/25 bg-white/30 px-3 py-3 shadow-2xl backdrop-blur-2xl dark:bg-white/15">
+        <div className="glass rim mx-auto flex max-w-md items-center justify-around rounded-[30px] px-3 py-3">
           {SPRINGBOARD_DOCK.map(id => (
             <SpringBoardItem key={id} id={id} hideLabel onOpen={rect => openApp(id, rect)} />
           ))}
@@ -130,6 +138,10 @@ function SpringBoardItem({ id, hideLabel = false, onOpen }: { id: AppId; hideLab
     <motion.button
       ref={ref}
       onClick={() => onOpen(ref.current?.getBoundingClientRect())}
+      variants={{
+        hidden: { opacity: 0, scale: 0.6, y: 18 },
+        show: { opacity: 1, scale: 1, y: 0, transition: { type: "spring", stiffness: 420, damping: 24 } },
+      }}
       whileTap={{ scale: 0.88, opacity: 0.7 }}
       className="flex select-none flex-col items-center gap-1.5 outline-none"
       aria-label={`Open ${label}`}

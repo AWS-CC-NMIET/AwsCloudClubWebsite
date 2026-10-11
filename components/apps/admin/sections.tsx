@@ -78,7 +78,7 @@ export function OverviewSection({ go }: { go: (section: SectionId) => void }) {
             <button
               key={c.label}
               onClick={() => go(c.section)}
-              className="flex flex-col items-start gap-2 rounded-xl border border-(--win-divider) bg-white p-4 text-left shadow-xs transition-shadow hover:shadow-md dark:bg-white/[0.04]"
+              className="glass-card rim interactive flex flex-col items-start gap-2 p-4 text-left"
             >
               <span className="flex size-8 items-center justify-center rounded-lg" style={{ background: `${c.color}1f` }}>
                 <c.icon className="size-4" style={{ color: c.color }} />
@@ -412,7 +412,7 @@ export function HealthSection() {
             </div>
 
             {rows.length > 0 && (
-              <div className="divide-y divide-(--win-divider) rounded-xl border border-(--win-divider) bg-white dark:bg-white/[0.03]">
+              <div className="glass-card rim divide-y divide-(--win-divider)">
                 {rows.map(r => (
                   <div key={r.name} className="flex items-start gap-3 px-4 py-2.5">
                     {r.ok ? <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-500" /> : <XCircle className="mt-0.5 size-4 shrink-0 text-red-500" />}
@@ -426,7 +426,7 @@ export function HealthSection() {
             )}
 
             {report?.config && (
-              <div className="divide-y divide-(--win-divider) rounded-xl border border-(--win-divider) bg-white text-[12px] dark:bg-white/[0.03]">
+              <div className="glass-card rim divide-y divide-(--win-divider) text-[12px]">
                 {Object.entries(report.config).map(([key, value]) => (
                   <div key={key} className="flex items-center justify-between gap-3 px-4 py-2">
                     <span className="text-(--os-text-dim)">{key}</span>

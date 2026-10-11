@@ -56,7 +56,7 @@ export function WidgetEditorModal() {
             transition={{ type: "spring", stiffness: 500, damping: 36 }}
             role="dialog"
             aria-label="Edit Widgets"
-            className="flex max-h-[76vh] w-[580px] flex-col overflow-hidden rounded-2xl border border-black/10 bg-(--menu-bg) shadow-2xl backdrop-blur-2xl dark:border-white/15 text-(--os-text)"
+            className="flex max-h-[76vh] w-[580px] flex-col overflow-hidden glass-strong rim rounded-[22px] text-(--os-text)"
           >
             {/* Modal Header */}
             <div className="flex shrink-0 items-center justify-between border-b border-black/10 px-5 py-3.5 dark:border-white/10">

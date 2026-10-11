@@ -29,7 +29,7 @@ export function MusicApp() {
   const currentTrack = TRACKS[trackIndex]
 
   return (
-    <div className="flex h-full w-full flex-col md:flex-row bg-(--win-bg) text-(--os-text)">
+    <div className="flex h-full w-full flex-col md:flex-row text-(--os-text)">
       {/* ── Left Artwork & Visualizer ────────────────────────────────────────── */}
       <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-10 space-y-6">
         <motion.div
@@ -117,7 +117,7 @@ export function MusicApp() {
       </div>
 
       {/* ── Right Playlist Sidebar ───────────────────────────────────────────── */}
-      <div className="w-full md:w-72 shrink-0 border-t md:border-t-0 md:border-l border-(--win-divider) bg-black/[0.02] dark:bg-white/[0.02] p-4 space-y-3 overflow-y-auto">
+      <div className="w-full md:w-72 shrink-0 border-t md:border-t-0 md:border-l border-(--win-divider) bg-(--win-sidebar) p-4 space-y-3 overflow-y-auto">
         <div className="flex items-center gap-2 pb-2 border-b border-(--win-divider)">
           <Radio className="size-4 text-(--accent)" />
           <span className="text-xs font-bold uppercase tracking-wider text-(--os-text)">

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { AnimatePresence, motion } from "framer-motion"
+import { AnimatePresence, MotionConfig, motion } from "framer-motion"
 import { BootScreen } from "@/components/os/boot-screen"
 import { LoginScreen } from "@/components/os/login-screen"
 import { DesktopContainer } from "@/components/os/desktop-container"
@@ -31,7 +31,16 @@ function markBooted() {
   }
 }
 
+// framer-motion honours the OS "reduce motion" setting everywhere.
 export default function CloudOS() {
+  return (
+    <MotionConfig reducedMotion="user">
+      <CloudOSShell />
+    </MotionConfig>
+  )
+}
+
+function CloudOSShell() {
   // null = device type not yet detected (avoids hydration mismatch)
   const [isMobile, setIsMobile] = useState<boolean | null>(null)
   const [stage, setStage] = useState<Stage>("checking")

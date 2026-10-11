@@ -57,9 +57,9 @@ export function TrashApp() {
   }
 
   return (
-    <div className="flex h-full w-full flex-col md:flex-row bg-(--win-bg) text-(--os-text)">
+    <div className="flex h-full w-full flex-col md:flex-row text-(--os-text)">
       {/* ── Left Trash Items List ────────────────────────────────────────────── */}
-      <aside className="w-full md:w-80 shrink-0 border-b md:border-b-0 md:border-r border-(--win-divider) bg-black/[0.02] dark:bg-white/[0.02] p-4 space-y-4 overflow-y-auto">
+      <aside className="w-full md:w-80 shrink-0 border-b md:border-b-0 md:border-r border-(--win-divider) bg-(--win-sidebar) p-4 space-y-4 overflow-y-auto">
         <div className="flex items-center justify-between pb-2 border-b border-(--win-divider)">
           <div className="flex items-center gap-2">
             <Trash2 className="size-4 text-rose-500" />

@@ -5,6 +5,7 @@ import { motion, useMotionValue, useTransform, animate, type PanInfo } from "fra
 import { ChevronUp } from "lucide-react"
 import Image from "next/image"
 import { useSystemStore, WALLPAPER_STYLES } from "@/lib/aws-store"
+import { LiveWallpaper } from "@/components/os/live-wallpaper"
 
 interface Props {
   onUnlock: () => void
@@ -54,6 +55,7 @@ export function MobileLockscreen({ onUnlock }: Props) {
         transition: "background 0.5s cubic-bezier(0.16, 1, 0.3, 1)",
       }}
     >
+      <LiveWallpaper />
 
       {/* Gradient overlay — bottom fade so swipe hint pops */}
       <div
