@@ -367,9 +367,12 @@ export function LoginScreen({ onLogin, initialPhase = "lock" }: { onLogin: () =>
               initial={{ y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.55, duration: 0.5 }}>
 
-              {/* Animated "Press Enter" hint */}
-              <motion.div
-                className="flex items-center gap-3"
+              {/* Animated "Press Enter" hint — also clickable/tappable to continue as a guest */}
+              <motion.button
+                type="button"
+                onClick={onLogin}
+                aria-label="Continue as guest"
+                className="flex items-center gap-3 rounded-xl px-3 py-1.5 outline-none focus-visible:ring-2 focus-visible:ring-violet-300/60"
                 animate={{ opacity: [0.45, 1, 0.45] }}
                 transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}>
                 <span
@@ -394,7 +397,7 @@ export function LoginScreen({ onLogin, initialPhase = "lock" }: { onLogin: () =>
                   style={{ color: "rgba(196,181,253,0.8)", letterSpacing: "0.22em" }}>
                   to continue
                 </span>
-              </motion.div>
+              </motion.button>
 
               {/* Optional sign-in / register links — subtle, below the fold */}
               <div className="flex items-center gap-4 mt-1">

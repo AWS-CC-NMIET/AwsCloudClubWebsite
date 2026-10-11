@@ -1,104 +1,69 @@
 // components/mobile/aws-springboard.tsx
-// iOS SpringBoard with status bar, squircle app grid, and floating dock
+// iOS SpringBoard: status bar, search, app grid, dock and full-screen app sheets
 
 "use client"
 
-import React, { useState, useEffect, useRef } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Wifi, Battery, Signal, Search } from "lucide-react"
-import {
-  useWindowStore,
-  useSystemStore,
-  windowActions,
-  selectFocusedApp,
-} from "@/lib/aws-store"
-import {
-  APPS_META,
-  SPRINGBOARD_GRID,
-  SPRINGBOARD_DOCK,
-  type AppId,
-} from "@/lib/aws-apps"
-import { WALLPAPER_STYLES } from "@/lib/aws-store"
+import { Battery, Search, Signal, Wifi } from "lucide-react"
+import { useWindowStore, useSystemStore, windowActions, selectFocusedApp, WALLPAPER_STYLES } from "@/lib/aws-store"
+import { APPS_META, SPRINGBOARD_DOCK, SPRINGBOARD_GRID, windowTitleOf, type AppId } from "@/lib/aws-apps"
 import { AppIcon } from "@/components/os/app-icon"
-import { AppSheet } from "./aws-sheet"
+import { SystemToast } from "@/components/os/system-toast"
 import { AppErrorBoundary } from "@/components/app-error-boundary"
+import { AppSheet } from "./aws-sheet"
 
-export function SpringBoard({
-  renderAppContent,
-}: {
-  renderAppContent: (appId: AppId) => React.ReactNode
-}) {
+const ALL_APPS = [...SPRINGBOARD_DOCK, ...SPRINGBOARD_GRID]
+
+export function SpringBoard({ renderAppContent }: { renderAppContent: (appId: AppId) => React.ReactNode }) {
   const [currentTime, setCurrentTime] = useState("")
   const [touchOrigin, setTouchOrigin] = useState<{ x: number; y: number } | null>(null)
-  const [searchFilter, setSearchFilter] = useState("")
+  const [query, setQuery] = useState("")
 
   const windows = useWindowStore(s => s.windows)
   const zOrder = useWindowStore(s => s.zOrder)
   const activeAppId = selectFocusedApp({ windows, zOrder })
   const appearance = useSystemStore(s => s.appearance)
   const wallpaper = useSystemStore(s => s.wallpaper)
-
-  const activeGradient =
-    WALLPAPER_STYLES[wallpaper]?.[appearance] || WALLPAPER_STYLES.dynamic.dark
+  const background = WALLPAPER_STYLES[wallpaper]?.[appearance] ?? WALLPAPER_STYLES.dynamic.dark
 
   useEffect(() => {
-    const updateTime = () => {
-      const now = new Date()
-      setCurrentTime(
-        now.toLocaleTimeString("en-US", {
-          hour: "numeric",
-          minute: "2-digit",
-        })
-      )
-    }
-    updateTime()
-    const timer = setInterval(updateTime, 1000)
+    const update = () => setCurrentTime(new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }))
+    update()
+    const timer = setInterval(update, 10_000)
     return () => clearInterval(timer)
   }, [])
 
-  const handleOpenApp = (id: AppId, rect?: DOMRect) => {
-    if (rect) {
-      setTouchOrigin({
-        x: rect.left + rect.width / 2,
-        y: rect.top + rect.height / 2,
-      })
-    } else {
-      setTouchOrigin(null)
-    }
+  const openApp = (id: AppId, rect?: DOMRect) => {
+    setTouchOrigin(rect ? { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 } : null)
     windowActions.open(id)
   }
 
-  const filteredGrid = SPRINGBOARD_GRID.filter(id => {
-    if (!searchFilter.trim()) return true
-    const meta = APPS_META[id]
-    const q = searchFilter.toLowerCase()
-    return (
-      meta.name.toLowerCase().includes(q) ||
-      meta.spotlight.keywords.some(k => k.toLowerCase().includes(q))
-    )
-  })
+  const q = query.trim().toLowerCase()
+  const grid = q
+    ? ALL_APPS.filter(id => {
+        const meta = APPS_META[id]
+        return (
+          windowTitleOf(id).toLowerCase().includes(q) ||
+          (meta.springboardLabel ?? "").toLowerCase().includes(q) ||
+          meta.spotlight.keywords.some(k => k.includes(q))
+        )
+      })
+    : SPRINGBOARD_GRID
 
   return (
     <div
-      className="wallpaper fixed inset-0 flex flex-col overflow-hidden select-none"
+      className="wallpaper fixed inset-0 flex select-none flex-col overflow-hidden"
       data-wallpaper={wallpaper}
-      style={{
-        background: activeGradient,
-        transition: "background 0.5s cubic-bezier(0.16, 1, 0.3, 1)",
-      }}
+      style={{ background }}
     >
-      {/* ── Top iOS Status Bar ────────────────────────────────────────────────── */}
-      <div className="flex h-11 shrink-0 items-center justify-between px-6 pt-2 text-white z-50">
-        <span className="text-sm font-semibold tracking-tight [text-shadow:0_1px_3px_rgba(0,0,0,0.6)]">
-          {currentTime}
-        </span>
-
-        {/* Dynamic Island / Notch Pill */}
-        <div className="h-5 w-24 rounded-full bg-black/80 backdrop-blur-md flex items-center justify-center">
-          <div className="h-2 w-2 rounded-full bg-emerald-500/80 mr-2 animate-pulse" />
-          <span className="text-[10px] font-mono text-white/70">AWS SBG</span>
+      {/* ── Status bar ───────────────────────────────────────────────────── */}
+      <div className="z-50 flex shrink-0 items-center justify-between px-6 pb-1 pt-[max(0.5rem,env(safe-area-inset-top))] text-white">
+        <span className="text-sm font-semibold tracking-tight [text-shadow:0_1px_3px_rgba(0,0,0,0.6)]">{currentTime}</span>
+        <div className="flex h-5 w-24 items-center justify-center rounded-full bg-black/80">
+          <span className="mr-2 size-2 animate-pulse rounded-full bg-emerald-500/80" />
+          <span className="font-mono text-[10px] text-white/70">AWS SBG</span>
         </div>
-
         <div className="flex items-center gap-1.5 [text-shadow:0_1px_3px_rgba(0,0,0,0.6)]">
           <Signal className="size-3.5" />
           <Wifi className="size-3.5" />
@@ -106,62 +71,46 @@ export function SpringBoard({
         </div>
       </div>
 
-      {/* ── Search Bar ───────────────────────────────────────────────────────── */}
-      <div className="px-5 pt-3 pb-1">
-        <div className="flex items-center gap-2 rounded-xl bg-white/20 px-3 py-2 text-white placeholder:text-white/60 backdrop-blur-xl border border-white/20 shadow-sm">
+      {/* ── Search ───────────────────────────────────────────────────────── */}
+      <div className="px-5 pb-1 pt-3">
+        <label className="flex items-center gap-2 rounded-xl border border-white/20 bg-white/20 px-3 py-2 text-white shadow-sm backdrop-blur-xl">
           <Search className="size-4 opacity-75" />
           <input
-            value={searchFilter}
-            onChange={e => setSearchFilter(e.target.value)}
-            placeholder="Search AWS SBG NMIET..."
-            className="w-full bg-transparent text-sm text-white placeholder:text-white/65 outline-none"
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            placeholder="Search AWS SBG NMIET"
+            aria-label="Search apps"
+            className="w-full bg-transparent text-sm text-white outline-none placeholder:text-white/65"
           />
-        </div>
+        </label>
       </div>
 
-      {/* ── 4-Column SpringBoard App Icon Grid ───────────────────────────────── */}
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 pt-4 pb-2">
-        <div className="grid grid-cols-4 gap-x-4 gap-y-6 content-start">
-          {filteredGrid.map(appId => (
-            <SpringBoardItem
-              key={appId}
-              id={appId}
-              onOpen={rect => handleOpenApp(appId, rect)}
-            />
+      {/* ── App grid ─────────────────────────────────────────────────────── */}
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-2 pt-5">
+        <div className="mx-auto grid max-w-md grid-cols-4 content-start gap-x-3 gap-y-6">
+          {grid.map(id => (
+            <SpringBoardItem key={id} id={id} onOpen={rect => openApp(id, rect)} />
+          ))}
+        </div>
+        {grid.length === 0 && <p className="pt-10 text-center text-sm text-white/70">No apps match “{query}”</p>}
+      </div>
+
+      {/* ── Dock ─────────────────────────────────────────────────────────── */}
+      <div className="mt-auto px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-2">
+        <div className="mx-auto flex max-w-md items-center justify-around rounded-[28px] border border-white/25 bg-white/30 px-3 py-3 shadow-2xl backdrop-blur-2xl dark:bg-white/15">
+          {SPRINGBOARD_DOCK.map(id => (
+            <SpringBoardItem key={id} id={id} hideLabel onOpen={rect => openApp(id, rect)} />
           ))}
         </div>
       </div>
 
-      {/* ── Bottom iOS Floating Dock ─────────────────────────────────────────── */}
-      <div className="mt-auto px-4 pb-6 pt-2">
-        <div className="flex items-center justify-around rounded-[28px] bg-white/30 px-3 py-3 backdrop-blur-2xl dark:bg-white/15 border border-white/25 shadow-2xl">
-          {SPRINGBOARD_DOCK.map(appId => (
-            <SpringBoardItem
-              key={appId}
-              id={appId}
-              hideLabel
-              onOpen={rect => handleOpenApp(appId, rect)}
-            />
-          ))}
-        </div>
+      <SystemToast placement="top-center" />
 
-        {/* Bottom Home Bar */}
-        <div className="flex justify-center pt-3 pb-1">
-          <div className="h-1 w-36 rounded-full bg-white/40" />
-        </div>
-      </div>
-
-      {/* ── Full-Screen Native App Sheet ─────────────────────────────────────── */}
+      {/* ── Full-screen app sheet ────────────────────────────────────────── */}
       <AnimatePresence>
         {activeAppId && (
-          <AppSheet
-            id={activeAppId}
-            origin={touchOrigin}
-            onClose={() => windowActions.close(activeAppId)}
-          >
-            <AppErrorBoundary>
-              {renderAppContent(activeAppId)}
-            </AppErrorBoundary>
+          <AppSheet key={activeAppId} id={activeAppId} origin={touchOrigin} onClose={() => windowActions.close(activeAppId)}>
+            <AppErrorBoundary>{renderAppContent(activeAppId)}</AppErrorBoundary>
           </AppSheet>
         )}
       </AnimatePresence>
@@ -169,33 +118,24 @@ export function SpringBoard({
   )
 }
 
-function SpringBoardItem({
-  id,
-  hideLabel = false,
-  onOpen,
-}: {
-  id: AppId
-  hideLabel?: boolean
-  onOpen: (rect?: DOMRect) => void
-}) {
-  const itemRef = useRef<HTMLButtonElement>(null)
-  const meta = APPS_META[id]
+function SpringBoardItem({ id, hideLabel = false, onOpen }: { id: AppId; hideLabel?: boolean; onOpen: (rect?: DOMRect) => void }) {
+  const ref = useRef<HTMLButtonElement>(null)
+  const label = APPS_META[id]?.springboardLabel ?? windowTitleOf(id)
 
   return (
     <motion.button
-      ref={itemRef}
-      onClick={() => onOpen(itemRef.current?.getBoundingClientRect())}
+      ref={ref}
+      onClick={() => onOpen(ref.current?.getBoundingClientRect())}
       whileTap={{ scale: 0.88, opacity: 0.7 }}
-      className="flex flex-col items-center gap-1.5 outline-none select-none"
-      aria-label={`Open ${meta?.name || id}`}
+      className="flex select-none flex-col items-center gap-1.5 outline-none"
+      aria-label={`Open ${label}`}
     >
-      <div className="size-[58px] shrink-0 filter drop-shadow-[0_3px_5px_rgba(0,0,0,0.35)]">
+      <div className="size-[58px] shrink-0 drop-shadow-[0_3px_5px_rgba(0,0,0,0.35)]">
         <AppIcon id={id} size={58} />
       </div>
-
       {!hideLabel && (
-        <span className="max-w-[72px] truncate text-[11px] font-medium text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.85)] tracking-tight">
-          {meta?.springboardLabel || meta?.name || id}
+        <span className="max-w-[76px] truncate text-[11px] font-medium tracking-tight text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.85)]">
+          {label}
         </span>
       )}
     </motion.button>

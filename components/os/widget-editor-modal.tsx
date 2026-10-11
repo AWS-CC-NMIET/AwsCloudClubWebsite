@@ -1,5 +1,5 @@
 // components/os/widget-editor-modal.tsx
-// Authentic macOS / AWS Cloud Club "Edit Widgets" management modal
+// macOS-style "Edit Widgets" panel
 
 "use client"
 
@@ -11,24 +11,14 @@ import {
   WIDGET_DEFINITIONS,
   type WidgetId,
 } from "@/lib/aws-widgets"
-import {
-  Activity,
-  Clock,
-  Calendar,
-  Radio,
-  FolderGit2,
-  Award,
-  Check,
-  Plus,
-} from "lucide-react"
+import { CalendarClock, Clock, Calendar, Radio, Users, Check, Plus } from "lucide-react"
 
 const WIDGET_ICONS: Record<WidgetId, React.ComponentType<{ className?: string }>> = {
-  "aws-status": Activity,
+  "next-event": CalendarClock,
+  "club-stats": Users,
   "clock-cities": Clock,
   calendar: Calendar,
   "now-playing": Radio,
-  portfolio: FolderGit2,
-  certifications: Award,
 }
 
 export function WidgetEditorModal() {

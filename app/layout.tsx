@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { AmplifyProvider } from '@/lib/amplify-provider'
-import { NotificationsProvider } from '@/lib/notifications-context'
 import { PWAInstallPrompt } from '@/components/pwa-install-prompt'
 import './globals.css'
 
@@ -48,6 +47,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  viewportFit: 'cover',
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#f5f5f7' },
     { media: '(prefers-color-scheme: dark)', color: '#1d1d1f' },
@@ -97,7 +97,7 @@ export default function RootLayout({
                       }
                     });
                   } else {
-                    navigator.serviceWorker.register('/sw.js').catch(() => {});
+                    navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).catch(() => {});
                   }
                 });
               }
@@ -110,10 +110,8 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <AmplifyProvider>
-          <NotificationsProvider>
-            {children}
-            <PWAInstallPrompt />
-          </NotificationsProvider>
+          {children}
+          <PWAInstallPrompt />
         </AmplifyProvider>
       </body>
     </html>

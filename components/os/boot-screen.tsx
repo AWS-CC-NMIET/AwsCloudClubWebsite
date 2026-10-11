@@ -1,5 +1,5 @@
 // components/os/boot-screen.tsx
-// AWS Cloud Club-style boot screen featuring AWS Cloud Club SBG logo
+// Boot screen with the AWS SBG NMIET logo
 
 "use client"
 
@@ -29,7 +29,7 @@ export function BootScreen({ onComplete }: { onComplete: () => void }) {
           transition={{ duration: 0.45, ease: "easeInOut" }}
           className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#000000] text-white select-none"
         >
-          {/* ── AWS Cloud Club SBG Logo ──────────────────────────────────────── */}
+          {/* ── AWS SBG NMIET logo ─────────────────────────────────────────────── */}
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}

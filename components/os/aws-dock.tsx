@@ -1,41 +1,49 @@
 // components/os/aws-dock.tsx
-// Authentic macOS floating dock with smooth magnification, bounce, and active dots
+// macOS dock with magnification, launch bounce and running indicators.
+// Icon size adapts to the viewport so all apps fit on smaller screens.
 
 "use client"
 
-import React, { useRef, useState, useEffect } from "react"
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion"
-import {
-  useWindowStore,
-  windowActions,
-  registerDockIconRect,
-} from "@/lib/aws-store"
-import { DOCK_APPS, APPS_META, type AppId } from "@/lib/aws-apps"
+import React, { useEffect, useRef, useState } from "react"
+import { motion, useMotionValue, useSpring, useTransform, type MotionValue } from "framer-motion"
+import { useWindowStore, windowActions, registerDockIconRect } from "@/lib/aws-store"
+import { DOCK_APPS, dockLabelOf, type AppId } from "@/lib/aws-apps"
 import { AppIcon } from "./app-icon"
+
+const MAX_ICON = 50
+const MIN_ICON = 32
+const GAP = 6
+
+function useBaseIconSize() {
+  const [size, setSize] = useState(MAX_ICON)
+  useEffect(() => {
+    const update = () => {
+      const available = window.innerWidth - 48 - (DOCK_APPS.length + 1) * GAP
+      setSize(Math.max(MIN_ICON, Math.min(MAX_ICON, Math.floor(available / DOCK_APPS.length))))
+    }
+    update()
+    window.addEventListener("resize", update)
+    return () => window.removeEventListener("resize", update)
+  }, [])
+  return size
+}
 
 export function AwsDock() {
   const mouseX = useMotionValue(Infinity)
+  const base = useBaseIconSize()
 
   return (
-    <nav
-      aria-label="Dock"
-      className="fixed inset-x-0 bottom-2 z-[900] flex justify-center pointer-events-none select-none"
-    >
+    <nav aria-label="Dock" className="pointer-events-none fixed inset-x-0 bottom-2 z-[900] flex select-none justify-center">
       <motion.div
-        onPointerMove={e => mouseX.set(e.clientX)}
+        onPointerMove={e => e.pointerType === "mouse" && mouseX.set(e.clientX)}
         onPointerLeave={() => mouseX.set(Infinity)}
-        className="pointer-events-auto flex items-end gap-1.5 rounded-2xl border border-white/30 bg-white/40 px-2 pb-1.5 pt-1 shadow-[0_16px_50px_rgba(0,0,0,0.4)] backdrop-blur-2xl dark:border-white/15 dark:bg-[#1a1a24]/75"
-        style={{ height: 68 }}
+        className="pointer-events-auto flex items-end rounded-2xl border border-white/30 bg-white/40 px-2 pb-1.5 pt-1 shadow-[0_16px_50px_rgba(0,0,0,0.4)] backdrop-blur-2xl dark:border-white/15 dark:bg-[#1a1a24]/75"
+        style={{ height: base + 18, gap: GAP }}
       >
         {DOCK_APPS.map(appId => (
           <React.Fragment key={appId}>
-            {appId === "trash" && (
-              <span
-                className="mx-1 mb-1 h-10 w-px self-end bg-black/15 dark:bg-white/20"
-                aria-hidden="true"
-              />
-            )}
-            <DockItem id={appId} mouseX={mouseX} />
+            {appId === "trash" && <span className="mx-1 mb-1 w-px self-stretch bg-black/15 dark:bg-white/20" aria-hidden="true" />}
+            <DockItem id={appId} mouseX={mouseX} base={base} />
           </React.Fragment>
         ))}
       </motion.div>
@@ -43,67 +51,62 @@ export function AwsDock() {
   )
 }
 
-function DockItem({ id, mouseX }: { id: AppId; mouseX: any }) {
-  const itemRef = useRef<HTMLButtonElement>(null)
+function DockItem({ id, mouseX, base }: { id: AppId; mouseX: MotionValue<number>; base: number }) {
+  const ref = useRef<HTMLButtonElement>(null)
   const [bouncing, setBouncing] = useState(false)
-  const meta = APPS_META[id]
+  const isOpen = useWindowStore(s => !!s.windows[id])
+  const label = dockLabelOf(id)
 
-  const windows = useWindowStore(s => s.windows)
-  const isOpen = !!windows[id]
-
-  // Proximity magnification physics
   const distance = useTransform(mouseX, (val: number) => {
-    if (val === Infinity || !itemRef.current) return 120
-    const bounds = itemRef.current.getBoundingClientRect()
-    const center = bounds.x + bounds.width / 2
-    return Math.abs(val - center)
+    if (val === Infinity || !ref.current) return 150
+    const rect = ref.current.getBoundingClientRect()
+    return Math.abs(val - (rect.x + rect.width / 2))
+  })
+  const width = useSpring(useTransform(distance, [0, 150], [Math.round(base * 1.45), base]), {
+    stiffness: 400,
+    damping: 28,
   })
 
-  // Magnify width from 50px up to 72px within 120px cursor range
-  const widthTransform = useTransform(distance, [0, 120], [70, 50])
-  const width = useSpring(widthTransform, { stiffness: 400, damping: 28 })
-
-  // Register bounding rect for minimize window coordinates
+  // Remember where this icon is so windows can minimize into it.
   useEffect(() => {
-    const updateRect = () => {
-      if (itemRef.current) {
-        registerDockIconRect(id, itemRef.current.getBoundingClientRect())
-      }
+    const update = () => ref.current && registerDockIconRect(id, ref.current.getBoundingClientRect())
+    update()
+    const unsubscribe = width.on("animationComplete", update)
+    window.addEventListener("resize", update)
+    return () => {
+      unsubscribe()
+      window.removeEventListener("resize", update)
     }
-    updateRect()
-    window.addEventListener("resize", updateRect)
-    return () => window.removeEventListener("resize", updateRect)
-  }, [id])
+  }, [id, base, width])
 
-  const handleClick = () => {
-    setBouncing(true)
-    setTimeout(() => setBouncing(false), 700)
+  const launch = () => {
+    if (!isOpen) {
+      setBouncing(true)
+      setTimeout(() => setBouncing(false), 700)
+    }
     windowActions.open(id)
   }
 
   return (
     <motion.button
-      ref={itemRef}
-      onClick={handleClick}
+      ref={ref}
+      onClick={launch}
       style={{ width }}
-      animate={bouncing ? { y: [0, -24, 0, -10, 0] } : { y: 0 }}
+      animate={bouncing ? { y: [0, -20, 0, -8, 0] } : { y: 0 }}
       transition={bouncing ? { duration: 0.65, ease: "easeOut" } : undefined}
-      className="group relative aspect-square shrink-0 outline-none flex flex-col items-center justify-end"
-      aria-label={`Open ${meta?.name || id}`}
+      className="group relative flex aspect-square shrink-0 flex-col items-center justify-end outline-none"
+      aria-label={`Open ${label}`}
     >
-      {/* Icon */}
-      <div className="relative h-full w-full flex items-center justify-center filter drop-shadow-md transition-transform duration-150 group-hover:scale-105">
+      <div className="relative flex h-full w-full items-center justify-center drop-shadow-md">
         <AppIcon id={id} size="100%" />
       </div>
 
-      {/* Floating Hover Tooltip */}
-      <span className="pointer-events-none absolute -top-11 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md border border-white/15 bg-[#202028]/95 px-2.5 py-1 text-xs font-semibold text-white opacity-0 shadow-2xl backdrop-blur-2xl transition-opacity group-hover:opacity-100 z-50">
-        {meta?.name || id}
+      <span className="pointer-events-none absolute -top-10 left-1/2 z-50 -translate-x-1/2 whitespace-nowrap rounded-md border border-white/15 bg-[#202028]/95 px-2.5 py-1 text-xs font-semibold text-white opacity-0 shadow-2xl backdrop-blur-2xl transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+        {label}
       </span>
 
-      {/* Running Active Dot */}
       <span
-        className={`absolute -bottom-1 left-1/2 size-1 -translate-x-1/2 rounded-full bg-black/70 dark:bg-white/80 transition-opacity duration-200 ${
+        className={`absolute -bottom-1 left-1/2 size-1 -translate-x-1/2 rounded-full bg-black/70 transition-opacity duration-200 dark:bg-white/80 ${
           isOpen ? "opacity-100" : "opacity-0"
         }`}
         aria-hidden="true"

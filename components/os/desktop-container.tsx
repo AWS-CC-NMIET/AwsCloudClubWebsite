@@ -1,16 +1,13 @@
 // components/os/desktop-container.tsx
-// Complete macOS-style Desktop environment
+// macOS desktop: menu bar, wallpaper + widgets, windows and the dock
 
 "use client"
 
 import React, { useEffect } from "react"
 import { AnimatePresence } from "framer-motion"
-import {
-  useWindowStore,
-  windowActions,
-  selectFocusedApp,
-} from "@/lib/aws-store"
-import type { AppId } from "@/lib/aws-apps"
+import { useWindowStore, windowActions, selectFocusedApp, setOpenGuard } from "@/lib/aws-store"
+import { APPS_META, type AppId } from "@/lib/aws-apps"
+import { isSessionValid } from "@/lib/auth-client"
 import { AwsMenuBar } from "./aws-menubar"
 import { AwsDock } from "./aws-dock"
 import { AwsDesktop } from "./aws-desktop"
@@ -20,48 +17,65 @@ import { AppDispatcher } from "@/components/apps/app-dispatcher"
 export function DesktopContainer({
   onLogout,
   onRequireSignIn,
+  initialApp,
 }: {
   onLogout?: () => void
-  onRequireSignIn?: () => void
+  /** Called when a sign-in-only app is opened without a session. */
+  onRequireSignIn?: (appId: AppId) => void
+  /** App to open once the desktop appears (e.g. after signing in). */
+  initialApp?: AppId | null
 }) {
   const windows = useWindowStore(s => s.windows)
   const zOrder = useWindowStore(s => s.zOrder)
   const focusedAppId = selectFocusedApp({ windows, zOrder })
 
-  // Open AWS flagship overview window on first arrival if no windows are open
+  // Sign-in-only apps (Profile, Admin) route guests to the sign-in screen.
+  useEffect(
+    () =>
+      setOpenGuard(appId => {
+        if (!APPS_META[appId]?.requiresAuth || isSessionValid()) return true
+        onRequireSignIn?.(appId)
+        return false
+      }),
+    [onRequireSignIn]
+  )
+
+  // Open the requested app, or the Home window on first arrival.
   useEffect(() => {
-    const activeKeys = Object.keys(windows)
-    if (activeKeys.length === 0) {
-      // Small timeout for smooth entrance
-      const timer = setTimeout(() => {
-        windowActions.open("aws")
-      }, 300)
-      return () => clearTimeout(timer)
+    const timer = setTimeout(() => {
+      if (initialApp) windowActions.open(initialApp)
+      else if (Object.keys(useWindowStore.getState().windows).length === 0) windowActions.open("aws")
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [initialApp])
+
+  // Keep windows on-screen when the browser window is resized.
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>
+    const onResize = () => {
+      clearTimeout(timer)
+      timer = setTimeout(windowActions.reflow, 120)
+    }
+    window.addEventListener("resize", onResize)
+    return () => {
+      clearTimeout(timer)
+      window.removeEventListener("resize", onResize)
     }
   }, [])
 
   return (
-    <div className="fixed inset-0 overflow-hidden select-none">
-      {/* ── Top Translucent macOS Menu Bar ──────────────────────────────────── */}
+    <div className="fixed inset-0 select-none overflow-hidden">
       <AwsMenuBar onLockScreen={onLogout} />
 
-      {/* ── Desktop Canvas (Wallpapers, Watermark, Widgets) ─────────────────── */}
       <AwsDesktop>
-        {/* Render Active Windows */}
-        <div className="pointer-events-none fixed inset-0 z-[100]" aria-live="polite">
+        <div className="pointer-events-none fixed inset-0 z-[100]">
           <AnimatePresence>
-            {Object.keys(windows).map(appIdStr => {
-              const appId = appIdStr as AppId
+            {Object.keys(windows).map(key => {
+              const appId = key as AppId
               const win = windows[appId]
               if (!win) return null
-
               return (
-                <AppWindow
-                  key={appId}
-                  id={appId}
-                  zIndex={100 + zOrder.indexOf(appId)}
-                  focused={focusedAppId === appId}
-                >
+                <AppWindow key={appId} id={appId} zIndex={100 + zOrder.indexOf(appId)} focused={focusedAppId === appId}>
                   <AppDispatcher appId={appId} payload={win.payload} onLogout={onLogout} />
                 </AppWindow>
               )
@@ -70,7 +84,6 @@ export function DesktopContainer({
         </div>
       </AwsDesktop>
 
-      {/* ── Floating macOS Dock ──────────────────────────────────────────────── */}
       <AwsDock />
     </div>
   )

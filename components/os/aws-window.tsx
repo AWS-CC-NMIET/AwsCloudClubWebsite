@@ -1,18 +1,22 @@
 // components/os/aws-window.tsx
-// Authentic macOS Ventura/Sonoma window chrome with traffic lights and pointer drag
+// macOS window chrome with traffic lights, drag, resize and minimize-to-dock.
+//
+// Performance: dragging/resizing mutates the window element's style directly
+// and commits bounds to the store once on pointer-up, so the app inside the
+// window does not re-render on every pointer move.
 
 "use client"
 
-import React, { useRef, useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import React, { useRef } from "react"
+import { motion } from "framer-motion"
 import {
   useWindowStore,
   windowActions,
   getDockIconRect,
+  MENUBAR_HEIGHT,
   type WindowBounds,
-  type WindowInstance,
 } from "@/lib/aws-store"
-import { APPS_META, type AppId } from "@/lib/aws-apps"
+import { APPS_META, windowTitleOf, type AppId } from "@/lib/aws-apps"
 import { AppErrorBoundary } from "@/components/app-error-boundary"
 
 interface AppWindowProps {
@@ -22,125 +26,116 @@ interface AppWindowProps {
   children: React.ReactNode
 }
 
+type ResizeDir = "e" | "s" | "se"
+
 export function AppWindow({ id, zIndex, focused, children }: AppWindowProps) {
-  const windowInstance = useWindowStore(s => s.windows[id])
+  const win = useWindowStore(s => s.windows[id])
   const meta = APPS_META[id]
-  const windowRef = useRef<HTMLDivElement>(null)
+  const frameRef = useRef<HTMLDivElement>(null)
 
-  // Local drag/resize state
-  const [bounds, setBounds] = useState<WindowBounds>(
-    windowInstance?.bounds || { x: 80, y: 80, w: 900, h: 600 }
-  )
+  if (!win) return null
 
-  useEffect(() => {
-    if (windowInstance?.bounds) {
-      setBounds(windowInstance.bounds)
-    }
-  }, [windowInstance?.bounds])
+  const minimized = win.status === "minimized"
+  const { bounds } = win
 
-  if (!windowInstance || windowInstance.status === "minimized") {
-    return null
-  }
+  // Where the window shrinks to when minimized (its dock icon, if known).
+  const dock = getDockIconRect(id)
+  const minimizeTarget = dock
+    ? {
+        x: dock.x + dock.width / 2 - (bounds.x + bounds.w / 2),
+        y: dock.y + dock.height / 2 - (bounds.y + bounds.h / 2),
+      }
+    : { x: 0, y: 200 }
 
-  // ── Drag Logic via Pointer Capture ──────────────────────────────────────────
-  const handleTitlePointerDown = (e: React.PointerEvent) => {
-    if (windowInstance.isMaximized) return
-    const target = e.target as HTMLElement
-    if (target.closest("button, a, input, textarea, select, [data-no-drag]")) return
-    if (e.button !== 0) return
+  const minW = Math.min(meta?.minSize.w ?? 400, typeof window !== "undefined" ? window.innerWidth - 16 : 400)
+  const minH = Math.min(meta?.minSize.h ?? 300, typeof window !== "undefined" ? window.innerHeight - 120 : 300)
+
+  // ── Drag ──────────────────────────────────────────────────────────────────
+  const handleTitlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (win.isMaximized || e.button !== 0) return
+    if ((e.target as HTMLElement).closest("button, a, input, textarea, select, [data-no-drag]")) return
+    const el = frameRef.current
+    if (!el) return
 
     e.preventDefault()
     windowActions.focus(id)
 
-    const element = windowRef.current
-    if (!element) return
+    const handle = e.currentTarget
+    handle.setPointerCapture(e.pointerId)
+    const offsetX = e.clientX - bounds.x
+    const offsetY = e.clientY - bounds.y
+    let next: WindowBounds = { ...bounds }
 
-    element.setPointerCapture(e.pointerId)
-    element.style.willChange = "transform"
-
-    const startX = e.clientX - bounds.x
-    const startY = e.clientY - bounds.y
-
-    let currentX = bounds.x
-    let currentY = bounds.y
-
-    const onPointerMove = (moveEvt: PointerEvent) => {
+    const onMove = (ev: PointerEvent) => {
       const vw = window.innerWidth
-      currentX = Math.min(vw - 80, Math.max(80 - bounds.w, moveEvt.clientX - startX))
-      currentY = Math.max(28, moveEvt.clientY - startY)
-
-      setBounds(prev => ({ ...prev, x: currentX, y: currentY }))
+      const vh = window.innerHeight
+      next = {
+        ...next,
+        x: Math.min(vw - 80, Math.max(80 - bounds.w, ev.clientX - offsetX)),
+        y: Math.min(vh - 60, Math.max(MENUBAR_HEIGHT, ev.clientY - offsetY)),
+      }
+      el.style.left = `${next.x}px`
+      el.style.top = `${next.y}px`
     }
 
-    const onPointerUp = (upEvt: PointerEvent) => {
-      element.releasePointerCapture(upEvt.pointerId)
-      element.style.willChange = ""
-      element.removeEventListener("pointermove", onPointerMove)
-      element.removeEventListener("pointerup", onPointerUp)
-      element.removeEventListener("pointercancel", onPointerUp)
-
-      windowActions.commitBounds(id, {
-        x: currentX,
-        y: currentY,
-        w: bounds.w,
-        h: bounds.h,
-      })
+    const onUp = (ev: PointerEvent) => {
+      handle.releasePointerCapture(ev.pointerId)
+      handle.removeEventListener("pointermove", onMove)
+      handle.removeEventListener("pointerup", onUp)
+      handle.removeEventListener("pointercancel", onUp)
+      if (next.x !== bounds.x || next.y !== bounds.y) windowActions.commitBounds(id, next)
     }
 
-    element.addEventListener("pointermove", onPointerMove)
-    element.addEventListener("pointerup", onPointerUp)
-    element.addEventListener("pointercancel", onPointerUp)
+    handle.addEventListener("pointermove", onMove)
+    handle.addEventListener("pointerup", onUp)
+    handle.addEventListener("pointercancel", onUp)
   }
 
-  // ── Resize Logic ────────────────────────────────────────────────────────────
-  const handleResizePointerDown = (e: React.PointerEvent) => {
-    if (windowInstance.isMaximized || e.button !== 0) return
+  // ── Resize ────────────────────────────────────────────────────────────────
+  const startResize = (dir: ResizeDir) => (e: React.PointerEvent<HTMLDivElement>) => {
+    if (win.isMaximized || e.button !== 0) return
+    const el = frameRef.current
+    if (!el) return
+
     e.preventDefault()
     e.stopPropagation()
     windowActions.focus(id)
 
+    const handle = e.currentTarget
+    handle.setPointerCapture(e.pointerId)
     const startX = e.clientX
     const startY = e.clientY
-    const startW = bounds.w
-    const startH = bounds.h
+    let next: WindowBounds = { ...bounds }
 
-    let currentW = startW
-    let currentH = startH
-
-    const onMove = (moveEvt: PointerEvent) => {
-      const minW = meta?.minSize.w || 400
-      const minH = meta?.minSize.h || 300
-      currentW = Math.max(minW, startW + (moveEvt.clientX - startX))
-      currentH = Math.max(minH, startH + (moveEvt.clientY - startY))
-
-      setBounds(prev => ({ ...prev, w: currentW, h: currentH }))
+    const onMove = (ev: PointerEvent) => {
+      const maxW = window.innerWidth - bounds.x - 4
+      const maxH = window.innerHeight - bounds.y - 4
+      if (dir !== "s") next.w = Math.min(maxW, Math.max(minW, bounds.w + ev.clientX - startX))
+      if (dir !== "e") next.h = Math.min(maxH, Math.max(minH, bounds.h + ev.clientY - startY))
+      el.style.width = `${next.w}px`
+      el.style.height = `${next.h}px`
     }
 
-    const onUp = () => {
-      window.removeEventListener("pointermove", onMove)
-      window.removeEventListener("pointerup", onUp)
-      windowActions.commitBounds(id, {
-        x: bounds.x,
-        y: bounds.y,
-        w: currentW,
-        h: currentH,
-      })
+    const onUp = (ev: PointerEvent) => {
+      handle.releasePointerCapture(ev.pointerId)
+      handle.removeEventListener("pointermove", onMove)
+      handle.removeEventListener("pointerup", onUp)
+      handle.removeEventListener("pointercancel", onUp)
+      if (next.w !== bounds.w || next.h !== bounds.h) windowActions.commitBounds(id, next)
     }
 
-    window.addEventListener("pointermove", onMove)
-    window.addEventListener("pointerup", onUp)
+    handle.addEventListener("pointermove", onMove)
+    handle.addEventListener("pointerup", onUp)
+    handle.addEventListener("pointercancel", onUp)
   }
 
   return (
-    <motion.div
-      ref={windowRef}
+    <div
+      ref={frameRef}
       role="dialog"
-      aria-label={meta?.name || id}
+      aria-label={windowTitleOf(id)}
+      aria-hidden={minimized || undefined}
       onPointerDownCapture={() => !focused && windowActions.focus(id)}
-      initial={{ scale: 0.94, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      exit={{ scale: 0.94, opacity: 0 }}
-      transition={{ duration: 0.2, ease: "easeOut" }}
       style={{
         position: "fixed",
         left: bounds.x,
@@ -148,101 +143,100 @@ export function AppWindow({ id, zIndex, focused, children }: AppWindowProps) {
         width: bounds.w,
         height: bounds.h,
         zIndex,
-        boxShadow: focused
-          ? "0 22px 70px 4px rgba(0,0,0,0.45), 0 0 1px rgba(0,0,0,0.3)"
-          : "0 10px 30px 2px rgba(0,0,0,0.25), 0 0 1px rgba(0,0,0,0.3)",
+        pointerEvents: minimized ? "none" : "auto",
       }}
-      className="pointer-events-auto flex flex-col overflow-hidden rounded-[10px] bg-[#f6f6f8] dark:bg-[#1e1e24] text-[#1d1d1f] dark:text-[#f5f5f7] border border-black/10 dark:border-white/15 shadow-2xl backdrop-blur-3xl select-none"
     >
-      {/* ── Titlebar Chrome ─────────────────────────────────────────────────── */}
-      <div
-        onPointerDown={handleTitlePointerDown}
-        onDoubleClick={() => windowActions.toggleMaximize(id)}
-        className="relative flex h-10 shrink-0 items-center justify-between border-b border-black/10 dark:border-white/10 bg-[#eaebee] dark:bg-[#282830] px-3 cursor-default"
+      <motion.div
+        initial={{ scale: 0.94, opacity: 0 }}
+        animate={
+          minimized
+            ? { scale: 0.12, opacity: 0, x: minimizeTarget.x, y: minimizeTarget.y, transitionEnd: { visibility: "hidden" } }
+            : { scale: 1, opacity: 1, x: 0, y: 0, visibility: "visible" }
+        }
+        exit={{ scale: 0.94, opacity: 0, transition: { duration: 0.15 } }}
+        transition={{ duration: minimized ? 0.32 : 0.2, ease: [0.16, 1, 0.3, 1] }}
+        className="flex h-full w-full flex-col overflow-hidden rounded-[10px] border border-black/15 bg-[#f6f6f8] text-[#1d1d1f] dark:border-white/15 dark:bg-[#1e1e24] dark:text-[#f5f5f7]"
+        style={{
+          boxShadow: focused
+            ? "0 22px 70px 4px rgba(0,0,0,0.45), 0 0 1px rgba(0,0,0,0.3)"
+            : "0 10px 30px 2px rgba(0,0,0,0.25), 0 0 1px rgba(0,0,0,0.3)",
+        }}
       >
-        {/* macOS Traffic Lights */}
-        <div className="group flex items-center gap-2" data-no-drag>
-          {/* Close Button */}
-          <button
-            onClick={() => windowActions.close(id)}
-            aria-label="Close window"
-            className={`relative flex size-3 items-center justify-center rounded-full transition-colors ${
-              focused ? "bg-[#ff5f57]" : "bg-[#c9c9cd] dark:bg-[#444448] group-hover:bg-[#ff5f57]"
-            } ring-1 ring-inset ring-black/15`}
-          >
-            <svg
-              viewBox="0 0 10 10"
-              className="size-1.5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
-            >
-              <path d="M2 2 L8 8 M8 2 L2 8" stroke="#7d1d17" strokeWidth="1.5" strokeLinecap="round" />
-            </svg>
-          </button>
-
-          {/* Minimize Button */}
-          <button
-            onClick={() => windowActions.minimize(id)}
-            aria-label="Minimize window"
-            className={`relative flex size-3 items-center justify-center rounded-full transition-colors ${
-              focused ? "bg-[#febc2e]" : "bg-[#c9c9cd] dark:bg-[#444448] group-hover:bg-[#febc2e]"
-            } ring-1 ring-inset ring-black/15`}
-          >
-            <svg
-              viewBox="0 0 10 10"
-              className="size-1.5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
-            >
-              <path d="M1.5 5 L8.5 5" stroke="#8d5a10" strokeWidth="1.8" strokeLinecap="round" />
-            </svg>
-          </button>
-
-          {/* Zoom / Maximize Button */}
-          <button
-            onClick={() => windowActions.toggleMaximize(id)}
-            aria-label="Zoom window"
-            className={`relative flex size-3 items-center justify-center rounded-full transition-colors ${
-              focused ? "bg-[#28c840]" : "bg-[#c9c9cd] dark:bg-[#444448] group-hover:bg-[#28c840]"
-            } ring-1 ring-inset ring-black/15`}
-          >
-            <svg
-              viewBox="0 0 10 10"
-              className="size-1.5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
-            >
-              <path
-                d="M2.5 5.5 L2.5 2.5 L5.5 2.5 M7.5 4.5 L7.5 7.5 L4.5 7.5"
-                stroke="#0d5e1c"
-                strokeWidth="1.4"
-                fill="none"
-                strokeLinecap="round"
-              />
-            </svg>
-          </button>
-        </div>
-
-        {/* Centered Window Title */}
-        <div className="absolute inset-x-0 flex items-center justify-center pointer-events-none">
-          <span className="text-[13px] font-semibold tracking-tight text-neutral-800 dark:text-neutral-100 truncate max-w-[50%]">
-            {meta?.name || id}
-          </span>
-        </div>
-
-        {/* Right Title Spacer */}
-        <div className="w-12" />
-      </div>
-
-      {/* ── Window Content ──────────────────────────────────────────────────── */}
-      <div className="relative flex-1 min-h-0 overflow-auto selectable bg-[#ffffff] dark:bg-[#16161b] text-neutral-900 dark:text-neutral-100">
-        <AppErrorBoundary>
-          {children}
-        </AppErrorBoundary>
-      </div>
-
-      {/* ── Bottom Right Resize Handle ──────────────────────────────────────── */}
-      {!windowInstance.isMaximized && (
+        {/* ── Title bar ─────────────────────────────────────────────────────── */}
         <div
-          onPointerDown={handleResizePointerDown}
-          className="absolute bottom-0 right-0 size-4 cursor-se-resize select-none"
-          aria-hidden="true"
-        />
+          onPointerDown={handleTitlePointerDown}
+          onDoubleClick={e => {
+            if (!(e.target as HTMLElement).closest("button")) windowActions.toggleMaximize(id)
+          }}
+          className="relative flex h-10 shrink-0 cursor-default select-none items-center justify-between border-b border-black/10 bg-[#eaebee] px-3 touch-none dark:border-white/10 dark:bg-[#28282f]"
+        >
+          <div className="group relative z-10 flex items-center gap-2" data-no-drag>
+            <TrafficLight color="#ff5f57" focused={focused} label="Close window" onClick={() => windowActions.close(id)}>
+              <path d="M2 2 L8 8 M8 2 L2 8" stroke="#7d1d17" strokeWidth="1.5" strokeLinecap="round" />
+            </TrafficLight>
+            <TrafficLight color="#febc2e" focused={focused} label="Minimize window" onClick={() => windowActions.minimize(id)}>
+              <path d="M1.5 5 L8.5 5" stroke="#8d5a10" strokeWidth="1.8" strokeLinecap="round" />
+            </TrafficLight>
+            <TrafficLight color="#28c840" focused={focused} label="Zoom window" onClick={() => windowActions.toggleMaximize(id)}>
+              <path d="M2.5 5.5 L2.5 2.5 L5.5 2.5 M7.5 4.5 L7.5 7.5 L4.5 7.5" stroke="#0d5e1c" strokeWidth="1.4" fill="none" strokeLinecap="round" />
+            </TrafficLight>
+          </div>
+
+          <div className="pointer-events-none absolute inset-x-0 flex items-center justify-center">
+            <span
+              className={`max-w-[55%] truncate text-[13px] font-semibold tracking-tight ${
+                focused ? "text-neutral-800 dark:text-neutral-100" : "text-neutral-400 dark:text-neutral-500"
+              }`}
+            >
+              {windowTitleOf(id)}
+            </span>
+          </div>
+          <div className="w-12" />
+        </div>
+
+        {/* ── Content ───────────────────────────────────────────────────────── */}
+        <div className="selectable relative min-h-0 flex-1 overflow-auto bg-white text-neutral-900 dark:bg-[#16161b] dark:text-neutral-100">
+          <AppErrorBoundary>{children}</AppErrorBoundary>
+        </div>
+      </motion.div>
+
+      {/* ── Resize handles ──────────────────────────────────────────────────── */}
+      {!win.isMaximized && !minimized && (
+        <>
+          <div onPointerDown={startResize("e")} className="absolute -right-1 top-3 bottom-3 w-2 cursor-ew-resize touch-none" aria-hidden="true" />
+          <div onPointerDown={startResize("s")} className="absolute -bottom-1 left-3 right-3 h-2 cursor-ns-resize touch-none" aria-hidden="true" />
+          <div onPointerDown={startResize("se")} className="absolute -bottom-1 -right-1 size-4 cursor-nwse-resize touch-none" aria-hidden="true" />
+        </>
       )}
-    </motion.div>
+    </div>
+  )
+}
+
+function TrafficLight({
+  color,
+  focused,
+  label,
+  onClick,
+  children,
+}: {
+  color: string
+  focused: boolean
+  label: string
+  onClick: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      onClick={onClick}
+      aria-label={label}
+      className="relative flex size-3 items-center justify-center rounded-full ring-1 ring-inset ring-black/15 transition-colors"
+      style={{ background: focused ? color : undefined }}
+    >
+      {!focused && <span className="absolute inset-0 rounded-full bg-[#c9c9cd] group-hover:hidden dark:bg-[#4a4a50]" />}
+      {!focused && <span className="absolute inset-0 hidden rounded-full group-hover:block" style={{ background: color }} />}
+      <svg viewBox="0 0 10 10" className="pointer-events-none relative size-1.5 opacity-0 transition-opacity group-hover:opacity-100">
+        {children}
+      </svg>
+    </button>
   )
 }

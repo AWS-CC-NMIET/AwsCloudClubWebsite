@@ -1,18 +1,11 @@
 // lib/aws-widgets.ts
-// Desktop widgets registry, store and grid geometry for AWS SBG NMIET AWS Cloud OS
+// Desktop widgets registry, store and grid geometry for the AWS SBG NMIET Cloud OS
 
 "use client"
 
 import React, { useSyncExternalStore } from "react"
-import { type AppId } from "./aws-apps"
 
-export type WidgetId =
-  | "aws-status"
-  | "clock-cities"
-  | "calendar"
-  | "now-playing"
-  | "portfolio"
-  | "certifications"
+export type WidgetId = "next-event" | "club-stats" | "clock-cities" | "calendar" | "now-playing"
 
 export type WidgetSize = "small" | "medium" | "large"
 
@@ -52,56 +45,49 @@ export function widgetPxSize(size: WidgetSize): { w: number; h: number } {
 }
 
 export const WIDGET_DEFINITIONS: Record<WidgetId, WidgetDefinition> = {
-  "aws-status": {
-    id: "aws-status",
-    name: "AWS Cloud Status",
-    description: "Live operational telemetry for ap-south-1 & us-east-1 regions.",
+  "next-event": {
+    id: "next-event",
+    name: "Next Event",
+    description: "The next AWS SBG NMIET event from Meetup. Opens Events.",
+    sizes: ["medium"],
+    defaultSize: "medium",
+  },
+  "club-stats": {
+    id: "club-stats",
+    name: "Club at a Glance",
+    description: "Live member count, team, projects and events.",
     sizes: ["medium"],
     defaultSize: "medium",
   },
   "clock-cities": {
     id: "clock-cities",
-    name: "Builder Clocks",
-    description: "Dual clocks for Mumbai (Campus) & Seattle (AWS HQ).",
+    name: "World Clock",
+    description: "Pune (campus) and Seattle (AWS headquarters).",
     sizes: ["small", "medium"],
     defaultSize: "medium",
   },
   calendar: {
     id: "calendar",
-    name: "Chapter Calendar",
-    description: "Today's date and upcoming cloud bootcamps. Opens Calendar.",
+    name: "Calendar",
+    description: "Today's date and the next event. Opens Events.",
     sizes: ["small"],
     defaultSize: "small",
   },
   "now-playing": {
     id: "now-playing",
     name: "AWS SBG Radio",
-    description: "Lo-Fi Beats to Architect To, wired to real player audio.",
-    sizes: ["medium"],
-    defaultSize: "medium",
-  },
-  portfolio: {
-    id: "portfolio",
-    name: "Cloud Architectures",
-    description: "Member projects, deployed serverless apps and repos. Opens Finder.",
-    sizes: ["small", "medium"],
-    defaultSize: "small",
-  },
-  certifications: {
-    id: "certifications",
-    name: "Certifications & Awards",
-    description: "AWS certification badges, hackathon wins and member stats.",
+    description: "Play or pause the background music.",
     sizes: ["medium"],
     defaultSize: "medium",
   },
 }
 
 export const DEFAULT_WIDGETS: WidgetInstance[] = [
-  { id: "aws-status", size: "medium", x: 0, y: 0 },
+  { id: "next-event", size: "medium", x: 0, y: 0 },
   { id: "calendar", size: "small", x: 348, y: 0 },
-  { id: "clock-cities", size: "medium", x: 0, y: 174 },
-  { id: "portfolio", size: "small", x: 348, y: 174 },
-  { id: "now-playing", size: "medium", x: 0, y: 348 },
+  { id: "club-stats", size: "medium", x: 0, y: 174 },
+  { id: "clock-cities", size: "medium", x: 0, y: 348 },
+  { id: "now-playing", size: "medium", x: 0, y: 522 },
 ]
 
 // ── Widget Store ───────────────────────────────────────────────────────────────
@@ -133,7 +119,8 @@ function createStore<T>(initialState: T) {
   }
 }
 
-const STORAGE_KEY = "aws-os:widgets"
+// v2: widget ids changed when the placeholder widgets were replaced
+const STORAGE_KEY = "aws-os:widgets:v2"
 
 const widgetStore = createStore<WidgetStoreState>({
   widgets: DEFAULT_WIDGETS,
@@ -146,9 +133,13 @@ if (typeof window !== "undefined") {
     const saved = localStorage.getItem(STORAGE_KEY)
     if (saved) {
       const parsed = JSON.parse(saved)
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        widgetStore.set({ widgets: parsed })
-      }
+      const valid = Array.isArray(parsed)
+        ? parsed.filter(
+            (w): w is WidgetInstance =>
+              w && w.id in WIDGET_DEFINITIONS && typeof w.x === "number" && typeof w.y === "number" && w.size in WIDGET_GRID_SIZE
+          )
+        : []
+      if (valid.length > 0) widgetStore.set({ widgets: valid })
     }
   } catch {}
 }
