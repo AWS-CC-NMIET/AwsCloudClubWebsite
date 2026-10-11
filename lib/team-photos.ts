@@ -2,4 +2,5 @@
 // Maps team member id → processed photo in /public/team.
 
 export const TEAM_PHOTOS: Record<string, string> = {
+  "m-neha": "/team/m-neha.webp",
 }

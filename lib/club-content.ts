@@ -146,7 +146,7 @@ const gh = (handle: string) => `https://github.com/${handle}`
 
 const ROSTER: Omit<TeamMember, "status" | "photoUrl">[] = [
   // Captain
-  { id: "m-neha", order: 1, name: "Neha Sharma", role: "SBG Captain", skills: ["Cloud Architecture", "Leadership", "Organizing"], email: "neha48330707@gmail.com", github: gh("neha4833"), linkedin: li("neha-sharma-sbg"), awsService: "AWS Cloud" },
+  { id: "m-neha", order: 1, name: "Neha Sharma", role: "SBG Captain", skills: ["AWS Cloud Computing", "Python", "Machine Learning", "Generative AI", "Docker", "Kubernetes", "MLOps"], email: "neha48330707@gmail.com", github: gh("NehaSama4833"), linkedin: li("neha-sharma-b08737316"), awsService: "AWS Cloud" },
 
   // Team leads
   { id: "m-sarthakg", order: 2, name: "Sarthak Suhas Godse", role: "Tech Team Lead", skills: ["AWS", "DevOps", "Infrastructure"], email: "sarthakgodse03@gmail.com", github: gh("Sarthak030506"), linkedin: li("sarthak-godse-7484b4290"), awsService: "Amazon EC2" },

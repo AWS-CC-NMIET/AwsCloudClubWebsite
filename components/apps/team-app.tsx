@@ -4,7 +4,7 @@
 
 "use client"
 
-import React, { useEffect, useMemo, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useState } from "react"
 import { AnimatePresence, LayoutGroup, motion } from "framer-motion"
 import {
   Activity,
@@ -386,18 +386,64 @@ function Livery({ team }: { team: TeamGroup }) {
   )
 }
 
+/** True when the image has a transparent corner, i.e. it's a cut-out portrait. */
+function isCutout(img: HTMLImageElement) {
+  try {
+    const canvas = document.createElement("canvas")
+    canvas.width = 16
+    canvas.height = 20
+    const ctx = canvas.getContext("2d", { willReadFrequently: true })
+    if (!ctx) return false
+    ctx.drawImage(img, 0, 0, 16, 20)
+    const corners = [ctx.getImageData(0, 0, 1, 1), ctx.getImageData(15, 0, 1, 1)]
+    return corners.every(px => px.data[3] < 16)
+  } catch {
+    return false // cross-origin (e.g. an uploaded photo) — treat as a regular photo
+  }
+}
+
+const FADE_BOTTOM = "linear-gradient(to bottom, #000 60%, transparent 98%)"
+const VIGNETTE = "radial-gradient(ellipse 78% 72% at 50% 38%, #000 52%, transparent 100%)"
+
 function Portrait({ member, team, large = false }: { member: TeamMember; team: TeamGroup; large?: boolean }) {
+  const [kind, setKind] = useState<"loading" | "cutout" | "photo">("loading")
+  const onImage = useCallback((img: HTMLImageElement | null) => {
+    if (img?.complete && img.naturalWidth > 0) setKind(isCutout(img) ? "cutout" : "photo")
+  }, [])
+
   if (member.photoUrl) {
+    // Cut-outs stand on the livery like a driver card; regular photos are
+    // vignetted into it so they still read like a printed card.
+    const mask = kind === "cutout" ? FADE_BOTTOM : VIGNETTE
     return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={member.photoUrl}
-        alt=""
-        loading="lazy"
-        decoding="async"
-        className="absolute inset-x-0 bottom-0 h-[86%] w-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.04]"
-        style={{ maskImage: "linear-gradient(to bottom, #000 62%, transparent 100%)", WebkitMaskImage: "linear-gradient(to bottom, #000 62%, transparent 100%)" }}
-      />
+      <>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          ref={onImage}
+          src={member.photoUrl}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          onLoad={e => setKind(isCutout(e.currentTarget) ? "cutout" : "photo")}
+          onError={() => setKind("photo")}
+          className={cn(
+            "absolute inset-x-0 bottom-0 w-full object-cover object-top transition-[transform,opacity] duration-500 group-hover:scale-[1.04]",
+            kind === "cutout" ? "h-[94%] drop-shadow-[0_12px_28px_rgba(0,0,0,0.45)]" : "h-[90%]",
+            kind === "loading" ? "opacity-0" : "opacity-100"
+          )}
+          style={{ maskImage: mask, WebkitMaskImage: mask, transformOrigin: "50% 100%" }}
+        />
+        {kind === "photo" && (
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 mix-blend-soft-light"
+            style={{ background: `linear-gradient(165deg, ${TEAM_LIVERY[team].color}aa, transparent 55%)` }}
+          />
+        )}
+        {kind === "cutout" && large && (
+          <span aria-hidden="true" className="pointer-events-none absolute inset-x-[15%] bottom-[8%] h-1/3 rounded-full bg-white/20 blur-3xl" />
+        )}
+      </>
     )
   }
   return (
